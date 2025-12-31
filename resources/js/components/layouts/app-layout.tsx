@@ -1,0 +1,310 @@
+import { Link, usePage } from '@inertiajs/react';
+import {
+    LayoutDashboard,
+    Users,
+    Baby,
+    ClipboardList,
+    FileText,
+    BarChart3,
+    Settings,
+    LogOut,
+    Menu,
+    X,
+    Bell,
+    ChevronDown,
+    Utensils,
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import type { User } from '@/types/models';
+
+interface AppLayoutProps {
+    children: React.ReactNode;
+    title?: string;
+}
+
+interface NavItem {
+    label: string;
+    href: string;
+    icon: React.ReactNode;
+    active?: boolean;
+}
+
+const navItems: NavItem[] = [
+    { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+    { label: 'Parents', href: '/parents', icon: <Users className="h-5 w-5" /> },
+    { label: 'Children', href: '/children', icon: <Baby className="h-5 w-5" /> },
+    { label: 'PMT Programs', href: '/pmt', icon: <ClipboardList className="h-5 w-5" /> },
+    { label: 'ASQ-3 Screenings', href: '/screenings', icon: <FileText className="h-5 w-5" /> },
+    { label: 'Reports', href: '/reports', icon: <BarChart3 className="h-5 w-5" /> },
+    { label: 'Kelola Makanan', href: '/foods', icon: <Utensils className="h-5 w-5" /> },
+];
+
+const bottomNavItems: NavItem[] = [
+    { label: 'Settings', href: '/settings', icon: <Settings className="h-5 w-5" /> },
+];
+
+export default function AppLayout({ children, title }: AppLayoutProps) {
+    const { auth } = usePage<{ auth: { user: User | null } }>().props;
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('sidebarCollapsed') === 'true';
+        }
+        return false;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('sidebarCollapsed', String(sidebarCollapsed));
+    }, [sidebarCollapsed]);
+
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+
+    return (
+        <div className="min-h-screen bg-background">
+            {/* Mobile sidebar overlay */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
+            {/* Sidebar */}
+            <aside
+                className={cn(
+                    "fixed inset-y-0 left-0 z-50 transform bg-card border-r transition-all duration-300 ease-in-out lg:translate-x-0",
+                    sidebarCollapsed ? "lg:w-[72px]" : "w-64",
+                    sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"
+                )}
+            >
+                <div className="flex h-full flex-col">
+                    {/* Logo & Collapse Toggle */}
+                    <div className="flex h-16 items-center justify-between border-b px-3">
+                        <div className="flex items-center gap-2">
+                            {/* Collapse toggle button - Desktop only */}
+                            <button
+                                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                                className="hidden lg:flex p-2 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                            >
+                                <Menu className="h-5 w-5" />
+                            </button>
+                            <Link href="/dashboard" className="flex items-center gap-2">
+                                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+                                    <Baby className="h-5 w-5 text-primary-foreground" />
+                                </div>
+                                {(!sidebarCollapsed || sidebarOpen) && (
+                                    <span className="text-lg font-bold text-foreground">JagoanBunda</span>
+                                )}
+                            </Link>
+                        </div>
+                        <button
+                            className="lg:hidden"
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    {/* Navigation */}
+                    <nav className="flex-1 space-y-1 p-4">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={cn(
+                                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                                    sidebarCollapsed && !sidebarOpen && "lg:justify-center lg:px-2",
+                                    currentPath.startsWith(item.href)
+                                        ? "bg-primary text-primary-foreground"
+                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                )}
+                                title={sidebarCollapsed ? item.label : undefined}
+                            >
+                                {item.icon}
+                                {(!sidebarCollapsed || sidebarOpen) && item.label}
+                            </Link>
+                        ))}
+                    </nav>
+
+
+                    {/* Bottom nav items */}
+                    <div className="border-t p-4 space-y-1">
+                        {bottomNavItems.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={cn(
+                                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                                    sidebarCollapsed && !sidebarOpen && "lg:justify-center lg:px-2",
+                                    currentPath.startsWith(item.href)
+                                        ? "bg-primary text-primary-foreground"
+                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                )}
+                                title={sidebarCollapsed ? item.label : undefined}
+                            >
+                                {item.icon}
+                                {(!sidebarCollapsed || sidebarOpen) && item.label}
+                            </Link>
+                        ))}
+                        <Link
+                            href="/logout"
+                            method="post"
+                            as="button"
+                            className={cn(
+                                "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors",
+                                sidebarCollapsed && !sidebarOpen && "lg:justify-center lg:px-2"
+                            )}
+                            title={sidebarCollapsed ? 'Logout' : undefined}
+                        >
+                            <LogOut className="h-5 w-5" />
+                            {(!sidebarCollapsed || sidebarOpen) && 'Logout'}
+                        </Link>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Main content */}
+            <div className={cn(
+                "transition-all duration-300",
+                sidebarCollapsed ? "lg:pl-[72px]" : "lg:pl-64"
+            )}>
+                {/* Header */}
+                <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-6">
+                    <button
+                        className="lg:hidden"
+                        onClick={() => setSidebarOpen(true)}
+                    >
+                        <Menu className="h-5 w-5" />
+                    </button>
+
+                    {title && (
+                        <h1 className="text-lg font-semibold">{title}</h1>
+                    )}
+
+                    <div className="ml-auto flex items-center gap-4">
+                        {/* Notifications */}
+                        <Button variant="ghost" size="icon" className="relative">
+                            <Bell className="h-5 w-5" />
+                            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
+                                3
+                            </span>
+                        </Button>
+
+                        {/* User menu */}
+                        <div className="relative">
+                            <button
+                                className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted transition-colors"
+                                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                            >
+                                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+                                    <span className="text-sm font-medium text-primary-foreground">
+                                        {auth?.user?.full_name?.charAt(0) || 'A'}
+                                    </span>
+                                </div>
+                                <span className="hidden sm:block text-sm font-medium">
+                                    {auth?.user?.full_name || 'Admin'}
+                                </span>
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            </button>
+
+                            {userMenuOpen && (
+                                <div className="absolute right-0 mt-2 w-48 rounded-md border bg-card shadow-lg">
+                                    <div className="p-2">
+                                        <Link
+                                            href="/profile"
+                                            className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
+                                        >
+                                            Profile
+                                        </Link>
+                                        <Link
+                                            href="/settings"
+                                            className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
+                                        >
+                                            Settings
+                                        </Link>
+                                        <hr className="my-2" />
+                                        <Link
+                                            href="/logout"
+                                            method="post"
+                                            as="button"
+                                            className="block w-full text-left rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+                                        >
+                                            Logout
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </header>
+
+                {/* Page content */}
+                <main className="p-4 lg:p-6">
+                    {children}
+                </main>
+            </div>
+
+            {/* Mobile bottom navigation */}
+            <nav className="fixed bottom-0 left-0 right-0 z-40 border-t bg-card lg:hidden">
+                <div className="flex items-center justify-around h-16">
+                    <Link
+                        href="/dashboard"
+                        className={cn(
+                            "flex flex-col items-center gap-1 px-3 py-2",
+                            currentPath === '/dashboard' ? "text-primary" : "text-muted-foreground"
+                        )}
+                    >
+                        <LayoutDashboard className="h-5 w-5" />
+                        <span className="text-xs">Home</span>
+                    </Link>
+                    <Link
+                        href="/parents"
+                        className={cn(
+                            "flex flex-col items-center gap-1 px-3 py-2",
+                            currentPath.startsWith('/parents') ? "text-primary" : "text-muted-foreground"
+                        )}
+                    >
+                        <Users className="h-5 w-5" />
+                        <span className="text-xs">Parents</span>
+                    </Link>
+                    <Link
+                        href="/children"
+                        className={cn(
+                            "flex flex-col items-center gap-1 px-3 py-2 -mt-4",
+                            currentPath.startsWith('/children') ? "text-primary" : "text-muted-foreground"
+                        )}
+                    >
+                        <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                            <Baby className="h-6 w-6 text-primary-foreground" />
+                        </div>
+                        <span className="text-xs mt-1">Children</span>
+                    </Link>
+                    <Link
+                        href="/pmt"
+                        className={cn(
+                            "flex flex-col items-center gap-1 px-3 py-2",
+                            currentPath.startsWith('/pmt') ? "text-primary" : "text-muted-foreground"
+                        )}
+                    >
+                        <ClipboardList className="h-5 w-5" />
+                        <span className="text-xs">Programs</span>
+                    </Link>
+                    <button
+                        onClick={() => setSidebarOpen(true)}
+                        className="flex flex-col items-center gap-1 px-3 py-2 text-muted-foreground"
+                    >
+                        <Menu className="h-5 w-5" />
+                        <span className="text-xs">More</span>
+                    </button>
+                </div>
+            </nav>
+
+            {/* Add padding for mobile nav */}
+            <div className="h-16 lg:hidden" />
+        </div>
+    );
+}
