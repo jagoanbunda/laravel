@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -24,10 +25,14 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'name' => fake('id_ID')->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'phone' => fake('id_ID')->phoneNumber(),
+            'avatar_url' => null,
+            'push_notifications' => fake()->boolean(80),
+            'weekly_report' => fake()->boolean(30),
             'remember_token' => Str::random(10),
         ];
     }
@@ -37,8 +42,19 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Create a user with notifications enabled.
+     */
+    public function withNotifications(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'push_notifications' => true,
+            'weekly_report' => true,
         ]);
     }
 }
