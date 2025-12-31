@@ -1,0 +1,594 @@
+// =====================================================
+// DATABASE SCHEMA UNTUK KREANOVA MOBILE APP
+// DBML Format - https://dbml.dbdiagram.io
+// =====================================================
+
+Project kreanova {
+  database_type: 'MySQL'
+  Note: '''
+    # KREANOVA Mobile App Database
+
+    Aplikasi tracking nutrisi anak, pertumbuhan,
+    screening perkembangan (ASQ-3), dan program PMT.
+
+    **Fitur Utama:**
+    - Authentication & User Management
+    - Child Profile Management
+    - Food & Nutrition Tracking
+    - Anthropometry Measurements
+    - ASQ-3 Developmental Screening
+    - PMT (Pemberian Makanan Tambahan) Tracking
+  '''
+}
+
+// =====================================================
+// 1. AUTHENTICATION & USER MANAGEMENT
+// =====================================================
+
+Table users {
+  id bigint [pk, increment]
+  email varchar(255) [not null, unique, note: 'Email untuk login']
+  password varchar(255) [not null]
+  full_name varchar(255) [not null]
+  phone varchar(20)
+  avatar_url varchar(500)
+
+  // Preferences
+  push_notifications boolean [default: true, note: 'Notifikasi push aktif']
+  weekly_report boolean [default: false, note: 'Laporan mingguan via email']
+
+  // Timestamps
+  email_verified_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default:  `CURRENT_TIMESTAMP`]
+  deleted_at timestamp [note: 'Soft delete']
+
+  indexes {
+    email [name: 'idx_users_email']
+  }
+
+  Note: 'Tabel orang tua/pengasuh yang menggunakan aplikasi'
+}
+
+Table personal_access_tokens {
+  id bigint [pk, increment]
+  tokenable_type varchar(255) [not null]
+  tokenable_id bigint [not null]
+  name varchar(255) [not null, note: 'Device name, e.g.  kreanova-mobile']
+  token varchar(64) [not null, unique, note: 'Hashed token']
+  abilities text [note: 'JSON array of abilities']
+  last_used_at timestamp
+  expires_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (tokenable_type, tokenable_id) [name: 'idx_pat_tokenable']
+    token [name: 'idx_pat_token']
+  }
+
+  Note: 'Laravel Sanctum personal access tokens'
+}
+
+// =====================================================
+// 2. CHILDREN (ANAK)
+// =====================================================
+
+Table children {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+
+  name varchar(255) [not null]
+  date_of_birth date [not null]
+  gender gender_enum [not null]
+  avatar_url varchar(500)
+
+  // Data Saat Lahir
+  birth_weight decimal(5,2) [note: 'Berat lahir dalam kg']
+  birth_height decimal(5,2) [note: 'Panjang lahir dalam cm']
+  birth_head_circumference decimal(5,2) [note: 'Lingkar kepala lahir dalam cm']
+
+  // Status
+  is_active boolean [default: true]
+
+  // Timestamps
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+  deleted_at timestamp [note: 'Soft delete']
+
+  indexes {
+    user_id [name: 'idx_children_user']
+    date_of_birth [name: 'idx_children_dob']
+  }
+
+  Note: 'Data anak yang dipantau tumbuh kembangnya'
+}
+
+Enum gender_enum {
+  male
+  female
+  other
+}
+
+// =====================================================
+// 3. FOOD & NUTRITION TRACKING
+// =====================================================
+
+Table foods {
+  id bigint [pk, increment]
+  name varchar(255) [not null]
+  category varchar(100) [note: 'Karbohidrat, Protein, Sayur, Buah, dll']
+  icon varchar(100) [note: 'Nama icon untuk UI (Material Icons)']
+
+  // Nutrisi per serving
+  serving_size decimal(8,2) [default: 100, note: 'Ukuran porsi dalam gram']
+  calories decimal(8,2) [not null, note: 'Energi dalam kkal']
+  protein decimal(8,2) [not null, note: 'Protein dalam gram']
+  fat decimal(8,2) [not null, note: 'Lemak dalam gram']
+  carbohydrate decimal(8,2) [not null, note: 'Karbohidrat dalam gram']
+  fiber decimal(8,2) [note: 'Serat dalam gram']
+  sugar decimal(8,2) [note: 'Gula dalam gram']
+
+  // Status
+  is_active boolean [default: true]
+  is_system boolean [default: true, note: 'TRUE = makanan bawaan sistem']
+  created_by bigint [ref:  > users.id, note: 'NULL jika makanan sistem']
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    name [name: 'idx_foods_name']
+    category [name: 'idx_foods_category']
+  }
+
+  Note: 'Master data makanan dengan informasi nutrisi'
+}
+
+Table food_logs {
+  id bigint [pk, increment]
+  child_id bigint [not null, ref:  > children.id]
+
+  log_date date [not null]
+  meal_time meal_time_enum [not null]
+
+  // Total Nutrisi (dihitung dari items)
+  total_calories decimal(10,2) [default: 0]
+  total_protein decimal(10,2) [default: 0]
+  total_fat decimal(10,2) [default: 0]
+  total_carbohydrate decimal(10,2) [default: 0]
+
+  notes text
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (child_id, log_date) [name: 'idx_food_logs_child_date']
+    (child_id, log_date, meal_time) [unique, name: 'uk_food_logs_unique']
+  }
+
+  Note: 'Log makanan harian per waktu makan'
+}
+
+Enum meal_time_enum {
+  pagi [note: 'Sarapan']
+  siang [note: 'Makan Siang']
+  malam [note: 'Makan Malam']
+  snack [note: 'Makanan Selingan']
+}
+
+Table food_log_items {
+  id bigint [pk, increment]
+  food_log_id bigint [not null, ref: > food_logs.id]
+  food_id bigint [not null, ref:  > foods.id]
+
+  quantity decimal(8,2) [not null, default: 1, note: 'Jumlah porsi']
+  serving_size decimal(8,2) [not null, note: 'Ukuran porsi dalam gram']
+
+  // Nutrisi Aktual (quantity x nutrisi per serving)
+  calories decimal(10,2) [not null]
+  protein decimal(10,2) [not null]
+  fat decimal(10,2) [not null]
+  carbohydrate decimal(10,2) [not null]
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    food_log_id [name: 'idx_food_log_items_log']
+  }
+
+  Note:  'Detail item makanan dalam setiap log'
+}
+
+// =====================================================
+// 4. ANTHROPOMETRY MEASUREMENTS
+// =====================================================
+
+Table anthropometry_measurements {
+  id bigint [pk, increment]
+  child_id bigint [not null, ref:  > children.id]
+
+  measurement_date date [not null]
+
+  // Pengukuran
+  weight decimal(5,2) [note: 'Berat badan dalam kg']
+  height decimal(5,2) [note: 'Tinggi/panjang badan dalam cm']
+  head_circumference decimal(5,2) [note: 'Lingkar kepala dalam cm']
+
+  // Metode Pengukuran
+  is_lying boolean [default: false, note: 'TRUE jika diukur berbaring (anak < 2 tahun)']
+  measurement_location measurement_location_enum [default: 'posyandu']
+
+  // Z-Score (dihitung otomatis berdasarkan standar WHO)
+  weight_for_age_zscore decimal(4,2) [note: 'BB/U Z-Score']
+  height_for_age_zscore decimal(4,2) [note: 'TB/U Z-Score']
+  weight_for_height_zscore decimal(4,2) [note: 'BB/TB Z-Score']
+  bmi_for_age_zscore decimal(4,2) [note: 'IMT/U Z-Score']
+  head_circumference_zscore decimal(4,2) [note: 'LK/U Z-Score']
+
+  // Status Gizi (berdasarkan Z-Score)
+  nutritional_status nutritional_status_enum
+  stunting_status stunting_status_enum
+  wasting_status wasting_status_enum
+
+  notes text
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (child_id, measurement_date) [name: 'idx_anthropometry_child_date']
+    (child_id, measurement_date) [unique, name:  'uk_anthropometry_unique']
+  }
+
+  Note: 'Pengukuran antropometri anak (BB, TB, LK)'
+}
+
+Enum measurement_location_enum {
+  posyandu [note:  'Pos Pelayanan Terpadu']
+  home [note: 'Rumah']
+  clinic [note: 'Klinik/Puskesmas']
+  hospital [note: 'Rumah Sakit']
+  other [note: 'Lainnya']
+}
+
+Enum nutritional_status_enum {
+  severely_underweight [note: 'Gizi Buruk (BB/U < -3 SD)']
+  underweight [note: 'Gizi Kurang (BB/U -3 s/d -2 SD)']
+  normal [note: 'Gizi Baik (BB/U -2 s/d +1 SD)']
+  overweight [note: 'Risiko Gizi Lebih (BB/U > +1 SD)']
+  obese [note: 'Gizi Lebih (BB/U > +2 SD)']
+}
+
+Enum stunting_status_enum {
+  severely_stunted [note: 'Sangat Pendek (TB/U < -3 SD)']
+  stunted [note: 'Pendek (TB/U -3 s/d -2 SD)']
+  normal [note: 'Normal (TB/U -2 s/d +3 SD)']
+  tall [note: 'Tinggi (TB/U > +3 SD)']
+}
+
+Enum wasting_status_enum {
+  severely_wasted [note: 'Gizi Buruk (BB/TB < -3 SD)']
+  wasted [note: 'Gizi Kurang (BB/TB -3 s/d -2 SD)']
+  normal [note: 'Gizi Baik (BB/TB -2 s/d +1 SD)']
+  overweight [note: 'Berisiko Gizi Lebih (BB/TB +1 s/d +2 SD)']
+  obese [note:  'Gizi Lebih (BB/TB > +2 SD)']
+}
+
+// =====================================================
+// 5. ASQ-3 DEVELOPMENTAL SCREENING
+// =====================================================
+
+Table asq3_domains {
+  id bigint [pk, increment]
+  code varchar(50) [not null, unique, note: 'communication, gross_motor, dll']
+  name varchar(100) [not null, note: 'Nama domain dalam Bahasa Indonesia']
+  icon varchar(100) [note: 'Material Icons name']
+  color varchar(20) [note: 'Hex color code']
+  display_order tinyint [default:  0]
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Note: '''
+    5 Domain ASQ-3:
+    1.  Komunikasi
+    2. Motorik Kasar
+    3. Motorik Halus
+    4. Pemecahan Masalah
+    5. Personal Sosial
+  '''
+}
+
+Table asq3_age_intervals {
+  id bigint [pk, increment]
+  age_months tinyint [not null, unique, note: 'Usia dalam bulan:  2, 4, 6, .. ., 60']
+  age_label varchar(50) [not null, note: 'Label:  2 Bulan, 4 Bulan, dll']
+  min_age_days int [not null, note: 'Batas bawah usia dalam hari']
+  max_age_days int [not null, note: 'Batas atas usia dalam hari']
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Note: '''
+    Interval usia ASQ-3:
+    2, 4, 6, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24,
+    27, 30, 33, 36, 42, 48, 54, 60 bulan
+  '''
+}
+
+Table asq3_cutoff_scores {
+  id bigint [pk, increment]
+  age_interval_id bigint [not null, ref:  > asq3_age_intervals.id]
+  domain_id bigint [not null, ref: > asq3_domains. id]
+
+  // Nilai Cutoff
+  cutoff_score decimal(5,2) [not null, note: 'Batas zona hitam (perlu rujukan)']
+  monitoring_score decimal(5,2) [not null, note: 'Batas zona abu (perlu monitoring)']
+  max_score decimal(5,2) [default: 60, note: 'Skor maksimal domain']
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (age_interval_id, domain_id) [unique, name: 'uk_cutoff_age_domain']
+  }
+
+  Note: 'Nilai cutoff ASQ-3 per domain per interval usia'
+}
+
+Table asq3_questions {
+  id bigint [pk, increment]
+  age_interval_id bigint [not null, ref: > asq3_age_intervals.id]
+  domain_id bigint [not null, ref: > asq3_domains.id]
+
+  question_number tinyint [not null, note: 'Nomor pertanyaan 1-6 per domain']
+  question_text text [not null]
+  hint_text text [note:  'Petunjuk/contoh untuk orang tua']
+  image_url varchar(500) [note: 'URL gambar ilustrasi']
+
+  // Skor per jawaban
+  score_yes tinyint [default:  10, note: 'Skor jawaban YA']
+  score_sometimes tinyint [default: 5, note: 'Skor jawaban KADANG-KADANG']
+  score_no tinyint [default:  0, note:  'Skor jawaban TIDAK']
+
+  display_order int [default: 0]
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (age_interval_id, domain_id) [name: 'idx_questions_age_domain']
+  }
+
+  Note:  'Bank pertanyaan ASQ-3'
+}
+
+Table asq3_screenings {
+  id bigint [pk, increment]
+  child_id bigint [not null, ref:  > children.id]
+  age_interval_id bigint [not null, ref:  > asq3_age_intervals.id]
+
+  screening_date date [not null]
+  age_at_screening_months tinyint [not null, note: 'Usia saat screening (bulan)']
+  age_at_screening_days int [not null, note: 'Usia saat screening (hari)']
+
+  // Status
+  status screening_status_enum [default: 'in_progress']
+  completed_at timestamp
+
+  // Overall Result (setelah completed)
+  overall_status screening_result_enum [note: 'Hasil keseluruhan']
+
+  notes text
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    child_id [name: 'idx_screenings_child']
+    screening_date [name:  'idx_screenings_date']
+  }
+
+  Note: 'Sesi screening ASQ-3'
+}
+
+Enum screening_status_enum {
+  in_progress [note:  'Sedang dikerjakan']
+  completed [note: 'Selesai']
+  cancelled [note: 'Dibatalkan']
+}
+
+Enum screening_result_enum {
+  sesuai [note: 'Perkembangan Sesuai']
+  pantau [note: 'Perlu Pemantauan']
+  perlu_rujukan [note: 'Perlu Rujukan']
+}
+
+Table asq3_screening_answers {
+  id bigint [pk, increment]
+  screening_id bigint [not null, ref: > asq3_screenings.id]
+  question_id bigint [not null, ref:  > asq3_questions.id]
+
+  answer answer_enum [not null]
+  score tinyint [not null]
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (screening_id, question_id) [unique, name: 'uk_answer_unique']
+  }
+
+  Note: 'Jawaban per pertanyaan dalam sesi screening'
+}
+
+Enum answer_enum {
+  yes [note: 'YA - Skor 10']
+  sometimes [note: 'KADANG-KADANG - Skor 5']
+  no [note: 'TIDAK - Skor 0']
+}
+
+Table asq3_screening_results {
+  id bigint [pk, increment]
+  screening_id bigint [not null, ref: > asq3_screenings.id]
+  domain_id bigint [not null, ref:  > asq3_domains.id]
+
+  total_score decimal(5,2) [not null, note: 'Total skor domain']
+  cutoff_score decimal(5,2) [not null, note:  'Nilai cutoff saat screening']
+  monitoring_score decimal(5,2) [not null, note: 'Nilai monitoring saat screening']
+
+  status screening_result_enum [not null]
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (screening_id, domain_id) [unique, name: 'uk_result_unique']
+  }
+
+  Note: 'Hasil screening per domain'
+}
+
+Table asq3_recommendations {
+  id bigint [pk, increment]
+  domain_id bigint [not null, ref:  > asq3_domains.id]
+  age_interval_id bigint [ref: > asq3_age_intervals. id, note: 'NULL = berlaku untuk semua usia']
+
+  recommendation_text text [not null]
+  priority tinyint [default: 0, note: 'Urutan prioritas']
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    domain_id [name:  'idx_recommendations_domain']
+  }
+
+  Note:  'Rekomendasi stimulasi per domain'
+}
+
+// =====================================================
+// 6. PMT (PEMBERIAN MAKANAN TAMBAHAN)
+// =====================================================
+
+Table pmt_menus {
+  id bigint [pk, increment]
+  name varchar(255) [not null]
+  description text
+  image_url varchar(500)
+
+  // Nutrisi
+  calories decimal(8,2)
+  protein decimal(8,2)
+
+  // Target usia (bulan)
+  min_age_months tinyint [note: 'Usia minimum dalam bulan']
+  max_age_months tinyint [note: 'Usia maksimum dalam bulan']
+
+  is_active boolean [default: true]
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Note: 'Master menu PMT'
+}
+
+Table pmt_schedules {
+  id bigint [pk, increment]
+  child_id bigint [not null, ref:  > children.id]
+  menu_id bigint [not null, ref: > pmt_menus. id]
+
+  scheduled_date date [not null]
+
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (child_id, scheduled_date) [unique, name: 'uk_pmt_schedule']
+    scheduled_date [name:  'idx_pmt_schedule_date']
+  }
+
+  Note: 'Jadwal PMT per anak per hari'
+}
+
+Table pmt_logs {
+  id bigint [pk, increment]
+  schedule_id bigint [not null, ref:  - pmt_schedules.id]
+
+  // Porsi yang dimakan
+  portion portion_enum [not null]
+
+  // Dokumentasi
+  photo_url varchar(500) [note: 'URL foto anak makan']
+
+  notes text
+
+  logged_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    schedule_id [unique, name: 'uk_pmt_log']
+  }
+
+  Note: 'Laporan konsumsi PMT'
+}
+
+Enum portion_enum {
+  habis [note: 'Habis 100%']
+  half [note: 'Setengah porsi 50%']
+  quarter [note: 'Seperempat porsi 25%']
+  none [note: 'Tidak dimakan 0%']
+}
+
+// =====================================================
+// 7. NOTIFICATIONS
+// =====================================================
+
+Table notifications {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref:  > users.id]
+
+  type varchar(100) [not null, note: 'screening_reminder, pmt_reminder, etc']
+  title varchar(255) [not null]
+  body text [not null]
+  data json [note: 'Extra data untuk deep link']
+
+  read_at timestamp
+
+  created_at timestamp [default:  `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, read_at) [name: 'idx_notifications_user_read']
+  }
+
+  Note: 'Notifikasi untuk pengguna'
+}
+
+// =====================================================
+// RELATIONSHIP REFERENCES
+// =====================================================
+
+// Ref sudah didefinisikan inline di masing-masing table
+// Berikut ringkasan relasi:
+
+// users 1--* children
+// users 1--* notifications
+// users 1--* foods (created_by)
+
+// children 1--* food_logs
+// children 1--* anthropometry_measurements
+// children 1--* asq3_screenings
+// children 1--* pmt_schedules
+
+// food_logs 1--* food_log_items
+// food_log_items *--1 foods
+
+// asq3_age_intervals 1--* asq3_cutoff_scores
+// asq3_age_intervals 1--* asq3_questions
+// asq3_age_intervals 1--* asq3_screenings
+// asq3_age_intervals 1--* asq3_recommendations
+
+// asq3_domains 1--* asq3_cutoff_scores
+// asq3_domains 1--* asq3_questions
+// asq3_domains 1--* asq3_screening_results
+// asq3_domains 1--* asq3_recommendations
+
+// asq3_screenings 1--* asq3_screening_answers
+// asq3_screenings 1--* asq3_screening_results
+// asq3_screening_answers *--1 asq3_questions
+
+// pmt_menus 1--* pmt_schedules
+// pmt_schedules 1--1 pmt_logs
