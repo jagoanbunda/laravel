@@ -8,12 +8,17 @@ use App\Http\Requests\Api\V1\Anthropometry\UpdateAnthropometryRequest;
 use App\Http\Resources\Api\V1\AnthropometryResource;
 use App\Models\AnthropometryMeasurement;
 use App\Models\Child;
+use App\Services\WhoZScoreService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AnthropometryController extends Controller
 {
+   public function __construct(
+      private readonly WhoZScoreService $whoZScoreService
+   ) {}
+
    /**
     * Display a listing of measurements.
     */
@@ -38,8 +43,9 @@ class AnthropometryController extends Controller
       $data = $request->validated();
       $data['child_id'] = $child->id;
 
-      // TODO: Calculate Z-Scores based on WHO standards
-      // For now, we'll store the raw measurements
+      // Calculate Z-Scores based on WHO standards
+      $zScores = $this->whoZScoreService->calculateZScores($child, $data);
+      $data = array_merge($data, $zScores);
 
       $measurement = AnthropometryMeasurement::create($data);
 
@@ -70,7 +76,16 @@ class AnthropometryController extends Controller
       $this->authorizeChild($request, $child);
       $this->authorizeMeasurement($child, $anthropometry);
 
-      $anthropometry->update($request->validated());
+      $data = $request->validated();
+
+      // Merge with existing data for Z-Score calculation
+      $measurementData = array_merge($anthropometry->toArray(), $data);
+
+      // Recalculate Z-Scores based on WHO standards
+      $zScores = $this->whoZScoreService->calculateZScores($child, $measurementData);
+      $data = array_merge($data, $zScores);
+
+      $anthropometry->update($data);
 
       return response()->json([
          'message' => 'Data pengukuran berhasil diperbarui',
