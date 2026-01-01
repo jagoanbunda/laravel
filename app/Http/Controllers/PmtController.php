@@ -2,20 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PmtSchedule;
-use App\Models\PmtLog;
 use App\Http\Requests\LogPmtDistributionRequest;
 use App\Http\Requests\StorePmtScheduleRequest;
+use App\Http\Requests\UpdatePmtScheduleRequest;
+use App\Models\Child;
+use App\Models\PmtLog;
+use App\Models\PmtMenu;
+use App\Models\PmtSchedule;
+use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Carbon\Carbon;
+use Inertia\Response;
 
 class PmtController extends Controller
 {
     /**
      * Display a listing of PMT schedules.
      */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $query = PmtSchedule::with(['child.user', 'menu', 'log']);
 
@@ -71,9 +76,136 @@ class PmtController extends Controller
     }
 
     /**
+     * Display the specified PMT schedule.
+     */
+    public function show(string $id): Response
+    {
+        $schedule = PmtSchedule::with(['child.user', 'menu', 'log'])->findOrFail($id);
+
+        return Inertia::render('pmt/show', [
+            'schedule' => [
+                'id' => $schedule->id,
+                'child' => [
+                    'id' => $schedule->child->id,
+                    'name' => $schedule->child->name,
+                ],
+                'parent' => [
+                    'id' => $schedule->child->user->id,
+                    'name' => $schedule->child->user->full_name,
+                ],
+                'menu' => [
+                    'id' => $schedule->menu->id,
+                    'name' => $schedule->menu->name,
+                    'description' => $schedule->menu->description,
+                    'calories' => $schedule->menu->calories,
+                    'protein' => $schedule->menu->protein,
+                ],
+                'scheduled_date' => $schedule->scheduled_date,
+                'log' => $schedule->log ? [
+                    'portion' => $schedule->log->portion,
+                    'logged_at' => $schedule->log->logged_at,
+                    'notes' => $schedule->log->notes,
+                    'photo_url' => $schedule->log->photo_url,
+                ] : null,
+            ],
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new PMT schedule.
+     */
+    public function create(): Response
+    {
+        $children = Child::with('user')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($child) => [
+                'id' => $child->id,
+                'name' => $child->name,
+                'parent_name' => $child->user->full_name,
+            ]);
+
+        $menus = PmtMenu::where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($menu) => [
+                'id' => $menu->id,
+                'name' => $menu->name,
+                'description' => $menu->description,
+                'calories' => $menu->calories,
+            ]);
+
+        return Inertia::render('pmt/create', [
+            'children' => $children,
+            'menus' => $menus,
+        ]);
+    }
+
+    /**
+     * Store a newly created PMT schedule in storage.
+     */
+    public function store(StorePmtScheduleRequest $request): RedirectResponse
+    {
+        PmtSchedule::create($request->validated());
+
+        return redirect()->route('pmt.index')->with('success', 'PMT schedule created successfully');
+    }
+
+    /**
+     * Show the form for editing the specified PMT schedule.
+     */
+    public function edit(string $id): Response
+    {
+        $schedule = PmtSchedule::with(['child.user', 'menu'])->findOrFail($id);
+
+        $children = Child::with('user')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($child) => [
+                'id' => $child->id,
+                'name' => $child->name,
+                'parent_name' => $child->user->full_name,
+            ]);
+
+        $menus = PmtMenu::where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($menu) => [
+                'id' => $menu->id,
+                'name' => $menu->name,
+                'description' => $menu->description,
+                'calories' => $menu->calories,
+            ]);
+
+        return Inertia::render('pmt/edit', [
+            'schedule' => [
+                'id' => $schedule->id,
+                'child_id' => $schedule->child_id,
+                'menu_id' => $schedule->menu_id,
+                'scheduled_date' => $schedule->scheduled_date->format('Y-m-d'),
+            ],
+            'children' => $children,
+            'menus' => $menus,
+        ]);
+    }
+
+    /**
+     * Update the specified PMT schedule in storage.
+     */
+    public function update(UpdatePmtScheduleRequest $request, string $id): RedirectResponse
+    {
+        $schedule = PmtSchedule::findOrFail($id);
+        $schedule->update($request->validated());
+
+        return redirect()->route('pmt.index')->with('success', 'PMT schedule updated successfully');
+    }
+
+    /**
      * Log PMT distribution (quick log feature).
      */
-    public function logDistribution(LogPmtDistributionRequest $request, $id)
+    public function logDistribution(LogPmtDistributionRequest $request, string $id): RedirectResponse
     {
         $schedule = PmtSchedule::findOrFail($id);
 
@@ -108,7 +240,7 @@ class PmtController extends Controller
     /**
      * Remove the specified PMT schedule.
      */
-    public function destroy($id)
+    public function destroy(string $id): RedirectResponse
     {
         $schedule = PmtSchedule::findOrFail($id);
         $schedule->delete();

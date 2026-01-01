@@ -68,10 +68,12 @@ export default function ParentsIndex({ parents, filters }: Props) {
                             className="pl-10 pr-4"
                         />
                     </div>
-                    <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Parent
-                    </Button>
+                    <Link href="/parents/create">
+                        <Button>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Parent
+                        </Button>
+                    </Link>
                 </div>
 
                 {/* Filters */}

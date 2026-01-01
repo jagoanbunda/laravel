@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StorePmtScheduleRequest extends FormRequest
+class UpdatePmtScheduleRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

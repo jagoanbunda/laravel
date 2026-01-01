@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StorePmtScheduleRequest extends FormRequest
+class UpdateScreeningRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,8 +23,8 @@ class StorePmtScheduleRequest extends FormRequest
     {
         return [
             'child_id' => 'required|exists:children,id',
-            'menu_id' => 'required|exists:pmt_menus,id',
-            'scheduled_date' => 'required|date',
+            'age_interval_id' => 'required|exists:asq3_age_intervals,id',
+            'screening_date' => 'required|date',
         ];
     }
 
@@ -38,10 +38,10 @@ class StorePmtScheduleRequest extends FormRequest
         return [
             'child_id.required' => 'Anak wajib dipilih.',
             'child_id.exists' => 'Anak tidak ditemukan.',
-            'menu_id.required' => 'Menu PMT wajib dipilih.',
-            'menu_id.exists' => 'Menu PMT tidak ditemukan.',
-            'scheduled_date.required' => 'Tanggal jadwal wajib diisi.',
-            'scheduled_date.date' => 'Tanggal jadwal harus berformat valid.',
+            'age_interval_id.required' => 'Interval usia wajib dipilih.',
+            'age_interval_id.exists' => 'Interval usia tidak ditemukan.',
+            'screening_date.required' => 'Tanggal screening wajib diisi.',
+            'screening_date.date' => 'Tanggal screening harus berformat valid.',
         ];
     }
 }

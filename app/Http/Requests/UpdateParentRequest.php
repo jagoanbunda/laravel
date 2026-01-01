@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StorePmtScheduleRequest extends FormRequest
+class UpdateParentRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +22,10 @@ class StorePmtScheduleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'child_id' => 'required|exists:children,id',
-            'menu_id' => 'required|exists:pmt_menus,id',
-            'scheduled_date' => 'required|date',
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $this->route('parent'),
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
         ];
     }
 
@@ -36,12 +37,10 @@ class StorePmtScheduleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'child_id.required' => 'Anak wajib dipilih.',
-            'child_id.exists' => 'Anak tidak ditemukan.',
-            'menu_id.required' => 'Menu PMT wajib dipilih.',
-            'menu_id.exists' => 'Menu PMT tidak ditemukan.',
-            'scheduled_date.required' => 'Tanggal jadwal wajib diisi.',
-            'scheduled_date.date' => 'Tanggal jadwal harus berformat valid.',
+            'full_name.required' => 'Nama lengkap wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Email harus berformat valid.',
+            'email.unique' => 'Email sudah digunakan.',
         ];
     }
 }
