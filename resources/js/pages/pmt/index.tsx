@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { PaginationNav } from '@/components/ui/pagination-nav';
 import {
     Dialog,
     DialogContent,
@@ -274,19 +275,14 @@ export default function PmtIndex({ schedules, filters }: Props) {
                         </div>
 
                         {/* Pagination */}
-                        <div className="flex items-center justify-between px-4 py-3 border-t">
-                            <p className="text-sm text-muted-foreground">
-                                Showing {schedules.data.length} of {schedules.total} schedules
-                            </p>
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="sm" disabled>
-                                    Sebelumnya
-                                </Button>
-                                <Button variant="outline" size="sm" disabled>
-                                    Selanjutnya
-                                </Button>
-                            </div>
-                        </div>
+                        <PaginationNav
+                            currentPage={schedules.current_page}
+                            lastPage={schedules.last_page}
+                            total={schedules.total}
+                            perPage={schedules.per_page}
+                            baseUrl="/pmt"
+                            filters={filters}
+                        />
                     </CardContent>
                 </Card>
             </div>

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asq3Screening;
+use App\Models\Child;
+use App\Http\Requests\StoreScreeningRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -114,6 +116,24 @@ class ScreeningController extends Controller
         return Inertia::render('screenings/results', [
             'screening' => $screeningData,
         ]);
+    }
+
+    /**
+     * Store a new screening.
+     */
+    public function store(StoreScreeningRequest $request)
+    {
+        $child = Child::findOrFail($request->child_id);
+
+        Asq3Screening::create([
+            'child_id' => $request->child_id,
+            'age_interval_id' => $request->age_interval_id,
+            'screening_date' => $request->screening_date,
+            'age_at_screening_months' => $child->age_in_months,
+            'status' => 'in_progress',
+        ]);
+
+        return redirect()->route('screenings.index')->with('success', 'Screening berhasil dijadwalkan.');
     }
 
     /**

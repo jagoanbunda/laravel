@@ -3,6 +3,7 @@ import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PaginationNav } from '@/components/ui/pagination-nav';
 import {
     Search,
     Eye,
@@ -230,19 +231,14 @@ export default function ChildrenIndex({ children, filters }: Props) {
                         </div>
 
                         {/* Pagination */}
-                        <div className="flex items-center justify-between px-4 py-3 border-t">
-                            <p className="text-sm text-muted-foreground">
-                                Showing {children.data.length} of {children.total} children
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm" disabled>
-                                    Previous
-                                </Button>
-                                <Button variant="outline" size="sm" disabled>
-                                    Next
-                                </Button>
-                            </div>
-                        </div>
+                        <PaginationNav
+                            currentPage={children.current_page}
+                            lastPage={children.last_page}
+                            total={children.total}
+                            perPage={children.per_page}
+                            baseUrl="/children"
+                            filters={filters}
+                        />
                     </CardContent>
                 </Card>
             </div>
