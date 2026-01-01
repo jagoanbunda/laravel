@@ -61,7 +61,15 @@ class Asq3Screening extends Model
    }
 
    /**
-    * Get answers for this screening.
+    * Get the domain results for this screening.
+    */
+   public function domainResults(): HasMany
+   {
+      return $this->hasMany(Asq3ScreeningResult::class, 'screening_id');
+   }
+
+   /**
+    * Get the answers for this screening.
     */
    public function answers(): HasMany
    {
