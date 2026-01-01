@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PmtSchedule;
 use App\Models\PmtLog;
 use App\Http\Requests\LogPmtDistributionRequest;
+use App\Http\Requests\StorePmtScheduleRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -88,6 +89,20 @@ class PmtController extends Controller
         );
 
         return redirect()->back()->with('success', 'Distribusi PMT berhasil dicatat');
+    }
+
+    /**
+     * Store a new PMT schedule.
+     */
+    public function store(StorePmtScheduleRequest $request)
+    {
+        PmtSchedule::create([
+            'child_id' => $request->child_id,
+            'menu_id' => $request->menu_id,
+            'scheduled_date' => $request->scheduled_date,
+        ]);
+
+        return redirect()->route('pmt.index')->with('success', 'Jadwal PMT berhasil dibuat.');
     }
 
     /**
