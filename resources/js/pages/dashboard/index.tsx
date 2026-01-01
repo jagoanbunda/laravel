@@ -7,120 +7,106 @@ import {
     Baby,
     AlertTriangle,
     ClipboardList,
-    TrendingUp,
-    TrendingDown,
     ArrowRight,
+    UserPlus,
+    Utensils,
+    FileText,
 } from 'lucide-react';
-import type { DashboardStats, Child } from '@/types/models';
+import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-// Mock data for development
-const mockStats: DashboardStats = {
-    total_parents: 1234,
-    total_children: 3456,
-    at_risk_children: 234,
-    active_pmt_programs: 89,
-    nutritional_distribution: {
-        normal: 78,
-        underweight: 12,
-        stunted: 7,
-        wasted: 3,
-    },
-    recent_screenings: [],
-    children_requiring_attention: [],
-};
+interface Props {
+    stats: {
+        total_parents: number;
+        total_children: number;
+        active_children: number;
+        at_risk_children: number;
+        active_pmt_programs: number;
+        total_screenings: number;
+    };
+    nutritional_distribution: Array<{ name: string; value: number; color: string }>;
+    screening_results: Array<{ name: string; value: number; color: string }>;
+    pmt_distribution: Array<{ name: string; value: number; color: string }>;
+    monthly_trends: Array<{ month: string; children: number; screenings: number }>;
+    children_at_risk: Array<{ id: number; name: string; age_months: number; parent_name: string; status: string; last_screening: string }>;
+    recent_activities: Array<{ id: string; type: string; text: string; time: string; timestamp: number }>;
+}
 
-const mockChildrenAtRisk: Child[] = [
-    {
-        id: 1,
-        user_id: 1,
-        name: 'Ahmad Fadli',
-        date_of_birth: '2022-03-15',
-        gender: 'male',
-        is_active: true,
-        created_at: '2024-01-01',
-        updated_at: '2024-12-30',
-        age_months: 33,
-        parent: { id: 1, email: 'parent1@email.com', full_name: 'Budi Santoso', created_at: '', updated_at: '' },
-        latest_measurement: {
-            id: 1,
-            child_id: 1,
-            measurement_date: '2024-12-28',
-            weight: 10.5,
-            height: 85,
-            weight_for_age_zscore: -2.5,
-            nutritional_status: 'underweight',
-            stunting_status: 'normal',
-            created_at: '2024-12-28',
-        },
-    },
-    {
-        id: 2,
-        user_id: 2,
-        name: 'Siti Nurhaliza',
-        date_of_birth: '2023-01-20',
-        gender: 'female',
-        is_active: true,
-        created_at: '2024-02-01',
-        updated_at: '2024-12-30',
-        age_months: 23,
-        parent: { id: 2, email: 'parent2@email.com', full_name: 'Dewi Sartika', created_at: '', updated_at: '' },
-        latest_measurement: {
-            id: 2,
-            child_id: 2,
-            measurement_date: '2024-12-27',
-            weight: 8.2,
-            height: 75,
-            height_for_age_zscore: -2.8,
-            nutritional_status: 'normal',
-            stunting_status: 'stunted',
-            created_at: '2024-12-27',
-        },
-    },
-    {
-        id: 3,
-        user_id: 3,
-        name: 'Rizky Pratama',
-        date_of_birth: '2022-08-10',
-        gender: 'male',
-        is_active: true,
-        created_at: '2024-03-01',
-        updated_at: '2024-12-30',
-        age_months: 28,
-        parent: { id: 3, email: 'parent3@email.com', full_name: 'Andi Wijaya', created_at: '', updated_at: '' },
-        latest_measurement: {
-            id: 3,
-            child_id: 3,
-            measurement_date: '2024-12-26',
-            weight: 9.0,
-            height: 80,
-            weight_for_height_zscore: -3.1,
-            nutritional_status: 'underweight',
-            wasting_status: 'severely_wasted',
-            created_at: '2024-12-26',
-        },
-    },
-];
+function NutritionalPieChart({ data }: { data: Props['nutritional_distribution'] }) {
+    return (
+        <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+                <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                    {data.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                    ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+            </PieChart>
+        </ResponsiveContainer>
+    );
+}
 
-const recentActivities = [
-    { id: 1, type: 'screening', text: 'ASQ-3 screening completed for Ahmad Fadli', time: '2 hours ago' },
-    { id: 2, type: 'measurement', text: 'New measurement recorded for Siti Nurhaliza', time: '3 hours ago' },
-    { id: 3, type: 'pmt', text: 'PMT program started for 5 children', time: '5 hours ago' },
-    { id: 4, type: 'parent', text: 'New parent registered: Dewi Lestari', time: '1 day ago' },
-];
+function ScreeningBarChart({ data }: { data: Props['screening_results'] }) {
+    return (
+        <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="value" fill="#3b82f6" name="Count">
+                    {data.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                    ))}
+                </Bar>
+            </BarChart>
+        </ResponsiveContainer>
+    );
+}
+
+function PmtPieChart({ data }: { data: Props['pmt_distribution'] }) {
+    return (
+        <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+                <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                    {data.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                    ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+            </PieChart>
+        </ResponsiveContainer>
+    );
+}
+
+function MonthlyTrendsChart({ data }: { data: Props['monthly_trends'] }) {
+    return (
+        <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="children" stroke="#10b981" name="Children" />
+                <Line type="monotone" dataKey="screenings" stroke="#3b82f6" name="Screenings" />
+            </LineChart>
+        </ResponsiveContainer>
+    );
+}
 
 function StatCard({
     title,
     value,
     icon: Icon,
-    trend,
-    trendValue,
     color = 'primary',
 }: {
     title: string;
     value: string | number;
     icon: React.ElementType;
-    trend?: 'up' | 'down';
-    trendValue?: string;
     color?: 'primary' | 'secondary' | 'destructive' | 'accent';
 }) {
     const colorClasses = {
@@ -137,18 +123,6 @@ function StatCard({
                     <div>
                         <p className="text-sm font-medium text-muted-foreground">{title}</p>
                         <p className="text-2xl font-bold mt-1">{value.toLocaleString()}</p>
-                        {trend && trendValue && (
-                            <div className="flex items-center gap-1 mt-1">
-                                {trend === 'up' ? (
-                                    <TrendingUp className="h-4 w-4 text-secondary" />
-                                ) : (
-                                    <TrendingDown className="h-4 w-4 text-destructive" />
-                                )}
-                                <span className={`text-xs ${trend === 'up' ? 'text-secondary' : 'text-destructive'}`}>
-                                    {trendValue}
-                                </span>
-                            </div>
-                        )}
                     </div>
                     <div className={`h-12 w-12 rounded-lg ${colorClasses[color]} flex items-center justify-center`}>
                         <Icon className="h-6 w-6" />
@@ -159,52 +133,14 @@ function StatCard({
     );
 }
 
-function NutritionalStatusChart({ data }: { data: DashboardStats['nutritional_distribution'] }) {
-    const segments = [
-        { label: 'Normal', value: data.normal, color: 'bg-secondary' },
-        { label: 'Underweight', value: data.underweight, color: 'bg-accent' },
-        { label: 'Stunted', value: data.stunted, color: 'bg-orange-500' },
-        { label: 'Wasted', value: data.wasted, color: 'bg-destructive' },
-    ];
-
-    return (
-        <div className="space-y-4">
-            <div className="flex h-4 w-full overflow-hidden rounded-full bg-muted">
-                {segments.map((segment, index) => (
-                    <div
-                        key={index}
-                        className={`${segment.color} transition-all`}
-                        style={{ width: `${segment.value}%` }}
-                    />
-                ))}
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-                {segments.map((segment, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                        <div className={`h-3 w-3 rounded-full ${segment.color}`} />
-                        <span className="text-sm text-muted-foreground">
-                            {segment.label}: {segment.value}%
-                        </span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-}
-
 function getStatusBadge(status: string | undefined) {
     const statusConfig: Record<string, { label: string; class: string }> = {
-        normal: { label: 'Normal', class: 'bg-emerald-100 text-emerald-700' },
-        underweight: { label: 'Underweight', class: 'bg-amber-100 text-amber-700' },
-        stunted: { label: 'Stunted', class: 'bg-orange-100 text-orange-700' },
-        severely_stunted: { label: 'Severely Stunted', class: 'bg-red-100 text-red-700' },
-        wasted: { label: 'Wasted', class: 'bg-orange-100 text-orange-700' },
-        severely_wasted: { label: 'Severely Wasted', class: 'bg-red-100 text-red-700' },
-        overweight: { label: 'Overweight', class: 'bg-amber-100 text-amber-700' },
-        obese: { label: 'Obese', class: 'bg-red-100 text-red-700' },
+        sesuai: { label: 'Sesuai', class: 'bg-emerald-100 text-emerald-700' },
+        pantau: { label: 'Pantau', class: 'bg-amber-100 text-amber-700' },
+        perlu_rujukan: { label: 'Perlu Rujukan', class: 'bg-red-100 text-red-700' },
     };
 
-    const config = statusConfig[status || 'normal'] || statusConfig.normal;
+    const config = statusConfig[status || 'sesuai'] || statusConfig.sesuai;
     return (
         <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${config.class}`}>
             {config.label}
@@ -212,55 +148,108 @@ function getStatusBadge(status: string | undefined) {
     );
 }
 
-export default function Dashboard() {
+export default function Dashboard({ stats, nutritional_distribution, screening_results, pmt_distribution, monthly_trends, children_at_risk, recent_activities }: Props) {
     return (
         <AppLayout title="Dashboard">
             <Head title="Dashboard" />
 
             <div className="space-y-6">
+                {/* Welcome Section with Gradient */}
+                <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-primary to-primary/80 p-8 text-white">
+                    <div className="relative z-10">
+                        <h1 className="text-3xl font-bold">Welcome to Jagoan Bunda Dashboard</h1>
+                        <p className="mt-2 text-primary-foreground/90">
+                            Monitor children's health and development with comprehensive data visualization
+                        </p>
+                        <div className="mt-6 flex gap-3">
+                            <Button variant="secondary" size="sm">
+                                <UserPlus className="mr-2 h-4 w-4" />
+                                Add Parent
+                            </Button>
+                            <Button variant="secondary" size="sm">
+                                <Utensils className="mr-2 h-4 w-4" />
+                                PMT Programs
+                            </Button>
+                            <Button variant="secondary" size="sm">
+                                <FileText className="mr-2 h-4 w-4" />
+                                Generate Report
+                            </Button>
+                        </div>
+                    </div>
+                    <div className="absolute right-0 top-0 h-full w-1/3 opacity-10">
+                        <Baby className="h-full w-full" />
+                    </div>
+                </div>
+
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                     <StatCard
                         title="Total Parents"
-                        value={mockStats.total_parents}
+                        value={stats.total_parents}
                         icon={Users}
-                        trend="up"
-                        trendValue="+12% from last month"
                         color="primary"
                     />
                     <StatCard
                         title="Total Children"
-                        value={mockStats.total_children}
+                        value={stats.total_children}
                         icon={Baby}
-                        trend="up"
-                        trendValue="+8% from last month"
+                        color="secondary"
+                    />
+                    <StatCard
+                        title="Active Children"
+                        value={stats.active_children}
+                        icon={Baby}
                         color="secondary"
                     />
                     <StatCard
                         title="At Risk Children"
-                        value={mockStats.at_risk_children}
+                        value={stats.at_risk_children}
                         icon={AlertTriangle}
-                        trend="down"
-                        trendValue="-5% from last month"
                         color="destructive"
                     />
                     <StatCard
                         title="Active PMT Programs"
-                        value={mockStats.active_pmt_programs}
+                        value={stats.active_pmt_programs}
+                        icon={ClipboardList}
+                        color="accent"
+                    />
+                    <StatCard
+                        title="Total Screenings"
+                        value={stats.total_screenings}
                         icon={ClipboardList}
                         color="accent"
                     />
                 </div>
 
-                {/* Charts and Activity */}
+                {/* Charts Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Nutritional Status */}
+                    {/* Nutritional Distribution */}
                     <Card>
                         <CardHeader>
                             <CardTitle>Nutritional Status Distribution</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <NutritionalStatusChart data={mockStats.nutritional_distribution} />
+                            <NutritionalPieChart data={nutritional_distribution} />
+                        </CardContent>
+                    </Card>
+
+                    {/* Screening Results */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>ASQ-3 Screening Results</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ScreeningBarChart data={screening_results} />
+                        </CardContent>
+                    </Card>
+
+                    {/* PMT Distribution */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>PMT Portion Distribution</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <PmtPieChart data={pmt_distribution} />
                         </CardContent>
                     </Card>
 
@@ -274,7 +263,7 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {recentActivities.map((activity) => (
+                                {recent_activities.map((activity) => (
                                     <div key={activity.id} className="flex items-start gap-3">
                                         <div className="h-2 w-2 mt-2 rounded-full bg-primary" />
                                         <div className="flex-1">
@@ -288,58 +277,70 @@ export default function Dashboard() {
                     </Card>
                 </div>
 
-                {/* Children Requiring Attention */}
+                {/* Monthly Trends */}
                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Children Requiring Attention</CardTitle>
-                        <Button variant="outline" size="sm">
-                            View all <ArrowRight className="ml-1 h-4 w-4" />
-                        </Button>
+                    <CardHeader>
+                        <CardTitle>Monthly Trends (Last 6 Months)</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b">
-                                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Name</th>
-                                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Age</th>
-                                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Parent</th>
-                                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Status</th>
-                                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Last Checkup</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {mockChildrenAtRisk.map((child) => (
-                                        <tr key={child.id} className="border-b hover:bg-muted/50">
-                                            <td className="py-3 px-2">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                                        <span className="text-xs font-medium text-primary">
-                                                            {child.name.charAt(0)}
-                                                        </span>
-                                                    </div>
-                                                    <span className="font-medium">{child.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-2 text-sm text-muted-foreground">
-                                                {child.age_months} months
-                                            </td>
-                                            <td className="py-3 px-2 text-sm text-muted-foreground">
-                                                {child.parent?.full_name}
-                                            </td>
-                                            <td className="py-3 px-2">
-                                                {getStatusBadge(child.latest_measurement?.nutritional_status || child.latest_measurement?.stunting_status || child.latest_measurement?.wasting_status)}
-                                            </td>
-                                            <td className="py-3 px-2 text-sm text-muted-foreground">
-                                                {child.latest_measurement?.measurement_date}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <MonthlyTrendsChart data={monthly_trends} />
                     </CardContent>
                 </Card>
+
+                {/* Children Requiring Attention */}
+                {children_at_risk.length > 0 && (
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle>Children Requiring Attention</CardTitle>
+                            <Button variant="outline" size="sm">
+                                View all <ArrowRight className="ml-1 h-4 w-4" />
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b">
+                                            <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Name</th>
+                                            <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Age</th>
+                                            <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Parent</th>
+                                            <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Status</th>
+                                            <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Last Screening</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {children_at_risk.map((child) => (
+                                            <tr key={child.id} className="border-b hover:bg-muted/50">
+                                                <td className="py-3 px-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                                            <span className="text-xs font-medium text-primary">
+                                                                {child.name.charAt(0)}
+                                                            </span>
+                                                        </div>
+                                                        <span className="font-medium">{child.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-2 text-sm text-muted-foreground">
+                                                    {child.age_months} months
+                                                </td>
+                                                <td className="py-3 px-2 text-sm text-muted-foreground">
+                                                    {child.parent_name}
+                                                </td>
+                                                <td className="py-3 px-2">
+                                                    {getStatusBadge(child.status)}
+                                                </td>
+                                                <td className="py-3 px-2 text-sm text-muted-foreground">
+                                                    {child.last_screening}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </AppLayout>
     );

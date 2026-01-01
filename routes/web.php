@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ChildController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FoodController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\PmtController;
@@ -29,10 +30,8 @@ Route::get('/download', fn() => Inertia::render('landing/download'))->name('down
 // Auth Routes (placeholder - will be implemented by backend team)
 Route::get('/login', fn() => Inertia::render('auth/login'))->name('login');
 
-// Dashboard Routes (using mock data for now)
-Route::prefix('dashboard')->name('dashboard.')->group(function () {
-    Route::get('/', fn() => Inertia::render('dashboard/index'))->name('index');
-});
+// Dashboard Routes
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 // Parents & Children Management
 Route::resource('parents', ParentController::class);
