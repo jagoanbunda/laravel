@@ -16,9 +16,11 @@ interface ScreeningListItem {
     child_name: string;
     parent_name: string;
     screening_date: string;
+    age_at_screening_months: number;
     age_interval: string;
-    overall_result: 'normal' | 'monitoring' | 'further_evaluation' | 'pending';
-    created_at: string;
+    status: string;
+    overall_status: 'sesuai' | 'pantau' | 'perlu_rujukan' | null;
+    completed_at: string | null;
 }
 
 interface Props {
@@ -31,17 +33,19 @@ interface Props {
     };
     filters: {
         search?: string;
+        status?: string;
+        result?: string;
     };
 }
 
-function getResultBadge(result: string) {
+function getResultBadge(result: string | null) {
     const configs: Record<string, { label: string; className: string }> = {
-        normal: { label: 'Normal', className: 'bg-emerald-100 text-emerald-700' },
-        monitoring: { label: 'Monitoring', className: 'bg-amber-100 text-amber-700' },
-        further_evaluation: { label: 'Rujukan', className: 'bg-red-100 text-red-700' },
+        sesuai: { label: 'Sesuai', className: 'bg-emerald-100 text-emerald-700' },
+        pantau: { label: 'Pantau', className: 'bg-amber-100 text-amber-700' },
+        perlu_rujukan: { label: 'Perlu Rujukan', className: 'bg-red-100 text-red-700' },
         pending: { label: 'Pending', className: 'bg-gray-100 text-gray-700' },
     };
-    const config = configs[result] || configs.pending;
+    const config = configs[result || 'pending'] || configs.pending;
     return <Badge className={config.className}>{config.label}</Badge>;
 }
 
@@ -102,7 +106,7 @@ export default function ScreeningsIndex({ screenings, filters }: Props) {
                                             <td className="py-3 px-4 text-sm text-muted-foreground">{screening.parent_name}</td>
                                             <td className="py-3 px-4 text-sm">{screening.age_interval}</td>
                                             <td className="py-3 px-4 text-sm">{new Date(screening.screening_date).toLocaleDateString()}</td>
-                                            <td className="py-3 px-4">{getResultBadge(screening.overall_result)}</td>
+                                            <td className="py-3 px-4">{getResultBadge(screening.overall_status)}</td>
                                             <td className="py-3 px-4 text-right">
                                                 <Link href={`/screenings/${screening.id}/results`}>
                                                     <Button variant="ghost" size="icon">
