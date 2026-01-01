@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\ChildController;
 use App\Http\Controllers\FoodController;
+use App\Http\Controllers\ParentController;
+use App\Http\Controllers\PmtController;
+use App\Http\Controllers\ScreeningController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -29,17 +33,23 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/', fn() => Inertia::render('dashboard/index'))->name('index');
 });
 
-Route::get('/parents', fn() => Inertia::render('parents/index'))->name('parents.index');
-Route::get('/children', fn() => Inertia::render('children/index'))->name('children.index');
-Route::get('/children/{id}', fn() => Inertia::render('children/show'))->name('children.show');
+// Parents & Children Management
+Route::get('/parents', [ParentController::class, 'index'])->name('parents.index');
+Route::get('/children', [ChildController::class, 'index'])->name('children.index');
+Route::get('/children/{id}', [ChildController::class, 'show'])->name('children.show');
 
 // Food Data Master CRUD
 Route::resource('foods', FoodController::class);
 
-// PMT Programs & ASQ-3 Screenings
-Route::get('/pmt', fn() => Inertia::render('pmt/index'))->name('pmt.index');
-Route::get('/screenings', fn() => Inertia::render('screenings/index'))->name('screenings.index');
-Route::get('/screenings/{id}/results', fn() => Inertia::render('screenings/results'))->name('screenings.results');
+// PMT Programs
+Route::get('/pmt', [PmtController::class, 'index'])->name('pmt.index');
+Route::post('/pmt/{id}/log', [PmtController::class, 'logDistribution'])->name('pmt.log');
+Route::delete('/pmt/{id}', [PmtController::class, 'destroy'])->name('pmt.destroy');
+
+// ASQ-3 Screenings
+Route::get('/screenings', [ScreeningController::class, 'index'])->name('screenings.index');
+Route::get('/screenings/{id}/results', [ScreeningController::class, 'show'])->name('screenings.results');
+Route::delete('/screenings/{id}', [ScreeningController::class, 'destroy'])->name('screenings.destroy');
 
 // Placeholder routes for other pages
 Route::get('/reports', fn() => Inertia::render('dashboard/index'))->name('reports.index');
