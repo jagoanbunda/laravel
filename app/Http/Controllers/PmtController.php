@@ -143,16 +143,6 @@ class PmtController extends Controller
     }
 
     /**
-     * Store a newly created PMT schedule in storage.
-     */
-    public function store(StorePmtScheduleRequest $request): RedirectResponse
-    {
-        PmtSchedule::create($request->validated());
-
-        return redirect()->route('pmt.index')->with('success', 'PMT schedule created successfully');
-    }
-
-    /**
      * Show the form for editing the specified PMT schedule.
      */
     public function edit(string $id): Response

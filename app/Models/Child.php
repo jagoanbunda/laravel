@@ -91,16 +91,16 @@ class Child extends Model
     /**
      * Get the age in months.
      */
-    public function getAgeInMonthsAttribute(): int
+    public function getAgeInMonthsAttribute(): ?int
     {
-        return $this->date_of_birth->diffInMonths(now());
+        return $this->date_of_birth?->diffInMonths(now());
     }
 
     /**
      * Get the age in days.
      */
-    public function getAgeInDaysAttribute(): int
+    public function getAgeInDaysAttribute(): ?int
     {
-        return $this->date_of_birth->diffInDays(now());
+        return $this->date_of_birth?->diffInDays(now());
     }
 }
