@@ -28,7 +28,7 @@ interface Props {
     pmt_distribution: Array<{ name: string; value: number; color: string }>;
     monthly_trends: Array<{ month: string; children: number; screenings: number }>;
     children_at_risk: Array<{ id: number; name: string; age_months: number; parent_name: string; status: string; last_screening: string }>;
-    recent_activities: Array<{ id: string; type: string; text: string; time: string }>;
+    recent_activities: Array<{ id: string; type: string; text: string; time: string; timestamp: number }>;
 }
 
 function NutritionalPieChart({ data }: { data: Props['nutritional_distribution'] }) {
@@ -182,7 +182,7 @@ export default function Dashboard({ stats, nutritional_distribution, screening_r
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                     <StatCard
                         title="Total Parents"
                         value={stats.total_parents}

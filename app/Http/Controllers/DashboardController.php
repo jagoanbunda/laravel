@@ -110,19 +110,21 @@ class DashboardController extends Controller
                 'type' => 'screening',
                 'text' => "ASQ-3 screening for {$s->child->name}",
                 'time' => $s->created_at->diffForHumans(),
+                'timestamp' => $s->created_at->timestamp,
             ]);
         });
 
         // Recent PMT logs
-        PmtLog::with('schedule.child')->latest()->limit(2)->get()->each(function ($log) use ($activities) {
+        PmtLog::with('schedule.child')->orderBy('logged_at', 'desc')->limit(2)->get()->each(function ($log) use ($activities) {
             $activities->push([
                 'id' => 'p' . $log->id,
                 'type' => 'pmt',
                 'text' => "PMT logged for {$log->schedule->child->name}",
-                'time' => $log->created_at->diffForHumans(),
+                'time' => $log->logged_at->diffForHumans(),
+                'timestamp' => $log->logged_at->timestamp,
             ]);
         });
 
-        return $activities->sortByDesc('time')->take(5)->values()->toArray();
+        return $activities->sortByDesc('timestamp')->take(5)->values()->toArray();
     }
 }
