@@ -3,6 +3,7 @@ import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PaginationNav } from '@/components/ui/pagination-nav';
 import {
     Search,
     Plus,
@@ -67,10 +68,12 @@ export default function ParentsIndex({ parents, filters }: Props) {
                             className="pl-10 pr-4"
                         />
                     </div>
-                    <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Parent
-                    </Button>
+                    <Link href="/parents/create">
+                        <Button>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Parent
+                        </Button>
+                    </Link>
                 </div>
 
                 {/* Filters */}
@@ -166,19 +169,14 @@ export default function ParentsIndex({ parents, filters }: Props) {
                         </div>
 
                         {/* Pagination */}
-                        <div className="flex items-center justify-between px-4 py-3 border-t">
-                            <p className="text-sm text-muted-foreground">
-                                Showing {parents.data.length} of {parents.total} parents
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm" disabled>
-                                    Previous
-                                </Button>
-                                <Button variant="outline" size="sm" disabled>
-                                    Next
-                                </Button>
-                            </div>
-                        </div>
+                        <PaginationNav
+                            currentPage={parents.current_page}
+                            lastPage={parents.last_page}
+                            total={parents.total}
+                            perPage={parents.per_page}
+                            baseUrl="/parents"
+                            filters={filters}
+                        />
                     </CardContent>
                 </Card>
             </div>

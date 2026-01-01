@@ -4,6 +4,7 @@ use App\Http\Controllers\ChildController;
 use App\Http\Controllers\FoodController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\PmtController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ScreeningController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -34,25 +35,23 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 });
 
 // Parents & Children Management
-Route::get('/parents', [ParentController::class, 'index'])->name('parents.index');
-Route::get('/children', [ChildController::class, 'index'])->name('children.index');
-Route::get('/children/{id}', [ChildController::class, 'show'])->name('children.show');
+Route::resource('parents', ParentController::class);
+Route::resource('children', ChildController::class);
 
 // Food Data Master CRUD
 Route::resource('foods', FoodController::class);
 
 // PMT Programs
-Route::get('/pmt', [PmtController::class, 'index'])->name('pmt.index');
+Route::resource('pmt', PmtController::class);
 Route::post('/pmt/{id}/log', [PmtController::class, 'logDistribution'])->name('pmt.log');
-Route::delete('/pmt/{id}', [PmtController::class, 'destroy'])->name('pmt.destroy');
 
 // ASQ-3 Screenings
-Route::get('/screenings', [ScreeningController::class, 'index'])->name('screenings.index');
+Route::resource('screenings', ScreeningController::class)->except(['show', 'destroy']);
 Route::get('/screenings/{id}/results', [ScreeningController::class, 'show'])->name('screenings.results');
 Route::delete('/screenings/{id}', [ScreeningController::class, 'destroy'])->name('screenings.destroy');
 
-// Placeholder routes for other pages
-Route::get('/reports', fn() => Inertia::render('dashboard/index'))->name('reports.index');
+// Reports
+Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 Route::get('/settings', fn() => Inertia::render('dashboard/index'))->name('settings.index');
 
 // Logout placeholder

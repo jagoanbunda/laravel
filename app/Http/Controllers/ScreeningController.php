@@ -2,16 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreScreeningRequest;
+use App\Http\Requests\UpdateScreeningRequest;
+use App\Models\Asq3AgeInterval;
 use App\Models\Asq3Screening;
+use App\Models\Child;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\StoreScreeningRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ScreeningController extends Controller
 {
     /**
      * Display a listing of screenings.
      */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $query = Asq3Screening::with(['child.user', 'ageInterval']);
 
@@ -65,9 +72,62 @@ class ScreeningController extends Controller
     }
 
     /**
+     * Show the form for creating a new screening.
+     */
+    public function create(Request $request): Response
+    {
+        $children = Child::with('user')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($child) => [
+                'id' => $child->id,
+                'name' => $child->name,
+                'parent_name' => $child->user->full_name,
+                'date_of_birth' => $child->date_of_birth->format('Y-m-d'),
+                'age_in_months' => $child->age_in_months,
+            ]);
+
+        $ageIntervals = Asq3AgeInterval::orderBy('age_months')
+            ->get()
+            ->map(fn ($interval) => [
+                'id' => $interval->id,
+                'age_months' => $interval->age_months,
+                'age_label' => $interval->age_label,
+                'min_age_days' => $interval->min_age_days,
+                'max_age_days' => $interval->max_age_days,
+            ]);
+
+        return Inertia::render('screenings/create', [
+            'children' => $children,
+            'ageIntervals' => $ageIntervals,
+            'selected_child_id' => $request->child_id,
+        ]);
+    }
+
+    /**
+     * Store a newly created screening in storage.
+     */
+    public function store(StoreScreeningRequest $request): RedirectResponse
+    {
+        $child = Child::findOrFail($request->child_id);
+
+        Asq3Screening::create([
+            'child_id' => $request->child_id,
+            'age_interval_id' => $request->age_interval_id,
+            'screening_date' => $request->screening_date,
+            'age_at_screening_months' => $child->age_in_months,
+            'age_at_screening_days' => $child->age_in_days,
+            'status' => 'in_progress',
+        ]);
+
+        return redirect()->route('screenings.index')->with('success', 'Screening created successfully');
+    }
+
+    /**
      * Display detailed screening results.
      */
-    public function show($id)
+    public function show(string $id): Response
     {
         $screening = Asq3Screening::with([
             'child.user',
@@ -117,9 +177,71 @@ class ScreeningController extends Controller
     }
 
     /**
+     * Show the form for editing the specified screening.
+     */
+    public function edit(string $id): Response
+    {
+        $screening = Asq3Screening::with(['child.user', 'ageInterval'])->findOrFail($id);
+
+        $children = Child::with('user')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($child) => [
+                'id' => $child->id,
+                'name' => $child->name,
+                'parent_name' => $child->user->full_name,
+                'date_of_birth' => $child->date_of_birth->format('Y-m-d'),
+                'age_in_months' => $child->age_in_months,
+            ]);
+
+        $ageIntervals = Asq3AgeInterval::orderBy('age_months')
+            ->get()
+            ->map(fn ($interval) => [
+                'id' => $interval->id,
+                'age_months' => $interval->age_months,
+                'age_label' => $interval->age_label,
+                'min_age_days' => $interval->min_age_days,
+                'max_age_days' => $interval->max_age_days,
+            ]);
+
+        return Inertia::render('screenings/edit', [
+            'screening' => [
+                'id' => $screening->id,
+                'child_id' => $screening->child_id,
+                'age_interval_id' => $screening->age_interval_id,
+                'screening_date' => $screening->screening_date->format('Y-m-d'),
+            ],
+            'children' => $children,
+            'ageIntervals' => $ageIntervals,
+        ]);
+    }
+
+    /**
+     * Update the specified screening in storage.
+     */
+    public function update(UpdateScreeningRequest $request, string $id): RedirectResponse
+    {
+        $screening = Asq3Screening::findOrFail($id);
+        $child = Child::findOrFail($request->child_id);
+
+        $screening->update([
+            'child_id' => $request->child_id,
+            'age_interval_id' => $request->age_interval_id,
+            'screening_date' => $request->screening_date,
+            'age_at_screening_months' => $child->age_in_months,
+            'age_at_screening_days' => $child->age_in_days,
+        ]);
+
+        return redirect()->route('screenings.index')->with('success', 'Screening updated successfully');
+            'status' => 'in_progress',
+        ]);
+    }
+
+    /**
      * Remove the specified screening.
      */
-    public function destroy($id)
+    public function destroy(string $id): RedirectResponse
     {
         $screening = Asq3Screening::findOrFail($id);
         $screening->delete();

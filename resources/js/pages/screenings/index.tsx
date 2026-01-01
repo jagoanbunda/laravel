@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { PaginationNav } from '@/components/ui/pagination-nav';
 import {
     Search,
     Eye,
@@ -121,15 +122,14 @@ export default function ScreeningsIndex({ screenings, filters }: Props) {
                         </div>
 
                         {/* Pagination */}
-                        <div className="flex items-center justify-between px-4 py-3 border-t">
-                            <p className="text-sm text-muted-foreground">
-                                Showing {screenings.data.length} of {screenings.total} screenings
-                            </p>
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="sm" disabled>Previous</Button>
-                                <Button variant="outline" size="sm" disabled>Next</Button>
-                            </div>
-                        </div>
+                        <PaginationNav
+                            currentPage={screenings.current_page}
+                            lastPage={screenings.last_page}
+                            total={screenings.total}
+                            perPage={screenings.per_page}
+                            baseUrl="/screenings"
+                            filters={filters}
+                        />
                     </CardContent>
                 </Card>
             </div>
