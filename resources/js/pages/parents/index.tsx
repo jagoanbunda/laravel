@@ -1,6 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/components/layouts/app-layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,79 +15,40 @@ import {
     Clock,
 } from 'lucide-react';
 import { useState } from 'react';
-import type { User } from '@/types/models';
 
-// Mock data
-const mockParents: (User & { children_count: number; status: 'verified' | 'pending' })[] = [
-    {
-        id: 1,
-        email: 'budi.santoso@email.com',
-        full_name: 'Budi Santoso',
-        phone: '+6281234567890',
-        children_count: 2,
-        status: 'verified',
-        created_at: '2024-01-15',
-        updated_at: '2024-12-30',
-    },
-    {
-        id: 2,
-        email: 'dewi.sartika@email.com',
-        full_name: 'Dewi Sartika',
-        phone: '+6282345678901',
-        children_count: 1,
-        status: 'verified',
-        created_at: '2024-02-20',
-        updated_at: '2024-12-30',
-    },
-    {
-        id: 3,
-        email: 'andi.wijaya@email.com',
-        full_name: 'Andi Wijaya',
-        phone: '+6283456789012',
-        children_count: 3,
-        status: 'pending',
-        created_at: '2024-03-10',
-        updated_at: '2024-12-30',
-    },
-    {
-        id: 4,
-        email: 'siti.rahayu@email.com',
-        full_name: 'Siti Rahayu',
-        phone: '+6284567890123',
-        children_count: 1,
-        status: 'verified',
-        created_at: '2024-04-05',
-        updated_at: '2024-12-30',
-    },
-    {
-        id: 5,
-        email: 'agus.hermawan@email.com',
-        full_name: 'Agus Hermawan',
-        phone: '+6285678901234',
-        children_count: 2,
-        status: 'verified',
-        created_at: '2024-05-12',
-        updated_at: '2024-12-30',
-    },
-];
+interface ParentListItem {
+    id: number;
+    full_name: string;
+    email: string;
+    phone?: string;
+    avatar_url?: string;
+    children_count: number;
+    push_notifications: boolean;
+    weekly_report: boolean;
+    email_verified_at?: string;
+    created_at: string;
+}
 
-const filterOptions = [
-    { label: 'All', value: 'all' },
-    { label: 'Verified', value: 'verified' },
-    { label: 'Pending', value: 'pending' },
-    { label: 'Has At-Risk Children', value: 'at-risk' },
-];
+interface Props {
+    parents: {
+        data: ParentListItem[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
+    filters: {
+        search?: string;
+    };
+}
 
-export default function ParentsIndex() {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [activeFilter, setActiveFilter] = useState('all');
+export default function ParentsIndex({ parents, filters }: Props) {
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
 
-    const filteredParents = mockParents.filter((parent) => {
-        const matchesSearch = parent.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            parent.email.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFilter = activeFilter === 'all' || parent.status === activeFilter;
-        return matchesSearch && matchesFilter;
-    });
+    const handleSearch = (value: string) => {
+        setSearchQuery(value);
+        router.get('/parents', { search: value }, { preserveState: true });
+    };
 
     return (
         <AppLayout title="Parents Management">
@@ -99,10 +60,11 @@ export default function ParentsIndex() {
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search parents..."
+                            type="text"
+                            placeholder="Search by name or email..."
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
+                            onChange={(e) => handleSearch(e.target.value)}
+                            className="pl-10 pr-4"
                         />
                     </div>
                     <Button>
@@ -112,20 +74,7 @@ export default function ParentsIndex() {
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-wrap gap-2">
-                    {filterOptions.map((filter) => (
-                        <button
-                            key={filter.value}
-                            onClick={() => setActiveFilter(filter.value)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeFilter === filter.value
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                }`}
-                        >
-                            {filter.label}
-                        </button>
-                    ))}
-                </div>
+                {/* Removed filter buttons - search only for now */}
 
                 {/* Parents Table */}
                 <Card>
@@ -144,7 +93,7 @@ export default function ParentsIndex() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredParents.map((parent) => (
+                                    {parents.data.map((parent) => (
                                         <tr key={parent.id} className="border-b hover:bg-muted/30 transition-colors">
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center gap-3">
@@ -174,7 +123,7 @@ export default function ParentsIndex() {
                                                 </span>
                                             </td>
                                             <td className="py-3 px-4">
-                                                {parent.status === 'verified' ? (
+                                                {parent.email_verified_at ? (
                                                     <span className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-1 text-xs font-medium text-secondary">
                                                         <CheckCircle className="h-3 w-3" />
                                                         Verified
@@ -219,7 +168,7 @@ export default function ParentsIndex() {
                         {/* Pagination */}
                         <div className="flex items-center justify-between px-4 py-3 border-t">
                             <p className="text-sm text-muted-foreground">
-                                Showing {filteredParents.length} of {mockParents.length} parents
+                                Showing {parents.data.length} of {parents.total} parents
                             </p>
                             <div className="flex items-center gap-2">
                                 <Button variant="outline" size="sm" disabled>
