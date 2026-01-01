@@ -23,12 +23,12 @@ class Child extends Model
     protected $fillable = [
         'user_id',
         'name',
-        'birthday',
+        'date_of_birth',
         'gender',
         'avatar_url',
         'birth_weight',
         'birth_height',
-        'head_circumference',
+        'birth_head_circumference',
         'is_active',
     ];
 
@@ -40,10 +40,10 @@ class Child extends Model
     protected function casts(): array
     {
         return [
-            'birthday' => 'date',
+            'date_of_birth' => 'date',
             'birth_weight' => 'decimal:2',
             'birth_height' => 'decimal:2',
-            'head_circumference' => 'decimal:2',
+            'birth_head_circumference' => 'decimal:2',
             'is_active' => 'boolean',
         ];
     }
@@ -93,7 +93,7 @@ class Child extends Model
      */
     public function getAgeInMonthsAttribute(): int
     {
-        return $this->birthday->diffInMonths(now());
+        return $this->date_of_birth->diffInMonths(now());
     }
 
     /**
@@ -101,6 +101,6 @@ class Child extends Model
      */
     public function getAgeInDaysAttribute(): int
     {
-        return $this->birthday->diffInDays(now());
+        return $this->date_of_birth->diffInDays(now());
     }
 }
