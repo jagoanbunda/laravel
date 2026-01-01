@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,115 +12,32 @@ import {
     List,
 } from 'lucide-react';
 import { useState } from 'react';
-import type { Child } from '@/types/models';
 
-// Mock data
-const mockChildren: Child[] = [
-    {
-        id: 1,
-        user_id: 1,
-        name: 'Ahmad Fadli',
-        date_of_birth: '2022-03-15',
-        gender: 'male',
-        is_active: true,
-        created_at: '2024-01-01',
-        updated_at: '2024-12-30',
-        age_months: 33,
-        parent: { id: 1, email: 'budi@email.com', full_name: 'Budi Santoso', created_at: '', updated_at: '' },
-        latest_measurement: {
-            id: 1,
-            child_id: 1,
-            measurement_date: '2024-12-28',
-            weight: 12.5,
-            height: 92,
-            weight_for_age_zscore: 0.5,
-            height_for_age_zscore: 0.3,
-            nutritional_status: 'normal',
-            stunting_status: 'normal',
-            created_at: '2024-12-28',
-        },
-    },
-    {
-        id: 2,
-        user_id: 2,
-        name: 'Siti Nurhaliza',
-        date_of_birth: '2023-01-20',
-        gender: 'female',
-        is_active: true,
-        created_at: '2024-02-01',
-        updated_at: '2024-12-30',
-        age_months: 23,
-        parent: { id: 2, email: 'dewi@email.com', full_name: 'Dewi Sartika', created_at: '', updated_at: '' },
-        latest_measurement: {
-            id: 2,
-            child_id: 2,
-            measurement_date: '2024-12-27',
-            weight: 9.8,
-            height: 82,
-            weight_for_age_zscore: -2.1,
-            height_for_age_zscore: -0.5,
-            nutritional_status: 'underweight',
-            stunting_status: 'normal',
-            created_at: '2024-12-27',
-        },
-    },
-    {
-        id: 3,
-        user_id: 3,
-        name: 'Rizky Pratama',
-        date_of_birth: '2022-08-10',
-        gender: 'male',
-        is_active: true,
-        created_at: '2024-03-01',
-        updated_at: '2024-12-30',
-        age_months: 28,
-        parent: { id: 3, email: 'andi@email.com', full_name: 'Andi Wijaya', created_at: '', updated_at: '' },
-        latest_measurement: {
-            id: 3,
-            child_id: 3,
-            measurement_date: '2024-12-26',
-            weight: 10.2,
-            height: 83,
-            weight_for_age_zscore: -0.3,
-            height_for_age_zscore: -2.5,
-            nutritional_status: 'normal',
-            stunting_status: 'stunted',
-            created_at: '2024-12-26',
-        },
-    },
-    {
-        id: 4,
-        user_id: 4,
-        name: 'Putri Ayu',
-        date_of_birth: '2023-06-05',
-        gender: 'female',
-        is_active: true,
-        created_at: '2024-04-01',
-        updated_at: '2024-12-30',
-        age_months: 18,
-        parent: { id: 4, email: 'siti@email.com', full_name: 'Siti Rahayu', created_at: '', updated_at: '' },
-        latest_measurement: {
-            id: 4,
-            child_id: 4,
-            measurement_date: '2024-12-25',
-            weight: 9.5,
-            height: 78,
-            weight_for_age_zscore: 0.8,
-            height_for_age_zscore: 0.2,
-            nutritional_status: 'normal',
-            stunting_status: 'normal',
-            created_at: '2024-12-25',
-        },
-    },
-];
+interface ChildListItem {
+    id: number;
+    name: string;
+    date_of_birth: string;
+    gender: string;
+    parent_name: string;
+    parent_email: string;
+    is_active: boolean;
+    created_at: string;
+}
 
-const statusFilters = [
-    { label: 'All', value: 'all' },
-    { label: 'Normal', value: 'normal' },
-    { label: 'Underweight', value: 'underweight' },
-    { label: 'Stunted', value: 'stunted' },
-    { label: 'At Risk', value: 'at-risk' },
-];
+interface Props {
+    children: {
+        data: ChildListItem[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
+    filters: {
+        search?: string;
+        gender?: string;
+        status?: string;
+    };
+}
 
 function ZScoreIndicator({ value }: { value: number | undefined }) {
     if (value === undefined) return <span className="text-muted-foreground">-</span>;
@@ -179,26 +96,23 @@ function getStatusBadge(child: Child) {
     );
 }
 
-export default function ChildrenIndex() {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [activeFilter, setActiveFilter] = useState('all');
-    const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+export default function ChildrenIndex({ children, filters }: Props) {
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-    const filteredChildren = mockChildren.filter((child) => {
-        const matchesSearch = child.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            child.parent?.full_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const handleSearch = (value: string) => {
+        setSearchQuery(value);
+        router.get('/children', { ...filters, search: value }, { preserveState: true });
+    };
 
-        if (activeFilter === 'all') return matchesSearch;
-        if (activeFilter === 'at-risk') {
-            const m = child.latest_measurement;
-            return matchesSearch && m && (
-                (m.weight_for_age_zscore && m.weight_for_age_zscore < -2) ||
-                (m.height_for_age_zscore && m.height_for_age_zscore < -2) ||
-                (m.weight_for_height_zscore && m.weight_for_height_zscore < -2)
-            );
-        }
-        return matchesSearch && child.latest_measurement?.nutritional_status === activeFilter;
-    });
+    const calculateAge = (dateOfBirth: string) => {
+        const today = new Date();
+        const birthDate = new Date(dateOfBirth);
+        const ageInMonths = (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth());
+        const years = Math.floor(ageInMonths / 12);
+        const months = ageInMonths % 12;
+        return { years, months };
+    };
 
     return (
         <AppLayout title="Children Management">
@@ -212,7 +126,7 @@ export default function ChildrenIndex() {
                         <Input
                             placeholder="Search children or parents..."
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => handleSearch(e.target.value)}
                             className="pl-10"
                         />
                     </div>
@@ -238,21 +152,7 @@ export default function ChildrenIndex() {
                     </div>
                 </div>
 
-                {/* Filters */}
-                <div className="flex flex-wrap gap-2">
-                    {statusFilters.map((filter) => (
-                        <button
-                            key={filter.value}
-                            onClick={() => setActiveFilter(filter.value)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeFilter === filter.value
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                }`}
-                        >
-                            {filter.label}
-                        </button>
-                    ))}
-                </div>
+                {/* Removed filters - handled server-side */}
 
                 {/* Children Table */}
                 <Card>
@@ -263,76 +163,68 @@ export default function ChildrenIndex() {
                                     <tr className="border-b bg-muted/50">
                                         <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Name</th>
                                         <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Parent</th>
-                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Age</th>
-                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Weight/Height</th>
-                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Z-Score (WAZ)</th>
+                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Gender</th>
                                         <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
-                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Last Checkup</th>
+                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Registered</th>
                                         <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredChildren.map((child) => (
-                                        <tr key={child.id} className="border-b hover:bg-muted/30 transition-colors">
-                                            <td className="py-3 px-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${child.gender === 'male' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'
-                                                        }`}>
-                                                        <span className="text-sm font-medium">
-                                                            {child.name.charAt(0)}
+                                    {children.data.map((child) => {
+                                        const age = calculateAge(child.date_of_birth);
+                                        return (
+                                            <tr key={child.id} className="border-b hover:bg-muted/30 transition-colors">
+                                                <td className="py-3 px-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${child.gender === 'male' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'
+                                                            }`}>
+                                                            <span className="text-sm font-medium">
+                                                                {child.name.charAt(0)}
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="font-medium">{child.name}</span>
+                                                            <p className="text-xs text-muted-foreground">{age.years} yrs {age.months} mos</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4 text-sm">
+                                                    {child.parent_name}
+                                                </td>
+                                                <td className="py-3 px-4 text-sm capitalize">
+                                                    {child.gender}
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    {child.is_active ? (
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700">
+                                                            Active
                                                         </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">
+                                                            Inactive
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="py-3 px-4 text-sm text-muted-foreground">
+                                                    {new Date(child.created_at).toLocaleDateString()}
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <div className="flex items-center gap-1">
+                                                        <Link href={`/children/${child.id}`}>
+                                                            <Button variant="ghost" size="icon">
+                                                                <Eye className="h-4 w-4" />
+                                                            </Button>
+                                                        </Link>
+                                                        <Link href={`/children/${child.id}/edit`}>
+                                                            <Button variant="ghost" size="icon">
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                        </Link>
                                                     </div>
-                                                    <div>
-                                                        <span className="font-medium">{child.name}</span>
-                                                        <p className="text-xs text-muted-foreground capitalize">{child.gender}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-4 text-sm text-muted-foreground">
-                                                {child.parent?.full_name}
-                                            </td>
-                                            <td className="py-3 px-4 text-sm">
-                                                {child.age_months} mo
-                                            </td>
-                                            <td className="py-3 px-4 text-sm">
-                                                {child.latest_measurement ? (
-                                                    <span>
-                                                        {child.latest_measurement.weight} kg / {child.latest_measurement.height} cm
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-muted-foreground">-</span>
-                                                )}
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <ZScoreIndicator value={child.latest_measurement?.weight_for_age_zscore} />
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                {getStatusBadge(child)}
-                                            </td>
-                                            <td className="py-3 px-4 text-sm text-muted-foreground">
-                                                {child.latest_measurement?.measurement_date ? (
-                                                    new Date(child.latest_measurement.measurement_date).toLocaleDateString('id-ID', {
-                                                        day: 'numeric',
-                                                        month: 'short',
-                                                    })
-                                                ) : '-'}
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <div className="flex items-center gap-1">
-                                                    <Link href={`/children/${child.id}`}>
-                                                        <Button variant="ghost" size="icon">
-                                                            <Eye className="h-4 w-4" />
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={`/children/${child.id}/edit`}>
-                                                        <Button variant="ghost" size="icon">
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                    </Link>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -340,7 +232,7 @@ export default function ChildrenIndex() {
                         {/* Pagination */}
                         <div className="flex items-center justify-between px-4 py-3 border-t">
                             <p className="text-sm text-muted-foreground">
-                                Showing {filteredChildren.length} of {mockChildren.length} children
+                                Showing {children.data.length} of {children.total} children
                             </p>
                             <div className="flex items-center gap-2">
                                 <Button variant="outline" size="sm" disabled>

@@ -30,35 +30,29 @@ import {
     ArrowRight,
 } from 'lucide-react';
 
-// Mock child data
-const mockChild = {
-    id: 1,
-    name: 'Sarah Doe',
-    patient_id: 'PD-2023-891',
-    gender: 'female',
-    date_of_birth: '2021-05-12',
-    age_years: 2,
-    age_months: 3,
-    birth_weight: 3.2,
-    parent: {
-        full_name: 'Jane Doe',
-        relationship: 'Mother',
-        phone: '+62 812 3456 7890',
-    },
-    latest_measurement: {
-        weight: 12.5,
-        height: 88,
-        muac: 14.5,
-        weight_change: 0.4,
-        height_change: 2,
-        measurement_date: '2024-12-28',
-    },
-    health_status: {
-        nutritional: 'normal',
-        stunting: 'moderate',
-        wasting: 'normal',
-    },
-};
+interface Props {
+    child: {
+        id: number;
+        name: string;
+        date_of_birth: string;
+        gender: string;
+        avatar_url?: string;
+        birth_weight?: number;
+        birth_height?: number;
+        birth_head_circumference?: number;
+        is_active: boolean;
+        parent: {
+            id: number;
+            name: string;
+            email: string;
+            phone?: string;
+        };
+        growth_data: any[];
+        food_logs: any[];
+        pmt_schedules: any[];
+        screenings: any[];
+    };
+}
 
 const recentActivities = [
     {
@@ -109,10 +103,22 @@ function getStatusBadge(status: string) {
     );
 }
 
-export default function ChildDetail() {
+// Helper to calculate age from date of birth
+function calculateAge(dateOfBirth: string) {
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    const ageInMonths = (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth());
+    const years = Math.floor(ageInMonths / 12);
+    const months = ageInMonths % 12;
+    return { years, months, totalMonths: ageInMonths };
+}
+
+export default function ChildDetail({ child }: Props) {
     const [activeTab, setActiveTab] = useState('overview');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const child = mockChild;
+
+    const age = calculateAge(child.date_of_birth);
+    const latestGrowth = child.growth_data[0]; // Most recent measurement
 
     return (
         <AppLayout title="Child Profile">
@@ -168,11 +174,11 @@ export default function ChildDetail() {
                                 {!sidebarCollapsed && (
                                     <>
                                         <h2 className="text-xl font-bold text-center mb-1">{child.name}</h2>
-                                        <Badge variant="secondary" className="mb-4">ID: #{child.patient_id}</Badge>
+                                        <Badge variant="secondary" className="mb-4">ID: #{child.id}</Badge>
                                         <div className="flex justify-center gap-6 w-full">
                                             <div className="flex flex-col items-center">
                                                 <span className="text-xs text-muted-foreground uppercase tracking-wide">Age</span>
-                                                <span className="font-semibold">{child.age_years} Yrs {child.age_months} Mo</span>
+                                                <span className="font-semibold">{age.years} Yrs {age.months} Mo</span>
                                             </div>
                                             <div className="w-px h-8 bg-border" />
                                             <div className="flex flex-col items-center">
@@ -196,7 +202,7 @@ export default function ChildDetail() {
                                         </div>
                                         <div>
                                             <p className="text-xs text-muted-foreground">Primary Guardian</p>
-                                            <p className="text-sm font-medium">{child.parent.full_name} ({child.parent.relationship})</p>
+                                            <p className="text-sm font-medium">{child.parent.name}</p>
                                         </div>
                                     </div>
                                     <div className="px-6 py-4 border-b flex items-center gap-3 hover:bg-muted/50 transition-colors">
@@ -282,12 +288,12 @@ export default function ChildDetail() {
                                                 <span className="text-sm font-medium">Weight</span>
                                             </div>
                                             <div className="flex items-baseline gap-2 mt-2">
-                                                <span className="text-3xl font-bold tracking-tight">{child.latest_measurement.weight}</span>
+                                                <span className="text-3xl font-bold tracking-tight">{latestGrowth?.weight || '-'}</span>
                                                 <span className="text-sm font-medium text-muted-foreground">kg</span>
                                             </div>
                                             <div className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md mt-2">
                                                 <TrendingUp className="h-3 w-3" />
-                                                +{child.latest_measurement.weight_change}kg since last visit
+                                                {latestGrowth ? 'Latest measurement' : 'No data'}
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -303,12 +309,12 @@ export default function ChildDetail() {
                                                 <span className="text-sm font-medium">Height</span>
                                             </div>
                                             <div className="flex items-baseline gap-2 mt-2">
-                                                <span className="text-3xl font-bold tracking-tight">{child.latest_measurement.height}</span>
+                                                <span className="text-3xl font-bold tracking-tight">{latestGrowth?.height || '-'}</span>
                                                 <span className="text-sm font-medium text-muted-foreground">cm</span>
                                             </div>
                                             <div className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md mt-2">
                                                 <TrendingUp className="h-3 w-3" />
-                                                +{child.latest_measurement.height_change}cm since last visit
+                                                {latestGrowth ? 'Latest measurement' : 'No data'}
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -324,7 +330,7 @@ export default function ChildDetail() {
                                                 <span className="text-sm font-medium">MUAC</span>
                                             </div>
                                             <div className="flex items-baseline gap-2 mt-2">
-                                                <span className="text-3xl font-bold tracking-tight">{child.latest_measurement.muac}</span>
+                                                <span className="text-3xl font-bold tracking-tight">{latestGrowth?.head_circumference || '-'}</span>
                                                 <span className="text-sm font-medium text-muted-foreground">cm</span>
                                             </div>
                                             <div className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md mt-2">
@@ -336,10 +342,10 @@ export default function ChildDetail() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Health Status Summary */}
+                                    {/* Quick Health Overview */}
                                     <Card className="flex flex-col h-full">
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                            <CardTitle className="text-lg">Health Status Summary</CardTitle>
-                                            <Button variant="link" size="sm" className="text-emerald-600">View Details</Button>
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="text-lg">Health Overview</CardTitle>
                                         </CardHeader>
                                         <CardContent className="flex-1 flex flex-col gap-4">
                                             {/* Nutritional Status */}
@@ -353,7 +359,7 @@ export default function ChildDetail() {
                                                         <p className="text-xs text-emerald-700">Within normal range</p>
                                                     </div>
                                                 </div>
-                                                {getStatusBadge(child.health_status.nutritional)}
+                                                {getStatusBadge('normal')}
                                             </div>
 
                                             {/* Stunting Status */}
@@ -367,7 +373,7 @@ export default function ChildDetail() {
                                                         <p className="text-xs text-amber-700">Height-for-age is slightly low</p>
                                                     </div>
                                                 </div>
-                                                {getStatusBadge(child.health_status.stunting)}
+                                                {getStatusBadge('normal')}
                                             </div>
 
                                             {/* Wasting Status */}
@@ -381,7 +387,7 @@ export default function ChildDetail() {
                                                         <p className="text-xs text-muted-foreground">Weight-for-height ratio</p>
                                                     </div>
                                                 </div>
-                                                {getStatusBadge(child.health_status.wasting)}
+                                                {getStatusBadge('normal')}
                                             </div>
                                         </CardContent>
                                     </Card>
