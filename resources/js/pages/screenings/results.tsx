@@ -19,96 +19,59 @@ import {
     Users,
     FileText,
     Download,
+    type LucideIcon,
 } from 'lucide-react';
 
-// Mock data - would come from backend
-const screeningData = {
-    id: 1,
+interface DomainResult {
+    domain_id: number;
+    domain_name: string;
+    domain_code: string;
+    domain_color: string | null;
+    total_score: number;
+    cutoff_score: number;
+    monitoring_score: number;
+    status: 'sesuai' | 'pantau' | 'perlu_rujukan';
+}
+
+interface ScreeningData {
+    id: number;
     child: {
-        id: 1,
-        name: 'Ahmad Fadli',
-        age_months: 27,
-        date_of_birth: '2022-08-10',
-    },
+        id: number;
+        name: string;
+        date_of_birth: string;
+        gender: string;
+    };
     parent: {
-        full_name: 'Budi Santoso',
-        phone: '+6281234567890',
-    },
-    screening_date: '2024-12-28',
-    age_at_screening_months: 27,
-    age_interval: '27 Bulan',
-    status: 'completed' as const,
-    overall_status: 'sesuai' as const,
-    completed_at: '2024-12-28 14:30:00',
+        name: string;
+        email: string;
+    };
+    screening_date: string;
+    age_at_screening_months: number;
+    age_interval: string;
+    status: string;
+    overall_status: 'sesuai' | 'pantau' | 'perlu_rujukan';
+    completed_at: string | null;
+    domain_results: DomainResult[];
+}
+
+interface Props {
+    screening: ScreeningData;
+}
+
+// Map domain codes to icons and colors
+const domainConfig: Record<string, { icon: LucideIcon; color: string; bgColor: string }> = {
+    communication: { icon: MessageCircle, color: 'text-blue-600', bgColor: 'bg-blue-50' },
+    gross_motor: { icon: Activity, color: 'text-green-600', bgColor: 'bg-green-50' },
+    fine_motor: { icon: Hand, color: 'text-purple-600', bgColor: 'bg-purple-50' },
+    problem_solving: { icon: Puzzle, color: 'text-orange-600', bgColor: 'bg-orange-50' },
+    personal_social: { icon: Users, color: 'text-pink-600', bgColor: 'bg-pink-50' },
 };
 
-const domainResults = [
-    {
-        id: 1,
-        domain_code: 'communication',
-        domain_name: 'Komunikasi',
-        icon: MessageCircle,
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-50',
-        total_score: 55,
-        cutoff_score: 30,
-        monitoring_score: 40,
-        max_score: 60,
-        status: 'sesuai' as const,
-    },
-    {
-        id: 2,
-        domain_code: 'gross_motor',
-        domain_name: 'Motorik Kasar',
-        icon: Activity,
-        color: 'text-green-600',
-        bgColor: 'bg-green-50',
-        total_score: 60,
-        cutoff_score: 25,
-        monitoring_score: 35,
-        max_score: 60,
-        status: 'sesuai' as const,
-    },
-    {
-        id: 3,
-        domain_code: 'fine_motor',
-        domain_name: 'Motorik Halus',
-        icon: Hand,
-        color: 'text-purple-600',
-        bgColor: 'bg-purple-50',
-        total_score: 50,
-        cutoff_score: 30,
-        monitoring_score: 40,
-        max_score: 60,
-        status: 'sesuai' as const,
-    },
-    {
-        id: 4,
-        domain_code: 'problem_solving',
-        domain_name: 'Pemecahan Masalah',
-        icon: Puzzle,
-        color: 'text-orange-600',
-        bgColor: 'bg-orange-50',
-        total_score: 55,
-        cutoff_score: 25,
-        monitoring_score: 35,
-        max_score: 60,
-        status: 'sesuai' as const,
-    },
-    {
-        id: 5,
-        domain_code: 'personal_social',
-        domain_name: 'Personal Sosial',
-        icon: Users,
-        color: 'text-pink-600',
-        bgColor: 'bg-pink-50',
-        total_score: 50,
-        cutoff_score: 30,
-        monitoring_score: 40,
-        max_score: 60,
-        status: 'sesuai' as const,
-    },
-];
+// Default config for unknown domains
+const defaultDomainConfig = { icon: FileText, color: 'text-gray-600', bgColor: 'bg-gray-50' };
+
+// Max score per domain (constant for ASQ-3)
+const MAX_DOMAIN_SCORE = 60;
 
 function getStatusBadge(status: string) {
     const config = {
@@ -129,7 +92,7 @@ function getStatusBadge(status: string) {
         },
     };
 
-    const { label, className, icon: Icon } = config[status as keyof typeof config];
+    const { label, className, icon: Icon } = config[status as keyof typeof config] || config.sesuai;
     return (
         <Badge className={`${className} gap-2 px-3 py-1 text-sm`}>
             <Icon className="h-4 w-4" />
@@ -145,14 +108,17 @@ function getDomainStatusBadge(status: string) {
         perlu_rujukan: { label: 'Perlu Rujukan', className: 'bg-red-100 text-red-700' },
     };
 
-    const { label, className } = config[status as keyof typeof config];
+    const { label, className } = config[status as keyof typeof config] || config.sesuai;
     return <Badge className={className}>{label}</Badge>;
 }
 
-export default function ScreeningResults() {
-    const totalScore = domainResults.reduce((sum, d) => sum + d.total_score, 0);
-    const maxTotalScore = domainResults.reduce((sum, d) => sum + d.max_score, 0);
-    const overallProgress = (totalScore / maxTotalScore) * 100;
+export default function ScreeningResults({ screening }: Props) {
+    const domainResults = screening.domain_results || [];
+    // Pre-convert scores to numbers for better performance
+    const domainScores = domainResults.map(d => Number(d.total_score));
+    const totalScore = domainScores.reduce((sum, score) => sum + score, 0);
+    const maxTotalScore = domainResults.length * MAX_DOMAIN_SCORE;
+    const overallProgress = maxTotalScore > 0 ? (totalScore / maxTotalScore) * 100 : 0;
 
     return (
         <AppLayout title="Hasil Screening ASQ-3">
@@ -182,7 +148,7 @@ export default function ScreeningResults() {
                                 <div className="flex items-center gap-2 text-muted-foreground">
                                     <Calendar className="h-4 w-4" />
                                     <span>
-                                        {new Date(screeningData.screening_date).toLocaleDateString('id-ID', {
+                                        {new Date(screening.screening_date).toLocaleDateString('id-ID', {
                                             day: 'numeric',
                                             month: 'long',
                                             year: 'numeric',
@@ -190,7 +156,7 @@ export default function ScreeningResults() {
                                     </span>
                                 </div>
                             </div>
-                            {getStatusBadge(screeningData.overall_status)}
+                            {getStatusBadge(screening.overall_status)}
                         </div>
                     </CardHeader>
                     <CardContent className="pt-6">
@@ -200,25 +166,25 @@ export default function ScreeningResults() {
                                     <Baby className="h-5 w-5 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">Nama Anak</p>
-                                        <p className="font-semibold">{screeningData.child.name}</p>
+                                        <p className="font-semibold">{screening.child.name}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <User className="h-5 w-5 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">Orang Tua</p>
-                                        <p className="font-semibold">{screeningData.parent.full_name}</p>
+                                        <p className="font-semibold">{screening.parent.name}</p>
                                     </div>
                                 </div>
                             </div>
                             <div className="space-y-3">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Usia saat Screening</p>
-                                    <p className="font-semibold">{screeningData.age_at_screening_months} bulan ({screeningData.age_interval})</p>
+                                    <p className="font-semibold">{screening.age_at_screening_months} bulan ({screening.age_interval})</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Status</p>
-                                    <p className="font-semibold capitalize">{screeningData.status}</p>
+                                    <p className="font-semibold capitalize">{screening.status}</p>
                                 </div>
                             </div>
                         </div>
@@ -254,21 +220,23 @@ export default function ScreeningResults() {
                     </CardHeader>
                     <CardContent className="p-0">
                         <div className="divide-y">
-                            {domainResults.map((domain) => {
-                                const DomainIcon = domain.icon;
-                                const progress = (domain.total_score / domain.max_score) * 100;
+                            {domainResults.map((domain, index) => {
+                                const config = domainConfig[domain.domain_code] || defaultDomainConfig;
+                                const DomainIcon = config.icon;
+                                const score = domainScores[index];
+                                const progress = (score / MAX_DOMAIN_SCORE) * 100;
 
                                 return (
-                                    <div key={domain.id} className="p-6">
+                                    <div key={domain.domain_id} className="p-6">
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex items-center gap-3">
-                                                <div className={`p-3 rounded-lg ${domain.bgColor}`}>
-                                                    <DomainIcon className={`h-6 w-6 ${domain.color}`} />
+                                                <div className={`p-3 rounded-lg ${config.bgColor}`}>
+                                                    <DomainIcon className={`h-6 w-6 ${config.color}`} />
                                                 </div>
                                                 <div>
                                                     <h3 className="font-semibold text-lg">{domain.domain_name}</h3>
                                                     <p className="text-sm text-muted-foreground">
-                                                        Skor: {domain.total_score} / {domain.max_score}
+                                                        Skor: {score} / {MAX_DOMAIN_SCORE}
                                                     </p>
                                                 </div>
                                             </div>
@@ -280,7 +248,7 @@ export default function ScreeningResults() {
                                             <div className="flex justify-between text-xs text-muted-foreground">
                                                 <span>Cutoff: {domain.cutoff_score}</span>
                                                 <span>Monitoring: {domain.monitoring_score}</span>
-                                                <span>Max: {domain.max_score}</span>
+                                                <span>Max: {MAX_DOMAIN_SCORE}</span>
                                             </div>
                                         </div>
                                     </div>
