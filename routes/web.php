@@ -42,8 +42,7 @@ Route::resource('children', ChildController::class);
 Route::resource('foods', FoodController::class);
 
 // PMT Programs
-Route::resource('pmt', PmtController::class)->except(['show']);
-Route::get('/pmt/{pmt}/show', [PmtController::class, 'show'])->name('pmt.show');
+Route::resource('pmt', PmtController::class);
 Route::post('/pmt/{id}/log', [PmtController::class, 'logDistribution'])->name('pmt.log');
 
 // ASQ-3 Screenings

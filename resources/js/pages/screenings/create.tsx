@@ -14,6 +14,9 @@ import {
 import { ArrowLeft } from 'lucide-react';
 import { FormEvent, useEffect } from 'react';
 
+// Average days per month for age calculation
+const AVERAGE_DAYS_PER_MONTH = 30.44;
+
 interface Child {
     id: number;
     name: string;
@@ -48,7 +51,7 @@ export default function ScreeningCreate({ children, ageIntervals, selected_child
         if (data.child_id) {
             const selectedChild = children.find(c => String(c.id) === data.child_id);
             if (selectedChild) {
-                const ageInDays = Math.floor(selectedChild.age_in_months * 30.44);
+                const ageInDays = Math.floor(selectedChild.age_in_months * AVERAGE_DAYS_PER_MONTH);
                 const suitableInterval = ageIntervals.find(
                     interval => ageInDays >= interval.min_age_days && ageInDays <= interval.max_age_days
                 );
@@ -57,7 +60,7 @@ export default function ScreeningCreate({ children, ageIntervals, selected_child
                 }
             }
         }
-    }, [data.child_id]);
+    }, [data.child_id, children, ageIntervals, setData]);
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
