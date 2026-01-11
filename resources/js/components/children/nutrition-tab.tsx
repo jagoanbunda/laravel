@@ -40,7 +40,7 @@ const foodLog = [
         calories: 380,
         protein: 10,
         icon: Sun,
-        iconBg: 'bg-emerald-100 text-emerald-500',
+        iconBg: 'bg-[#DEEBC5] text-black',
     },
     {
         id: 3,
@@ -76,7 +76,7 @@ const nutrients = [
 function getStatusBadge(status: string) {
     switch (status) {
         case 'normal':
-            return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-[10px]">Normal</Badge>;
+            return <Badge className="bg-[#DEEBC5] text-black border-[#c5daa6] text-[10px]">Normal</Badge>;
         case 'good':
             return <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-[10px]">Baik</Badge>;
         case 'warning':
@@ -91,7 +91,7 @@ function getStatusBadge(status: string) {
 function getProgressColor(status: string) {
     switch (status) {
         case 'normal':
-            return 'bg-emerald-500';
+            return 'bg-[#DEEBC5]';
         case 'good':
             return 'bg-blue-500';
         case 'warning':
@@ -109,7 +109,7 @@ export default function NutritionTabContent() {
             {/* Section 1: Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Card 1: Calorie Ring */}
-                <Card className="relative overflow-hidden group hover:border-emerald-200 transition-colors">
+                <Card className="relative overflow-hidden group hover:border-[#c5daa6] transition-colors">
                     <CardContent className="p-6">
                         <div className="flex justify-between items-start mb-4">
                             <div>
@@ -128,7 +128,7 @@ export default function NutritionTabContent() {
                                         strokeWidth="3.5"
                                     />
                                     <circle
-                                        className="text-emerald-500"
+                                        className="text-black"
                                         cx="18"
                                         cy="18"
                                         r="15.9155"
@@ -139,7 +139,7 @@ export default function NutritionTabContent() {
                                         strokeLinecap="round"
                                     />
                                 </svg>
-                                <span className="absolute text-[10px] font-bold text-emerald-500">
+                                <span className="absolute text-[10px] font-bold text-black">
                                     {dailyOverview.calories.percentage}%
                                 </span>
                             </div>
@@ -159,14 +159,14 @@ export default function NutritionTabContent() {
                 </Card>
 
                 {/* Card 2: Protein */}
-                <Card className="group hover:border-emerald-200 transition-colors">
+                <Card className="group hover:border-[#c5daa6] transition-colors">
                     <CardContent className="p-6">
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <p className="font-semibold mb-1">Protein</p>
                                 <p className="text-xs text-muted-foreground">Pembangun otot</p>
                             </div>
-                            <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Cukup</Badge>
+                            <Badge className="bg-[#DEEBC5] text-black border-[#c5daa6]">Cukup</Badge>
                         </div>
                         <div>
                             <div className="flex items-baseline gap-1">
@@ -175,7 +175,7 @@ export default function NutritionTabContent() {
                             </div>
                             <div className="w-full bg-gray-100 rounded-full h-2.5 mt-3 overflow-hidden">
                                 <div
-                                    className="bg-gradient-to-r from-emerald-500 to-teal-400 h-2.5 rounded-full transition-all"
+                                    className="bg-gradient-to-r from-[#9aba59] to-teal-400 h-2.5 rounded-full transition-all"
                                     style={{ width: `${dailyOverview.protein.percentage}%` }}
                                 />
                             </div>
@@ -184,7 +184,7 @@ export default function NutritionTabContent() {
                 </Card>
 
                 {/* Card 3: Frequency */}
-                <Card className="group hover:border-emerald-200 transition-colors">
+                <Card className="group hover:border-[#c5daa6] transition-colors">
                     <CardContent className="p-6">
                         <div className="flex justify-between items-start mb-4">
                             <div>
@@ -209,7 +209,7 @@ export default function NutritionTabContent() {
                 <Card className="lg:col-span-2 flex flex-col">
                     <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
                         <CardTitle className="text-lg">Catatan Makan Hari Ini</CardTitle>
-                        <Button className="bg-emerald-500 hover:bg-emerald-600 gap-2" size="sm">
+                        <Button className="bg-[#DEEBC5] text-black hover:bg-[#c5daa6] gap-2" size="sm">
                             <Plus className="h-4 w-4" />
                             Tambah Makanan
                         </Button>
@@ -229,13 +229,13 @@ export default function NutritionTabContent() {
                                                 <IconComponent className="h-5 w-5" />
                                             </div>
                                         </div>
-                                        <div className="flex-1 bg-gray-50 p-4 rounded-xl border hover:border-emerald-200 transition-colors flex gap-4 items-start">
-                                            <div className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-teal-50 rounded-lg flex items-center justify-center shrink-0">
-                                                <Utensils className="h-6 w-6 text-emerald-400" />
+                                        <div className="flex-1 bg-gray-50 p-4 rounded-xl border hover:border-[#c5daa6] transition-colors flex gap-4 items-start">
+                                            <div className="w-14 h-14 bg-gradient-to-br from-[#DEEBC5] to-teal-50 rounded-lg flex items-center justify-center shrink-0">
+                                                <Utensils className="h-6 w-6 text-black" />
                                             </div>
                                             <div className="flex flex-col gap-1 w-full">
                                                 <div className="flex justify-between w-full">
-                                                    <p className="text-xs font-bold text-emerald-600 tracking-wide uppercase">
+                                                    <p className="text-xs font-bold text-black tracking-wide uppercase">
                                                         {item.time} - {item.meal}
                                                     </p>
                                                     <button className="text-muted-foreground hover:text-foreground">
@@ -290,7 +290,7 @@ export default function NutritionTabContent() {
                                 {weeklyData.map((item, index) => (
                                     <div key={index} className="flex flex-col items-center gap-2 w-full group cursor-pointer">
                                         <div
-                                            className={`w-full max-w-[24px] rounded-t-md group-hover:opacity-80 transition-opacity ${item.onTarget ? 'bg-emerald-500' : 'bg-amber-400'
+                                            className={`w-full max-w-[24px] rounded-t-md group-hover:opacity-80 transition-opacity ${item.onTarget ? 'bg-[#DEEBC5]' : 'bg-amber-400'
                                                 } ${item.isToday ? 'border-2 border-dashed border-amber-500' : ''}`}
                                             style={{ height: `${item.percentage}%` }}
                                             title={`${item.calories} kkal`}
@@ -324,7 +324,7 @@ export default function NutritionTabContent() {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
                     <CardTitle className="text-lg">Detail Nutrisi Harian</CardTitle>
-                    <Button variant="link" className="text-emerald-600 p-0 h-auto">
+                    <Button variant="link" className="text-black p-0 h-auto">
                         Lihat Detail Lengkap
                     </Button>
                 </CardHeader>
@@ -359,7 +359,7 @@ export default function NutritionTabContent() {
             {/* Action Footer */}
             <Card className="p-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
                 <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                    <Button className="bg-emerald-500 hover:bg-emerald-600 gap-2">
+                    <Button className="bg-[#DEEBC5] text-black hover:bg-[#c5daa6] gap-2">
                         <Plus className="h-5 w-5" />
                         Catat Makanan
                     </Button>
@@ -368,7 +368,7 @@ export default function NutritionTabContent() {
                         Lihat Menu Rekomendasi
                     </Button>
                 </div>
-                <Button variant="ghost" className="text-muted-foreground hover:text-emerald-600 gap-2 w-full sm:w-auto">
+                <Button variant="ghost" className="text-muted-foreground hover:text-black gap-2 w-full sm:w-auto">
                     <TrendingUp className="h-5 w-5" />
                     Lihat Laporan Mingguan
                 </Button>

@@ -145,13 +145,13 @@ export default function GrowthTabContent() {
                                 <select
                                     value={selectedChartType}
                                     onChange={(e) => setSelectedChartType(e.target.value)}
-                                    className="appearance-none w-full bg-gray-50 border border-gray-200 text-sm font-medium rounded-lg py-2.5 pl-4 pr-10 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer"
+                                    className="appearance-none w-full bg-gray-50 border border-gray-200 text-sm font-medium rounded-lg py-2.5 pl-4 pr-10 focus:outline-none focus:ring-1 focus:ring-[#9aba59] focus:border-[#9aba59] cursor-pointer"
                                 >
                                     {chartTypeOptions.map((option) => (
                                         <option key={option.value} value={option.value}>{option.label}</option>
                                     ))}
                                 </select>
-                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-500 pointer-events-none" />
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9aba59] pointer-events-none" />
                             </div>
                             {/* Date Range Pills */}
                             <div className="flex bg-gray-50 p-1 rounded-lg border border-gray-200">
@@ -160,8 +160,8 @@ export default function GrowthTabContent() {
                                         key={range}
                                         onClick={() => setSelectedRange(range)}
                                         className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${selectedRange === range
-                                            ? 'bg-emerald-500 text-white shadow-sm'
-                                            : 'text-gray-500 hover:text-emerald-500 hover:bg-white'
+                                            ? 'bg-[#DEEBC5] text-black text-white shadow-sm'
+                                            : 'text-gray-500 hover:text-[#9aba59] hover:bg-white'
                                             }`}
                                     >
                                         {range}
@@ -270,7 +270,7 @@ export default function GrowthTabContent() {
                             <span className="text-xs font-medium text-gray-500">Kurang / Risiko Lebih</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                            <div className="w-3 h-3 rounded-full bg-[#DEEBC5] text-black" />
                             <span className="text-xs font-medium text-gray-500">Normal</span>
                         </div>
                     </div>
@@ -283,7 +283,7 @@ export default function GrowthTabContent() {
                 <Card className="lg:col-span-2 flex flex-col">
                     <CardHeader className="flex flex-row justify-between items-center border-b pb-4">
                         <CardTitle className="text-lg">Riwayat Pengukuran</CardTitle>
-                        <Button className="gap-2 bg-emerald-500 hover:bg-emerald-600">
+                        <Button className="gap-2 bg-[#DEEBC5] text-black hover:bg-[#c5daa6]">
                             <Plus className="h-4 w-4" />
                             Tambah Pengukuran
                         </Button>
@@ -293,21 +293,21 @@ export default function GrowthTabContent() {
                             <table className="w-full min-w-[640px]">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
-                                        <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Umur</th>
-                                        <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">BB</th>
-                                        <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">TB</th>
-                                        <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">LK</th>
-                                        <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">WAZ</th>
-                                        <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">HAZ</th>
-                                        <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Lokasi</th>
-                                        <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th className="text-left py-5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                        <th className="text-left py-5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Umur</th>
+                                        <th className="text-left py-5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">BB</th>
+                                        <th className="text-left py-5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">TB</th>
+                                        <th className="text-left py-5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">LK</th>
+                                        <th className="text-left py-5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">WAZ</th>
+                                        <th className="text-left py-5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">HAZ</th>
+                                        <th className="text-left py-5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Lokasi</th>
+                                        <th className="text-left py-5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y">
                                     {measurementHistory.map((row) => {
                                         const statusColor = row.nutritional_status ? getNutritionalStatusColor(row.nutritional_status) : 'bg-gray-100 text-gray-700';
-                                        const statusLabel = row.nutritional_status ? NutritionalStatusLabels[row.nutritional_status] : '-';
+                                        const statusLabel = row.nutritional_status ? NutritionalStatusLabels[row.nutritional_status].replace(/Gizi /g, '') : '-';
                                         const locationLabel = row.measurement_location ? MeasurementLocationLabels[row.measurement_location] : '-';
                                         const formattedDate = new Date(row.measurement_date).toLocaleDateString('id-ID', {
                                             day: '2-digit',
@@ -316,20 +316,20 @@ export default function GrowthTabContent() {
                                         });
                                         return (
                                             <tr key={row.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="py-3 px-4 text-sm font-medium">{formattedDate}</td>
-                                                <td className="py-3 px-4 text-sm text-gray-500">{row.age_label}</td>
-                                                <td className="py-3 px-4 text-sm font-medium">{row.weight} kg</td>
-                                                <td className="py-3 px-4 text-sm">{row.height} cm</td>
-                                                <td className="py-3 px-4 text-sm">{row.head_circumference} cm</td>
-                                                <td className="py-3 px-4 text-sm">{row.weight_for_age_zscore}</td>
-                                                <td className="py-3 px-4 text-sm">{row.height_for_age_zscore}</td>
-                                                <td className="py-3 px-4 text-sm">
+                                                <td className="py-5 px-6 text-sm font-medium">{formattedDate}</td>
+                                                <td className="py-5 px-6 text-sm text-gray-500">{row.age_label}</td>
+                                                <td className="py-5 px-6 text-sm font-medium">{row.weight} kg</td>
+                                                <td className="py-5 px-6 text-sm">{row.height} cm</td>
+                                                <td className="py-5 px-6 text-sm">{row.head_circumference} cm</td>
+                                                <td className="py-5 px-6 text-sm">{row.weight_for_age_zscore}</td>
+                                                <td className="py-5 px-6 text-sm">{row.height_for_age_zscore}</td>
+                                                <td className="py-5 px-6 text-sm">
                                                     <span className="inline-flex items-center gap-1 text-xs text-gray-600">
                                                         <MapPin className="h-3 w-3" />
                                                         {locationLabel}
                                                     </span>
                                                 </td>
-                                                <td className="py-3 px-4">
+                                                <td className="py-5 px-6">
                                                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${statusColor}`}>
                                                         {statusLabel}
                                                     </span>
@@ -361,7 +361,7 @@ export default function GrowthTabContent() {
                         <CardContent className="p-5">
                             <div className="flex justify-between items-start mb-2">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                    <div className="w-10 h-10 rounded-full bg-[#DEEBC5] flex items-center justify-center text-black">
                                         <Scale className="h-5 w-5" />
                                     </div>
                                     <div>
@@ -369,7 +369,7 @@ export default function GrowthTabContent() {
                                         <p className="text-2xl font-bold">12.5 <span className="text-base font-normal text-gray-500">kg</span></p>
                                     </div>
                                 </div>
-                                <div className="flex items-center text-emerald-600 bg-emerald-100 px-2 py-1 rounded text-xs font-medium">
+                                <div className="flex items-center text-black bg-[#DEEBC5] px-2 py-1 rounded text-xs font-medium">
                                     <TrendingUp className="h-3 w-3 mr-1" />
                                     +2.3 kg
                                 </div>
@@ -380,7 +380,7 @@ export default function GrowthTabContent() {
                                     <span className="font-semibold">75%</span>
                                 </div>
                                 <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                                    <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '75%' }} />
+                                    <div className="bg-[#DEEBC5] text-black h-2 rounded-full" style={{ width: '75%' }} />
                                 </div>
                             </div>
                         </CardContent>
@@ -399,7 +399,7 @@ export default function GrowthTabContent() {
                                         <p className="text-2xl font-bold">88 <span className="text-base font-normal text-gray-500">cm</span></p>
                                     </div>
                                 </div>
-                                <div className="flex items-center text-emerald-600 bg-emerald-100 px-2 py-1 rounded text-xs font-medium">
+                                <div className="flex items-center text-black bg-[#DEEBC5] px-2 py-1 rounded text-xs font-medium">
                                     <TrendingUp className="h-3 w-3 mr-1" />
                                     +8 cm
                                 </div>
@@ -426,7 +426,7 @@ export default function GrowthTabContent() {
                                     </div>
                                     <p className="text-sm font-medium">Kecepatan Tumbuh</p>
                                 </div>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#DEEBC5] text-black border border-[#c5daa6]">
                                     Sesuai Target
                                 </span>
                             </div>
@@ -455,7 +455,7 @@ export default function GrowthTabContent() {
                                 <p className="text-sm font-medium text-gray-500 mb-1">Berat-untuk-Usia (WAZ)</p>
                                 <h4 className="text-3xl font-bold">-0.5</h4>
                             </div>
-                            <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+                            <span className="bg-[#DEEBC5] text-black text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
                                 Improving <ArrowUp className="h-3 w-3" />
                             </span>
                         </div>
@@ -515,7 +515,7 @@ export default function GrowthTabContent() {
                                 <p className="text-sm font-medium text-gray-500 mb-1">Berat-untuk-Tinggi (WHZ)</p>
                                 <h4 className="text-3xl font-bold">+0.3</h4>
                             </div>
-                            <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+                            <span className="bg-[#DEEBC5] text-black text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
                                 Normal <Check className="h-3 w-3" />
                             </span>
                         </div>

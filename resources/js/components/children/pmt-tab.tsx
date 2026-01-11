@@ -85,7 +85,7 @@ export default function PmtTabContent() {
     return (
         <div className="flex flex-col gap-6">
             {/* Section 1: PMT Status Banner */}
-            <div className="w-full bg-gradient-to-r from-emerald-500 to-teal-700 rounded-2xl p-6 shadow-sm text-white relative overflow-hidden">
+            <div className="w-full bg-[#047857] rounded-2xl p-6 shadow-sm text-white relative overflow-hidden">
                 {/* Decorative pattern overlay */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-16 -mt-16 blur-3xl" />
 
@@ -148,7 +148,7 @@ export default function PmtTabContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card>
                     <CardContent className="p-4 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-[#DEEBC5] flex items-center justify-center text-black shrink-0">
                             <Package className="h-5 w-5" />
                         </div>
                         <div>
@@ -184,13 +184,13 @@ export default function PmtTabContent() {
 
                 <Card>
                     <CardContent className="p-4 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-[#DEEBC5] flex items-center justify-center text-black shrink-0">
                             <TrendingUp className="h-5 w-5" />
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
                                 <p className="text-2xl font-bold">12.5 <span className="text-sm font-normal text-muted-foreground">kg</span></p>
-                                <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded flex items-center">
+                                <span className="text-xs font-bold text-black bg-[#DEEBC5] px-1.5 py-0.5 rounded flex items-center">
                                     <TrendingUp className="h-3 w-3 mr-0.5" />+2.3
                                 </span>
                             </div>
@@ -206,7 +206,7 @@ export default function PmtTabContent() {
                 <Card className="flex flex-col h-full">
                     <CardHeader className="flex flex-row justify-between items-center border-b pb-4">
                         <CardTitle className="text-lg">Riwayat Distribusi PMT</CardTitle>
-                        <Button variant="link" className="text-emerald-600 p-0 h-auto">Filter</Button>
+                        <Button variant="link" className="text-black p-0 h-auto">Filter</Button>
                     </CardHeader>
                     <CardContent className="p-5 flex-1 relative">
                         {/* Vertical Line */}
@@ -219,13 +219,13 @@ export default function PmtTabContent() {
                                 const portionColorClass = getPortionColor(item.portion);
                                 return (
                                     <div key={item.id} className="flex gap-4 relative z-10">
-                                        <div className="w-10 h-10 rounded-full bg-white border-2 border-emerald-500 flex items-center justify-center shrink-0 shadow-sm">
-                                            <Check className="h-4 w-4 text-emerald-500" />
+                                        <div className="w-10 h-10 rounded-full bg-white border-2 border-[#9aba59] flex items-center justify-center shrink-0 shadow-sm">
+                                            <Check className="h-4 w-4 text-[#9aba59]" />
                                         </div>
                                         <div className="flex-1 bg-gray-50 rounded-xl p-4 border">
                                             <div className="flex justify-between items-start mb-2">
                                                 <span className="text-xs font-bold text-muted-foreground bg-white px-2 py-1 rounded border">{item.date}</span>
-                                                <span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full gap-1">
+                                                <span className="flex items-center text-xs font-medium text-black bg-[#DEEBC5] px-2 py-1 rounded-full gap-1">
                                                     <Check className="h-3 w-3" /> Diterima
                                                 </span>
                                             </div>
@@ -244,7 +244,7 @@ export default function PmtTabContent() {
                                                 </div>
                                                 <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                                                     <div
-                                                        className={`h-2 rounded-full transition-all ${portionPercentage === 100 ? 'bg-emerald-500' : portionPercentage >= 50 ? 'bg-blue-500' : portionPercentage > 0 ? 'bg-amber-400' : 'bg-red-400'}`}
+                                                        className={`h-2 rounded-full transition-all ${portionPercentage === 100 ? 'bg-[#DEEBC5]' : portionPercentage >= 50 ? 'bg-blue-500' : portionPercentage > 0 ? 'bg-amber-400' : 'bg-red-400'}`}
                                                         style={{ width: `${portionPercentage}%` }}
                                                     />
                                                 </div>
@@ -265,7 +265,7 @@ export default function PmtTabContent() {
                         </div>
                     </CardContent>
                     <div className="p-4 border-t text-center">
-                        <Button variant="link" className="text-emerald-600 font-semibold">
+                        <Button variant="link" className="text-black font-semibold">
                             Lihat Semua Riwayat
                         </Button>
                     </div>
@@ -281,8 +281,8 @@ export default function PmtTabContent() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {menuItems.map((item) => (
                                 <div key={item.id} className="border rounded-xl overflow-hidden hover:shadow-md transition-shadow group">
-                                    <div className="h-32 bg-gradient-to-br from-emerald-100 to-teal-50 overflow-hidden relative flex items-center justify-center">
-                                        <Utensils className="h-12 w-12 text-emerald-300" />
+                                    <div className="h-32 bg-gradient-to-br from-[#DEEBC5] to-teal-50 overflow-hidden relative flex items-center justify-center">
+                                        <Utensils className="h-12 w-12 text-[#b8d49a]" />
                                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
                                             <p className="text-white text-xs font-medium">{item.category}</p>
                                         </div>
@@ -304,9 +304,9 @@ export default function PmtTabContent() {
                             ))}
                         </div>
                     </CardContent>
-                    <div className="mt-auto p-4 bg-emerald-50 border-t border-emerald-100 mx-5 mb-5 rounded-lg flex items-center justify-between">
+                    <div className="mt-auto p-4 bg-[#f0f7e4] border-t border-[#DEEBC5] mx-5 mb-5 rounded-lg flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-white rounded-full shadow-sm text-emerald-600">
+                            <div className="p-2 bg-white rounded-full shadow-sm text-black">
                                 <Utensils className="h-5 w-5" />
                             </div>
                             <div>
@@ -327,7 +327,7 @@ export default function PmtTabContent() {
                     </div>
                     <div className="flex items-center gap-4 text-xs">
                         <div className="flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-emerald-500" />
+                            <span className="w-3 h-3 rounded-full bg-[#DEEBC5]" />
                             <span className="text-muted-foreground">Aktual</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -411,18 +411,18 @@ export default function PmtTabContent() {
                 </div>
 
                 {/* Progress Footer */}
-                <div className="mt-8 flex flex-col md:flex-row items-center gap-6 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                <div className="mt-8 flex flex-col md:flex-row items-center gap-6 bg-[#f0f7e4] p-4 rounded-xl border border-[#DEEBC5]">
                     <div className="flex-1 w-full">
                         <div className="flex justify-between mb-2">
                             <span className="text-sm font-bold">Menuju Target Akhir</span>
-                            <span className="text-sm font-bold text-emerald-600">85%</span>
+                            <span className="text-sm font-bold text-black">85%</span>
                         </div>
-                        <div className="w-full bg-emerald-200 rounded-full h-2.5">
-                            <div className="bg-emerald-500 h-2.5 rounded-full" style={{ width: '85%' }} />
+                        <div className="w-full bg-[#c5daa6] rounded-full h-2.5">
+                            <div className="bg-[#DEEBC5] h-2.5 rounded-full" style={{ width: '85%' }} />
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 w-full md:w-auto border-t md:border-t-0 md:border-l border-emerald-200 pt-4 md:pt-0 md:pl-6">
-                        <Flag className="h-8 w-8 text-emerald-600" />
+                    <div className="flex items-center gap-3 w-full md:w-auto border-t md:border-t-0 md:border-l border-[#c5daa6] pt-4 md:pt-0 md:pl-6">
+                        <Flag className="h-8 w-8 text-black" />
                         <div>
                             <p className="text-xs text-muted-foreground font-medium uppercase">Target (Gizi Normal)</p>
                             <p className="text-lg font-bold">13.5 kg</p>
@@ -434,7 +434,7 @@ export default function PmtTabContent() {
             {/* Section 5: Actions Footer */}
             <Card className="p-6 sticky bottom-0 z-20 flex flex-col sm:flex-row gap-4 justify-between items-center">
                 <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                    <Button className="bg-emerald-500 hover:bg-emerald-600 gap-2">
+                    <Button className="bg-[#DEEBC5] text-black hover:bg-[#c5daa6] gap-2">
                         <Plus className="h-5 w-5" />
                         Catat Distribusi Baru
                     </Button>
@@ -443,7 +443,7 @@ export default function PmtTabContent() {
                         Lihat Laporan PMT
                     </Button>
                 </div>
-                <Button variant="ghost" className="text-muted-foreground hover:text-emerald-600 gap-2 w-full sm:w-auto">
+                <Button variant="ghost" className="text-muted-foreground hover:text-black gap-2 w-full sm:w-auto">
                     <Phone className="h-5 w-5" />
                     Hubungi Petugas
                 </Button>

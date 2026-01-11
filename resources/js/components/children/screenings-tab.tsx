@@ -140,8 +140,8 @@ function getStatusConfig(status: ScreeningResult) {
                 label: ScreeningResultLabels.sesuai,
                 color: getScreeningResultColor('sesuai'),
                 icon: CheckCircle,
-                iconColor: 'text-emerald-500',
-                bgColor: 'bg-emerald-100',
+                iconColor: 'text-black',
+                bgColor: 'bg-[#DEEBC5]',
             };
         case 'pantau':
             return {
@@ -177,12 +177,12 @@ export default function ScreeningsTabContent() {
     return (
         <div className="flex flex-col gap-6">
             {/* Header Section */}
-            <Card className="border-0 bg-gradient-to-r from-emerald-50 to-teal-50">
+            <Card className="border-0 bg-[#f0f7e4]">
                 <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-2 mb-2">
-                                <Brain className="h-6 w-6 text-emerald-600" />
+                                <Brain className="h-6 w-6 text-black" />
                                 <h2 className="text-xl font-bold">Hasil Skrining ASQ-3</h2>
                             </div>
                             <p className="text-sm text-muted-foreground">
@@ -194,7 +194,7 @@ export default function ScreeningsTabContent() {
                                 <RefreshCw className="h-4 w-4" />
                                 Jadwal Ulang
                             </Button>
-                            <Button className="gap-2 bg-emerald-500 hover:bg-emerald-600">
+                            <Button className="gap-2 bg-[#DEEBC5] text-black hover:bg-[#c5daa6]">
                                 <Download className="h-4 w-4" />
                                 Unduh Laporan
                             </Button>
@@ -209,13 +209,13 @@ export default function ScreeningsTabContent() {
                 <Card>
                     <CardContent className="p-5">
                         <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                                <Award className="h-5 w-5 text-emerald-600" />
+                            <div className="w-10 h-10 rounded-full bg-[#DEEBC5] flex items-center justify-center">
+                                <Award className="h-5 w-5 text-black" />
                             </div>
                             <span className="text-sm font-medium text-muted-foreground">TOTAL SKOR</span>
                         </div>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-4xl font-bold text-emerald-600">{latestScreening.totalScore}</span>
+                            <span className="text-4xl font-bold text-black">{latestScreening.totalScore}</span>
                             <span className="text-lg text-muted-foreground">/ {latestScreening.maxScore}</span>
                         </div>
                     </CardContent>
@@ -257,7 +257,7 @@ export default function ScreeningsTabContent() {
                     <CardHeader className="pb-4 border-b">
                         <CardTitle className="text-lg">Analisis Domain Perkembangan</CardTitle>
                         <p className="text-sm text-muted-foreground">
-                            Perbandingan skor anak vs ambang batas (<span className="text-emerald-600">cutoff</span>)
+                            Perbandingan skor anak vs ambang batas (<span className="text-black">cutoff</span>)
                         </p>
                     </CardHeader>
                     <CardContent className="p-5">
@@ -277,7 +277,7 @@ export default function ScreeningsTabContent() {
                                                     <p className="text-xs text-muted-foreground">Skor: {domain.total_score} / {domain.max_score}</p>
                                                 </div>
                                             </div>
-                                            <span className="text-sm font-bold text-emerald-600">{percentage}%</span>
+                                            <span className="text-sm font-bold text-black">{percentage}%</span>
                                         </div>
                                         <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
                                             {/* Threshold line */}
@@ -288,7 +288,7 @@ export default function ScreeningsTabContent() {
                                             />
                                             {/* Score bar */}
                                             <div
-                                                className={`h-full rounded-full transition-all ${percentage >= 60 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                                                className={`h-full rounded-full transition-all ${percentage >= 60 ? 'bg-[#DEEBC5]' : 'bg-amber-500'}`}
                                                 style={{ width: `${percentage}%` }}
                                             />
                                         </div>
@@ -300,7 +300,7 @@ export default function ScreeningsTabContent() {
                         {/* Legend */}
                         <div className="mt-6 pt-4 border-t flex items-center gap-6 text-xs text-muted-foreground">
                             <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                                <div className="w-3 h-3 rounded-full bg-[#DEEBC5]" />
                                 <span>Skor Anak</span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -314,17 +314,17 @@ export default function ScreeningsTabContent() {
                 {/* Recommendations */}
                 <Card className="flex flex-col">
                     <CardHeader className="pb-4 border-b">
-                        <CardTitle className="text-lg text-emerald-600">Rekomendasi</CardTitle>
+                        <CardTitle className="text-lg text-black">Rekomendasi</CardTitle>
                     </CardHeader>
                     <CardContent className="p-5 flex-1 flex flex-col gap-4">
                         {recommendations.map((rec) => (
                             <div key={rec.id} className="p-4 bg-gray-50 rounded-xl border">
-                                <h4 className="font-bold text-sm mb-2 text-emerald-700">{rec.title}</h4>
+                                <h4 className="font-bold text-sm mb-2 text-[#2d4a0e]">{rec.title}</h4>
                                 <p className="text-xs text-muted-foreground leading-relaxed">{rec.recommendation_text}</p>
                             </div>
                         ))}
 
-                        <Button variant="link" className="text-emerald-600 text-sm p-0 h-auto justify-start gap-1 mt-2">
+                        <Button variant="link" className="text-black text-sm p-0 h-auto justify-start gap-1 mt-2">
                             Lihat Semua Saran
                             <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -348,7 +348,7 @@ export default function ScreeningsTabContent() {
             <Card>
                 <CardHeader className="pb-4 border-b flex flex-row items-center justify-between">
                     <CardTitle className="text-lg">Riwayat Skrining</CardTitle>
-                    <Button variant="link" className="text-emerald-600 p-0 h-auto">Lihat Semua</Button>
+                    <Button variant="link" className="text-black p-0 h-auto">Lihat Semua</Button>
                 </CardHeader>
                 <CardContent className="p-0">
                     <div className="divide-y">
@@ -391,7 +391,7 @@ export default function ScreeningsTabContent() {
             {/* Action Footer */}
             <Card className="p-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
                 <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                    <Button className="bg-emerald-500 hover:bg-emerald-600 gap-2">
+                    <Button className="bg-[#DEEBC5] text-black hover:bg-[#c5daa6] gap-2">
                         <Brain className="h-5 w-5" />
                         Mulai Skrining Baru
                     </Button>
@@ -400,7 +400,7 @@ export default function ScreeningsTabContent() {
                         Jadwalkan Skrining
                     </Button>
                 </div>
-                <Button variant="ghost" className="text-muted-foreground hover:text-emerald-600 gap-2 w-full sm:w-auto">
+                <Button variant="ghost" className="text-muted-foreground hover:text-black gap-2 w-full sm:w-auto">
                     <Download className="h-5 w-5" />
                     Unduh Semua Riwayat
                 </Button>

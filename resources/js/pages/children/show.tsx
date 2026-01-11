@@ -142,7 +142,7 @@ export default function ChildDetail({ child }: Props) {
                                 <Edit className="h-4 w-4" />
                                 Edit Profile
                             </Button>
-                            <Button className="gap-2 bg-emerald-500 hover:bg-emerald-600">
+                            <Button className="gap-2 bg-[#DEEBC5] text-black hover:bg-[#c5daa6]">
                                 <Plus className="h-4 w-4" />
                                 Add Measurement
                             </Button>
@@ -153,7 +153,7 @@ export default function ChildDetail({ child }: Props) {
                 <div className="flex flex-col lg:flex-row gap-6 items-start">
                     {/* Left Column: Profile Card */}
                     <aside className={`w-full flex flex-col gap-6 lg:sticky lg:top-24 transition-all duration-300 ${sidebarCollapsed ? 'lg:w-auto' : 'lg:w-1/3'}`}>
-                        <Card className="overflow-hidden">
+                        <Card className="overflow-hidden" style={{ background: 'linear-gradient(180deg, #DEEBC5 0%, #DEEBC5 120px, white 120px, white 100%)' }}>
                             {/* Collapse Toggle Button */}
                             <button
                                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -164,12 +164,12 @@ export default function ChildDetail({ child }: Props) {
                             </button>
 
                             {/* Profile Header */}
-                            <div className={`p-6 flex flex-col items-center border-b bg-gradient-to-b from-emerald-50 to-transparent ${sidebarCollapsed ? 'py-4' : ''}`}>
+                            <div className={`p-6 flex flex-col items-center border-b ${sidebarCollapsed ? 'py-4' : ''}`}>
                                 <div className="relative mb-4">
                                     <div className={`rounded-full flex items-center justify-center font-bold border-4 border-white shadow-md transition-all ${sidebarCollapsed ? 'w-16 h-16 text-xl' : 'w-28 h-28 text-3xl'} ${child.gender === 'female' ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'}`}>
                                         {child.name.charAt(0)}
                                     </div>
-                                    <div className={`absolute bg-emerald-500 rounded-full border-2 border-white ${sidebarCollapsed ? 'bottom-0 right-0 w-4 h-4' : 'bottom-1 right-1 w-5 h-5'}`} title="Active Status" />
+                                    <div className={`absolute rounded-full border-2 border-white ${sidebarCollapsed ? 'bottom-0 right-0 w-4 h-4' : 'bottom-1 right-1 w-5 h-5'}`} style={{ backgroundColor: '#9aba59' }} title="Active Status" />
                                 </div>
                                 {!sidebarCollapsed && (
                                     <>
@@ -253,7 +253,7 @@ export default function ChildDetail({ child }: Props) {
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`px-4 py-3 text-sm font-medium rounded-lg flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === tab.id
-                                            ? 'bg-emerald-100 text-emerald-700'
+                                            ? 'bg-[#DEEBC5] text-[#000000]'
                                             : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                             }`}
                                     >
@@ -291,7 +291,7 @@ export default function ChildDetail({ child }: Props) {
                                                 <span className="text-3xl font-bold tracking-tight">{latestGrowth?.weight || '-'}</span>
                                                 <span className="text-sm font-medium text-muted-foreground">kg</span>
                                             </div>
-                                            <div className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md mt-2">
+                                            <div className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md mt-2" style={{ backgroundColor: '#DEEBC5', color: '#000000' }}>
                                                 <TrendingUp className="h-3 w-3" />
                                                 {latestGrowth ? 'Latest measurement' : 'No data'}
                                             </div>
@@ -312,7 +312,7 @@ export default function ChildDetail({ child }: Props) {
                                                 <span className="text-3xl font-bold tracking-tight">{latestGrowth?.height || '-'}</span>
                                                 <span className="text-sm font-medium text-muted-foreground">cm</span>
                                             </div>
-                                            <div className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md mt-2">
+                                            <div className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md mt-2" style={{ backgroundColor: '#DEEBC5', color: '#000000' }}>
                                                 <TrendingUp className="h-3 w-3" />
                                                 {latestGrowth ? 'Latest measurement' : 'No data'}
                                             </div>
@@ -349,14 +349,14 @@ export default function ChildDetail({ child }: Props) {
                                         </CardHeader>
                                         <CardContent className="flex-1 flex flex-col gap-4">
                                             {/* Nutritional Status */}
-                                            <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 border border-emerald-100">
+                                            <div className="flex items-center justify-between p-3 rounded-lg border" style={{ backgroundColor: '#DEEBC5', borderColor: '#c5daa6' }}>
                                                 <div className="flex items-center gap-3">
-                                                    <div className="bg-white p-2 rounded-full shadow-sm text-emerald-600">
+                                                    <div className="bg-white p-2 rounded-full shadow-sm" style={{ color: '#6b8a3e' }}>
                                                         <Utensils className="h-5 w-5" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-semibold text-emerald-900">Nutritional Status</p>
-                                                        <p className="text-xs text-emerald-700">Within normal range</p>
+                                                        <p className="text-sm font-semibold" style={{ color: '#000000' }}>Nutritional Status</p>
+                                                        <p className="text-xs" style={{ color: '#000000' }}>Within normal range</p>
                                                     </div>
                                                 </div>
                                                 {getStatusBadge('normal')}
@@ -396,7 +396,7 @@ export default function ChildDetail({ child }: Props) {
                                     <Card className="flex flex-col h-full">
                                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                                             <CardTitle className="text-lg">Recent Activity</CardTitle>
-                                            <Button variant="link" size="sm" className="text-emerald-600">View All</Button>
+                                            <Button variant="link" size="sm" style={{ color: '#000000' }}>View All</Button>
                                         </CardHeader>
                                         <CardContent className="relative">
                                             {/* Vertical Line */}
@@ -444,3 +444,4 @@ export default function ChildDetail({ child }: Props) {
         </AppLayout>
     );
 }
+
