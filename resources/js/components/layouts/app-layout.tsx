@@ -75,29 +75,21 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
             {/* Sidebar */}
             <aside
                 className={cn(
-                    "fixed inset-y-0 left-0 z-50 transform bg-card border-r transition-all duration-300 ease-in-out lg:translate-x-0",
+                    "fixed inset-y-0 left-0 z-50 transform bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out lg:translate-x-0",
                     sidebarCollapsed ? "lg:w-[72px]" : "w-64",
                     sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"
                 )}
             >
                 <div className="flex h-full flex-col">
                     {/* Logo & Collapse Toggle */}
-                    <div className="flex h-16 items-center justify-between border-b px-3">
+                    <div className="flex h-16 items-center justify-between px-4">
                         <div className="flex items-center gap-2">
-                            {/* Collapse toggle button - Desktop only */}
-                            <button
-                                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                                className="hidden lg:flex p-2 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                            >
-                                <Menu className="h-5 w-5" />
-                            </button>
                             <Link href="/dashboard" className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-                                    <Baby className="h-5 w-5 text-primary-foreground" />
+                                <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0">
+                                    <Baby className="h-5 w-5" />
                                 </div>
                                 {(!sidebarCollapsed || sidebarOpen) && (
-                                    <span className="text-lg font-bold text-foreground">JagoanBunda</span>
+                                    <span className="text-lg font-bold text-foreground tracking-tight">JagoanBunda</span>
                                 )}
                             </Link>
                         </div>
@@ -116,11 +108,11 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
                                 key={item.href}
                                 href={item.href}
                                 className={cn(
-                                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                                     sidebarCollapsed && !sidebarOpen && "lg:justify-center lg:px-2",
                                     currentPath.startsWith(item.href)
-                                        ? "bg-primary text-primary-foreground"
-                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                        ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                                        : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
                                 )}
                                 title={sidebarCollapsed ? item.label : undefined}
                             >
@@ -173,7 +165,7 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
                 sidebarCollapsed ? "lg:pl-[72px]" : "lg:pl-64"
             )}>
                 {/* Header */}
-                <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-6">
+                <header className="sticky top-0 z-30 flex h-16 items-center gap-4 bg-background/80 backdrop-blur-md px-4 lg:px-8">
                     <button
                         className="lg:hidden"
                         onClick={() => setSidebarOpen(true)}
@@ -181,32 +173,28 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
                         <Menu className="h-5 w-5" />
                     </button>
 
-                    {title && (
-                        <h1 className="text-lg font-semibold">{title}</h1>
-                    )}
+                    <div className="flex-1">
+                        {/* Title or Breadcrumbs could go here */}
+                    </div>
 
                     <div className="ml-auto flex items-center gap-4">
                         {/* Notifications */}
-                        <Button variant="ghost" size="icon" className="relative">
-                            <Bell className="h-5 w-5" />
-                            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
-                                3
-                            </span>
+                        <Button variant="ghost" size="icon" className="relative hover:bg-secondary/50">
+                            <Bell className="h-5 w-5 text-muted-foreground" />
+                            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive" />
                         </Button>
 
                         {/* User menu */}
                         <div className="relative">
                             <button
-                                className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted transition-colors"
+                                className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 shadow-sm hover:bg-secondary/50 transition-colors"
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                             >
-                                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                                    <span className="text-sm font-medium text-primary-foreground">
-                                        {auth?.user?.full_name?.charAt(0) || 'A'}
-                                    </span>
+                                <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold">
+                                    {auth?.user?.full_name?.charAt(0) || 'A'}
                                 </div>
-                                <span className="hidden sm:block text-sm font-medium">
-                                    {auth?.user?.full_name || 'Admin'}
+                                <span className="hidden sm:block text-sm font-medium ml-1">
+                                    Account
                                 </span>
                                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
                             </button>
