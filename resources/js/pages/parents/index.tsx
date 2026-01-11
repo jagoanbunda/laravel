@@ -5,6 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PaginationNav } from '@/components/ui/pagination-nav';
 import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
     Search,
     Plus,
     Eye,
@@ -14,6 +22,7 @@ import {
     Phone,
     CheckCircle,
     Clock,
+    Users,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -52,123 +61,121 @@ export default function ParentsIndex({ parents, filters }: Props) {
     };
 
     return (
-        <AppLayout title="Parents Management">
+        <AppLayout title="Parents">
             <Head title="Parents Management" />
 
-            <div className="space-y-6">
-                {/* Header Actions */}
+            <div className="space-y-6 max-w-7xl mx-auto">
+                {/* Header Section */}
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="text"
-                            placeholder="Search by name or email..."
-                            value={searchQuery}
-                            onChange={(e) => handleSearch(e.target.value)}
-                            className="pl-10 pr-4"
-                        />
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight">Parents</h1>
+                        <p className="text-muted-foreground mt-1">
+                            Manage registered parents and their contact info.
+                        </p>
                     </div>
                     <Link href="/parents/create">
-                        <Button>
-                            <Plus className="h-4 w-4 mr-2" />
+                        <Button className="rounded-full">
+                            <Plus className="mr-2 h-4 w-4" />
                             Add Parent
                         </Button>
                     </Link>
                 </div>
 
                 {/* Filters */}
-                {/* Removed filter buttons - search only for now */}
+                <div className="flex items-center gap-4">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search name or email..."
+                            value={searchQuery}
+                            onChange={(e) => handleSearch(e.target.value)}
+                            className="pl-10 rounded-full border-border/60 bg-card"
+                        />
+                    </div>
+                </div>
 
                 {/* Parents Table */}
-                <Card>
+                <Card className="border-border/50 shadow-sm overflow-hidden">
                     <CardContent className="p-0">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b bg-muted/50">
-                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Name</th>
-                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Email</th>
-                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Phone</th>
-                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Children</th>
-                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
-                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Registered</th>
-                                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {parents.data.map((parent) => (
-                                        <tr key={parent.id} className="border-b hover:bg-muted/30 transition-colors">
-                                            <td className="py-3 px-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                                        <span className="text-sm font-medium text-primary">
-                                                            {(parent.full_name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2)}
-                                                        </span>
-                                                    </div>
-                                                    <span className="font-medium">{parent.full_name || 'Unknown'}</span>
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="hover:bg-transparent">
+                                    <TableHead className="w-[300px]">Parent Name</TableHead>
+                                    <TableHead>Contact</TableHead>
+                                    <TableHead>Children</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {parents.data.map((parent) => (
+                                    <TableRow key={parent.id} className="group">
+                                        <TableCell>
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary flex-shrink-0">
+                                                    {(parent.full_name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2)}
                                                 </div>
-                                            </td>
-                                            <td className="py-3 px-4">
+                                                <div>
+                                                    <p className="font-medium text-foreground">{parent.full_name}</p>
+                                                    <p className="text-xs text-muted-foreground">Joined {new Date(parent.created_at).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col gap-1">
                                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                    <Mail className="h-4 w-4" />
+                                                    <Mail className="h-3 w-3" />
                                                     {parent.email}
                                                 </div>
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                    <Phone className="h-4 w-4" />
-                                                    {parent.phone}
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-secondary/10 text-secondary text-sm font-medium">
-                                                    {parent.children_count}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                {parent.email_verified_at ? (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-1 text-xs font-medium text-secondary">
-                                                        <CheckCircle className="h-3 w-3" />
-                                                        Verified
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-1 text-xs font-medium text-accent">
-                                                        <Clock className="h-3 w-3" />
-                                                        Pending
-                                                    </span>
+                                                {parent.phone && (
+                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                        <Phone className="h-3 w-3" />
+                                                        {parent.phone}
+                                                    </div>
                                                 )}
-                                            </td>
-                                            <td className="py-3 px-4 text-sm text-muted-foreground">
-                                                {new Date(parent.created_at).toLocaleDateString('id-ID', {
-                                                    day: 'numeric',
-                                                    month: 'short',
-                                                    year: 'numeric',
-                                                })}
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <div className="flex items-center gap-2">
-                                                    <Link href={`/parents/${parent.id}`}>
-                                                        <Button variant="ghost" size="icon">
-                                                            <Eye className="h-4 w-4" />
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={`/parents/${parent.id}/edit`}>
-                                                        <Button variant="ghost" size="icon">
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                    </Link>
-                                                    <Button variant="ghost" size="icon">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/30 text-secondary-foreground text-xs font-medium border border-border/50">
+                                                <Users className="h-3 w-3" />
+                                                {parent.children_count} Children
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {parent.email_verified_at ? (
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                                                    <CheckCircle className="h-3 w-3" />
+                                                    Verified
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                            ) : (
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                                                    <Clock className="h-3 w-3" />
+                                                    Pending
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Link href={`/parents/${parent.id}`}>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-secondary">
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </Link>
+                                                <Link href={`/parents/${parent.id}/edit`}>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-secondary">
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                </Link>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
 
-                        {/* Pagination */}
+                    {/* Pagination */}
+                    <div className="border-t border-border/50 p-4 bg-muted/20">
                         <PaginationNav
                             currentPage={parents.current_page}
                             lastPage={parents.last_page}
@@ -177,7 +184,7 @@ export default function ParentsIndex({ parents, filters }: Props) {
                             baseUrl="/parents"
                             filters={filters}
                         />
-                    </CardContent>
+                    </div>
                 </Card>
             </div>
         </AppLayout>
