@@ -9,11 +9,11 @@ import { FormEvent } from 'react';
 
 export default function ParentCreate() {
     const { data, setData, post, processing, errors } = useForm({
-        full_name: '',
+        name: '',
         email: '',
         phone: '',
         password: '',
-        address: '',
+
     });
 
     const handleSubmit = (e: FormEvent) => {
@@ -46,16 +46,16 @@ export default function ParentCreate() {
                         <CardContent className="space-y-4">
                             <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="full_name">Full Name *</Label>
+                                    <Label htmlFor="name">Name *</Label>
                                     <Input
-                                        id="full_name"
-                                        value={data.full_name}
-                                        onChange={(e) => setData('full_name', e.target.value)}
-                                        placeholder="Enter full name"
-                                        className={errors.full_name ? 'border-red-500' : ''}
+                                        id="name"
+                                        value={data.name}
+                                        onChange={(e) => setData('name', e.target.value)}
+                                        placeholder="Enter name"
+                                        className={errors.name ? 'border-red-500' : ''}
                                     />
-                                    {errors.full_name && (
-                                        <p className="text-sm text-red-500">{errors.full_name}</p>
+                                    {errors.name && (
+                                        <p className="text-sm text-red-500">{errors.name}</p>
                                     )}
                                 </div>
 
@@ -106,19 +106,7 @@ export default function ParentCreate() {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="address">Address</Label>
-                                <Input
-                                    id="address"
-                                    value={data.address}
-                                    onChange={(e) => setData('address', e.target.value)}
-                                    placeholder="Enter address"
-                                    className={errors.address ? 'border-red-500' : ''}
-                                />
-                                {errors.address && (
-                                    <p className="text-sm text-red-500">{errors.address}</p>
-                                )}
-                            </div>
+
                         </CardContent>
                     </Card>
 

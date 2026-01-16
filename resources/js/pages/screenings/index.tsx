@@ -3,8 +3,8 @@ import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { PaginationNav } from '@/components/ui/pagination-nav';
+import { StatusBadge } from '@/components/ui/status-badge';
 import {
     Table,
     TableBody,
@@ -17,9 +17,6 @@ import {
     Search,
     Eye,
     ClipboardList,
-    AlertCircle,
-    CheckCircle2,
-    HelpCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -53,29 +50,15 @@ interface Props {
 
 function getResultBadge(result: string | null) {
     if (!result) {
-        return (
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
-                <HelpCircle className="h-3 w-3" />
-                Pending Analysis
-            </div>
-        );
+        return <StatusBadge variant="pending" showIcon />;
     }
 
-    const configs: Record<string, { label: string; className: string; icon: any }> = {
-        sesuai: { label: 'Sesuai', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
-        pantau: { label: 'Pantau', className: 'bg-amber-50 text-amber-700 border-amber-200', icon: AlertCircle },
-        perlu_rujukan: { label: 'Perlu Rujukan', className: 'bg-red-50 text-red-700 border-red-200', icon: AlertCircle },
-    };
-
-    const config = configs[result] || configs.pending;
-    const Icon = config.icon;
-
-    return (
-        <Badge variant="outline" className={`${config.className} border font-normal gap-1.5 pl-2 pr-2.5 py-0.5`}>
-            <Icon className="h-3 w-3" />
-            {config.label}
-        </Badge>
-    );
+    const variant = result === 'sesuai' ? 'sesuai' 
+        : result === 'pantau' ? 'pantau' 
+        : result === 'perlu_rujukan' ? 'perlu_rujukan' 
+        : 'pending';
+    
+    return <StatusBadge variant={variant} showIcon />;
 }
 
 export default function ScreeningsIndex({ screenings, filters }: Props) {

@@ -10,19 +10,17 @@ import { FormEvent } from 'react';
 interface Props {
     parent: {
         id: number;
-        full_name: string;
+        name: string;
         email: string;
         phone: string | null;
-        address: string | null;
     };
 }
 
 export default function ParentEdit({ parent }: Props) {
     const { data, setData, put, processing, errors } = useForm({
-        full_name: parent.full_name || '',
+        name: parent.name || '',
         email: parent.email || '',
         phone: parent.phone || '',
-        address: parent.address || '',
     });
 
     const handleSubmit = (e: FormEvent) => {
@@ -32,9 +30,9 @@ export default function ParentEdit({ parent }: Props) {
 
     return (
         <AppLayout title="Edit Parent">
-            <Head title={`Edit ${parent.full_name}`} />
+            <Head title={`Edit ${parent.name}`} />
 
-            <div className="space-y-6">
+            <div className="space-y-6 max-w-7xl mx-auto">
                 {/* Breadcrumbs & Header */}
                 <div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
@@ -44,38 +42,38 @@ export default function ParentEdit({ parent }: Props) {
                         </Link>
                     </div>
                     <h1 className="text-2xl font-bold tracking-tight">Edit Parent</h1>
-                    <p className="text-muted-foreground">Update parent information</p>
+                    <p className="text-muted-foreground">Update parent account information</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Parent Information</CardTitle>
+                            <CardTitle>Basic Information</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid gap-4 md:grid-cols-2">
+                            <div className="grid gap-6 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="full_name">Full Name *</Label>
+                                    <Label htmlFor="name">Full Name *</Label>
                                     <Input
-                                        id="full_name"
-                                        value={data.full_name}
-                                        onChange={(e) => setData('full_name', e.target.value)}
-                                        placeholder="Enter full name"
-                                        className={errors.full_name ? 'border-red-500' : ''}
+                                        id="name"
+                                        value={data.name}
+                                        onChange={(e) => setData('name', e.target.value)}
+                                        placeholder="e.g. John Doe"
+                                        className={errors.name ? 'border-red-500' : ''}
                                     />
-                                    {errors.full_name && (
-                                        <p className="text-sm text-red-500">{errors.full_name}</p>
+                                    {errors.name && (
+                                        <p className="text-sm text-red-500">{errors.name}</p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">Email *</Label>
+                                    <Label htmlFor="email">Email Address *</Label>
                                     <Input
                                         id="email"
                                         type="email"
                                         value={data.email}
                                         onChange={(e) => setData('email', e.target.value)}
-                                        placeholder="Enter email address"
+                                        placeholder="e.g. john@example.com"
                                         className={errors.email ? 'border-red-500' : ''}
                                     />
                                     {errors.email && (
@@ -84,32 +82,18 @@ export default function ParentEdit({ parent }: Props) {
                                 </div>
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-2">
+                            <div className="grid gap-6 md:grid-cols-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="phone">Phone Number</Label>
                                     <Input
                                         id="phone"
                                         value={data.phone}
                                         onChange={(e) => setData('phone', e.target.value)}
-                                        placeholder="Enter phone number"
+                                        placeholder="e.g. +62 812 3456 7890"
                                         className={errors.phone ? 'border-red-500' : ''}
                                     />
                                     {errors.phone && (
                                         <p className="text-sm text-red-500">{errors.phone}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="address">Address</Label>
-                                    <Input
-                                        id="address"
-                                        value={data.address}
-                                        onChange={(e) => setData('address', e.target.value)}
-                                        placeholder="Enter address"
-                                        className={errors.address ? 'border-red-500' : ''}
-                                    />
-                                    {errors.address && (
-                                        <p className="text-sm text-red-500">{errors.address}</p>
                                     )}
                                 </div>
                             </div>

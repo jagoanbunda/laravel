@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { PaginationNav } from '@/components/ui/pagination-nav';
 import {
     Dialog,
     DialogContent,
@@ -10,7 +11,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import {
     Table,
@@ -27,10 +27,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Head, router, useForm } from '@inertiajs/react';
-import { Plus, Edit, Trash2, Search, Utensils, Zap, Drumstick, Droplets, Wheat } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Plus, Edit, Trash2, Search, Zap, Drumstick, Droplets, Wheat } from 'lucide-react';
 import { useState } from 'react';
 
 interface Food {
@@ -69,37 +67,9 @@ interface FoodsIndexProps {
 }
 
 export default function FoodsIndex({ foods, categories, filters }: FoodsIndexProps) {
-    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedFood, setSelectedFood] = useState<Food | null>(null);
     const [searchValue, setSearchValue] = useState(filters.search || '');
-
-    const addForm = useForm({
-        name: '',
-        category: '',
-        serving_size: 100,
-        calories: 0,
-        protein: 0,
-        fat: 0,
-        carbohydrate: 0,
-        fiber: 0,
-        sugar: 0,
-        is_active: true,
-    });
-
-    const editForm = useForm({
-        name: '',
-        category: '',
-        serving_size: 100,
-        calories: 0,
-        protein: 0,
-        fat: 0,
-        carbohydrate: 0,
-        fiber: 0,
-        sugar: 0,
-        is_active: true,
-    });
 
     const handleSearch = () => {
         router.get('/foods', { search: searchValue, category: filters.category, status: filters.status }, { preserveState: true });
@@ -107,44 +77,6 @@ export default function FoodsIndex({ foods, categories, filters }: FoodsIndexPro
 
     const handleFilterChange = (key: string, value: string) => {
         router.get('/foods', { ...filters, [key]: value === 'all' ? '' : value }, { preserveState: true });
-    };
-
-    const handleAddSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        addForm.post('/foods', {
-            onSuccess: () => {
-                setIsAddDialogOpen(false);
-                addForm.reset();
-            },
-        });
-    };
-
-    const handleEditOpen = (food: Food) => {
-        setSelectedFood(food);
-        editForm.setData({
-            name: food.name,
-            category: food.category || '',
-            serving_size: food.serving_size,
-            calories: food.calories,
-            protein: food.protein,
-            fat: food.fat,
-            carbohydrate: food.carbohydrate,
-            fiber: food.fiber || 0,
-            sugar: food.sugar || 0,
-            is_active: food.is_active,
-        });
-        setIsEditDialogOpen(true);
-    };
-
-    const handleEditSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedFood) return;
-        editForm.put(`/foods/${selectedFood.id}`, {
-            onSuccess: () => {
-                setIsEditDialogOpen(false);
-                setSelectedFood(null);
-            },
-        });
     };
 
     const handleDeleteOpen = (food: Food) => {
@@ -175,55 +107,12 @@ export default function FoodsIndex({ foods, categories, filters }: FoodsIndexPro
                             Manage nutrition data for foods.
                         </p>
                     </div>
-                    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="rounded-full">
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add Food
-                            </Button>
-                        </DialogTrigger>
-                        {/* ... Add Dialog Content (kept same but could be refactored) ... */}
-                        <DialogContent className="max-w-md">
-                            <DialogHeader>
-                                <DialogTitle>Add New Food</DialogTitle>
-                                <DialogDescription>
-                                    Enter details for the new food item.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <form onSubmit={handleAddSubmit}>
-                                <div className="grid gap-4 py-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="name">Food Name *</Label>
-                                        <Input
-                                            id="name"
-                                            value={addForm.data.name}
-                                            onChange={(e) => addForm.setData('name', e.target.value)}
-                                            placeholder="e.g. White Rice"
-                                        />
-                                    </div>
-                                    {/* Simplified form for brevity in this artifact */}
-                                    {/* ... other fields ... */}
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="calories">Calories (kcal)</Label>
-                                        <Input
-                                            id="calories"
-                                            type="number"
-                                            value={addForm.data.calories}
-                                            onChange={(e) => addForm.setData('calories', parseFloat(e.target.value) || 0)}
-                                        />
-                                    </div>
-                                </div>
-                                <DialogFooter>
-                                    <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                                        Cancel
-                                    </Button>
-                                    <Button type="submit" disabled={addForm.processing}>
-                                        Save
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
+                    <Button className="rounded-full" asChild>
+                        <Link href="/foods/create">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Food
+                        </Link>
+                    </Button>
                 </div>
 
                 {/* Filters */}
@@ -292,7 +181,7 @@ export default function FoodsIndex({ foods, categories, filters }: FoodsIndexPro
                                     foods.data.map((food) => (
                                         <TableRow key={food.id} className="group">
                                             <TableCell>
-                                                <span className="font-semibold text-foreground">{food.name}</span>
+                                                <span className="font-semibold text-foreground capitalize">{food.name}</span>
                                             </TableCell>
                                             <TableCell>
                                                 <Badge variant="secondary" className="font-normal bg-muted text-muted-foreground border-transparent hover:bg-muted">
@@ -301,7 +190,7 @@ export default function FoodsIndex({ foods, categories, filters }: FoodsIndexPro
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex items-center justify-end gap-1.5 font-medium">
-                                                    <Zap className="h-3 w-3 text-amber-500" />
+                                                    <Zap className="h-3 w-3 text-warning" />
                                                     {food.calories}
                                                 </div>
                                             </TableCell>
@@ -325,9 +214,13 @@ export default function FoodsIndex({ foods, categories, filters }: FoodsIndexPro
                                             </TableCell>
                                             <TableCell>
                                                 {food.is_active ? (
-                                                    <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" title="Active" />
+                                                    <Badge variant="secondary" className="bg-success-muted text-success-muted-foreground hover:bg-success-muted/80 border-transparent">
+                                                        Active
+                                                    </Badge>
                                                 ) : (
-                                                    <div className="h-2.5 w-2.5 rounded-full bg-gray-300" title="Inactive" />
+                                                    <Badge variant="secondary" className="bg-neutral-muted text-neutral-muted-foreground hover:bg-neutral-muted/80 border-transparent">
+                                                        Inactive
+                                                    </Badge>
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-right">
@@ -335,16 +228,18 @@ export default function FoodsIndex({ foods, categories, filters }: FoodsIndexPro
                                                     <Button
                                                         size="icon"
                                                         variant="ghost"
-                                                        onClick={() => handleEditOpen(food)}
+                                                        asChild
                                                         className="h-8 w-8 hover:bg-secondary"
                                                     >
-                                                        <Edit className="h-4 w-4" />
+                                                        <Link href={`/foods/${food.id}/edit`}>
+                                                            <Edit className="h-4 w-4" />
+                                                        </Link>
                                                     </Button>
                                                     <Button
                                                         size="icon"
                                                         variant="ghost"
                                                         onClick={() => handleDeleteOpen(food)}
-                                                        className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50"
+                                                        className="h-8 w-8 text-muted-foreground hover:text-danger hover:bg-danger-muted"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
@@ -357,45 +252,20 @@ export default function FoodsIndex({ foods, categories, filters }: FoodsIndexPro
                         </Table>
                     </CardContent>
                     {/* Pagination */}
-                    {foods.last_page > 1 && (
-                        <div className="border-t border-border/50 p-4 bg-muted/20">
-                            <div className="flex items-center justify-between">
-                                <p className="text-sm text-muted-foreground">
-                                    Page {foods.current_page} of {foods.last_page}
-                                </p>
-                                <div className="flex gap-1">
-                                    {foods.links.map((link, index) => (
-                                        <Button
-                                            key={index}
-                                            size="sm"
-                                            variant={link.active ? 'default' : 'outline'}
-                                            disabled={!link.url}
-                                            onClick={() => link.url && router.get(link.url)}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                            className={link.active ? 'rounded-md' : 'rounded-md border-border/60'}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <div className="border-t border-border/50 p-4 bg-muted/20">
+                        <PaginationNav
+                            currentPage={foods.current_page}
+                            lastPage={foods.last_page}
+                            total={foods.total}
+                            perPage={foods.per_page}
+                            baseUrl="/foods"
+                            filters={filters}
+                        />
+                    </div>
                 </Card>
             </div>
 
-            {/* Edit/Delete Dialogs kept minimal or reused */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent className="max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Edit Food</DialogTitle>
-                    </DialogHeader>
-                    {/* ... form ... */}
-                    <div className="py-4">Form Content Placeholder</div>
-                    <DialogFooter>
-                        <Button onClick={() => setIsEditDialogOpen(false)}>Close</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
+            {/* Delete Dialog */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <DialogContent className="max-w-sm">
                     <DialogHeader>

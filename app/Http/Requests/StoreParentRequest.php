@@ -22,11 +22,10 @@ class StoreParentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'full_name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8',
-            'address' => 'nullable|string|max:500',
         ];
     }
 
@@ -38,7 +37,7 @@ class StoreParentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'full_name.required' => 'Nama lengkap wajib diisi.',
+            'name.required' => 'Nama lengkap wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Email harus berformat valid.',
             'email.unique' => 'Email sudah digunakan.',

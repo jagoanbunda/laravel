@@ -2,14 +2,13 @@ import { Head } from '@inertiajs/react';
 import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { StatusBadge } from '@/components/ui/status-badge';
 import {
     Users,
-    Baby,
     AlertTriangle,
     ClipboardList,
     ArrowRight,
     TrendingUp,
-    MoreHorizontal,
     Plus,
     Utensils,
 } from 'lucide-react';
@@ -139,13 +138,11 @@ function StatCard({
     value,
     trend,
     icon: Icon,
-    trendLabel,
 }: {
     title: string;
     value: string | number;
     trend?: string;
     icon?: any;
-    trendLabel?: string;
 }) {
     return (
         <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-border/50">
@@ -162,7 +159,7 @@ function StatCard({
                     <div className="flex items-baseline justify-between mt-2">
                         <h3 className="text-3xl font-semibold tracking-tight">{value.toLocaleString()}</h3>
                         {trend && (
-                            <div className="flex items-center gap-1 text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                            <div className="flex items-center gap-1 text-sm font-medium text-success-muted-foreground bg-success-muted px-2 py-0.5 rounded-full">
                                 <TrendingUp className="h-3 w-3" />
                                 {trend}
                             </div>
@@ -194,21 +191,15 @@ function QuickAction({ label, icon: Icon, onClick }: { label: string, icon: any,
 }
 
 function getStatusBadge(status: string | undefined) {
-    const statusConfig: Record<string, { label: string; class: string }> = {
-        sesuai: { label: 'SESUAI', class: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-        pantau: { label: 'PANTAU', class: 'bg-amber-50 text-amber-700 border-amber-100' },
-        perlu_rujukan: { label: 'RUJUKAN', class: 'bg-rose-50 text-rose-700 border-rose-100' },
-    };
-
-    const config = statusConfig[status || 'sesuai'] || statusConfig.sesuai;
-    return (
-        <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${config.class}`}>
-            {config.label}
-        </span>
-    );
+    const variant = status === 'sesuai' ? 'sesuai' 
+        : status === 'pantau' ? 'pantau' 
+        : status === 'perlu_rujukan' ? 'perlu_rujukan' 
+        : 'sesuai';
+    
+    return <StatusBadge variant={variant} size="sm" />;
 }
 
-export default function Dashboard({ stats, nutritional_distribution, screening_results, pmt_distribution, monthly_trends, children_at_risk, recent_activities }: Props) {
+export default function Dashboard({ stats, nutritional_distribution, screening_results, monthly_trends, children_at_risk, recent_activities }: Props) {
     return (
         <AppLayout title="Dashboard">
             <Head title="Home" />

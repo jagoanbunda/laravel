@@ -133,6 +133,8 @@ class ScreeningController extends Controller
             'ageInterval',
             'domainResults.domain',
             'answers.question',
+            'interventions.domain',
+            'interventions.creator',
         ])->findOrFail($id);
 
         // Transform domain results
@@ -146,6 +148,26 @@ class ScreeningController extends Controller
                 'cutoff_score' => $result->cutoff_score,
                 'monitoring_score' => $result->monitoring_score,
                 'status' => $result->status,
+            ];
+        });
+
+        // Transform interventions
+        $interventions = $screening->interventions->map(function ($intervention) {
+            return [
+                'id' => $intervention->id,
+                'domain_id' => $intervention->domain_id,
+                'domain_name' => $intervention->domain?->name,
+                'domain_code' => $intervention->domain?->code,
+                'type' => $intervention->type,
+                'type_label' => $intervention->type_label,
+                'action' => $intervention->action,
+                'notes' => $intervention->notes,
+                'status' => $intervention->status,
+                'status_label' => $intervention->status_label,
+                'follow_up_date' => $intervention->follow_up_date?->format('Y-m-d'),
+                'completed_at' => $intervention->completed_at?->format('Y-m-d H:i'),
+                'created_by' => $intervention->creator?->name,
+                'created_at' => $intervention->created_at->format('Y-m-d H:i'),
             ];
         });
 
@@ -168,10 +190,29 @@ class ScreeningController extends Controller
             'overall_status' => $screening->overall_status,
             'completed_at' => $screening->completed_at,
             'domain_results' => $domainResults,
+            'interventions' => $interventions,
+        ];
+
+        // Get type and status options for inline add
+        $typeOptions = [
+            ['value' => 'stimulation', 'label' => 'Stimulasi'],
+            ['value' => 'referral', 'label' => 'Rujukan'],
+            ['value' => 'follow_up', 'label' => 'Tindak Lanjut'],
+            ['value' => 'counseling', 'label' => 'Konseling'],
+            ['value' => 'other', 'label' => 'Lainnya'],
+        ];
+
+        $statusOptions = [
+            ['value' => 'planned', 'label' => 'Direncanakan'],
+            ['value' => 'in_progress', 'label' => 'Sedang Berjalan'],
+            ['value' => 'completed', 'label' => 'Selesai'],
+            ['value' => 'cancelled', 'label' => 'Dibatalkan'],
         ];
 
         return Inertia::render('screenings/results', [
             'screening' => $screeningData,
+            'typeOptions' => $typeOptions,
+            'statusOptions' => $statusOptions,
         ]);
     }
 

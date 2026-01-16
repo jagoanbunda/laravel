@@ -12,303 +12,172 @@ class FoodSeeder extends Seeder
      */
     public function run(): void
     {
-        $foods = [
-            // Karbohidrat
-            [
-                'name' => 'Nasi Putih',
-                'category' => 'Karbohidrat',
-                'icon' => 'rice_bowl',
-                'serving_size' => 100,
-                'calories' => 130,
-                'protein' => 2.7,
-                'fat' => 0.3,
-                'carbohydrate' => 28,
-                'fiber' => 0.4,
-                'sugar' => 0,
-            ],
-            [
-                'name' => 'Nasi Merah',
-                'category' => 'Karbohidrat',
-                'icon' => 'rice_bowl',
-                'serving_size' => 100,
-                'calories' => 111,
-                'protein' => 2.6,
-                'fat' => 0.9,
-                'carbohydrate' => 23,
-                'fiber' => 1.8,
-                'sugar' => 0,
-            ],
-            [
-                'name' => 'Bubur Nasi',
-                'category' => 'Karbohidrat',
-                'icon' => 'soup_kitchen',
-                'serving_size' => 100,
-                'calories' => 46,
-                'protein' => 0.8,
-                'fat' => 0.1,
-                'carbohydrate' => 10,
-                'fiber' => 0.1,
-                'sugar' => 0,
-            ],
-            [
-                'name' => 'Kentang Rebus',
-                'category' => 'Karbohidrat',
-                'icon' => 'breakfast_dining',
-                'serving_size' => 100,
-                'calories' => 87,
-                'protein' => 1.9,
-                'fat' => 0.1,
-                'carbohydrate' => 20,
-                'fiber' => 1.8,
-                'sugar' => 0.8,
-            ],
-            [
-                'name' => 'Roti Gandum',
-                'category' => 'Karbohidrat',
-                'icon' => 'bakery_dining',
-                'serving_size' => 30,
-                'calories' => 69,
-                'protein' => 3.6,
-                'fat' => 1.1,
-                'carbohydrate' => 12,
-                'fiber' => 1.9,
-                'sugar' => 1.4,
-            ],
+        $csvPath = base_path('DATA MAKANAN.csv');
 
-            // Protein
-            [
-                'name' => 'Telur Rebus',
-                'category' => 'Protein',
-                'icon' => 'egg',
-                'serving_size' => 50,
-                'calories' => 78,
-                'protein' => 6.3,
-                'fat' => 5.3,
-                'carbohydrate' => 0.6,
-                'fiber' => 0,
-                'sugar' => 0.6,
-            ],
-            [
-                'name' => 'Ayam Kukus',
-                'category' => 'Protein',
-                'icon' => 'restaurant',
-                'serving_size' => 100,
-                'calories' => 165,
-                'protein' => 31,
-                'fat' => 3.6,
-                'carbohydrate' => 0,
-                'fiber' => 0,
-                'sugar' => 0,
-            ],
-            [
-                'name' => 'Ikan Salmon',
-                'category' => 'Protein',
-                'icon' => 'set_meal',
-                'serving_size' => 100,
-                'calories' => 208,
-                'protein' => 20,
-                'fat' => 13,
-                'carbohydrate' => 0,
-                'fiber' => 0,
-                'sugar' => 0,
-            ],
-            [
-                'name' => 'Tempe Goreng',
-                'category' => 'Protein',
-                'icon' => 'restaurant',
-                'serving_size' => 50,
-                'calories' => 96,
-                'protein' => 9.5,
-                'fat' => 4,
-                'carbohydrate' => 7.5,
-                'fiber' => 3,
-                'sugar' => 0,
-            ],
-            [
-                'name' => 'Tahu Kukus',
-                'category' => 'Protein',
-                'icon' => 'restaurant',
-                'serving_size' => 100,
-                'calories' => 76,
-                'protein' => 8,
-                'fat' => 4.8,
-                'carbohydrate' => 1.9,
-                'fiber' => 0.3,
-                'sugar' => 0,
-            ],
-            [
-                'name' => 'Ikan Teri',
-                'category' => 'Protein',
-                'icon' => 'set_meal',
-                'serving_size' => 25,
-                'calories' => 38,
-                'protein' => 7.5,
-                'fat' => 0.8,
-                'carbohydrate' => 0,
-                'fiber' => 0,
-                'sugar' => 0,
-            ],
+        if (! file_exists($csvPath)) {
+            $this->command->error("CSV file not found: {$csvPath}");
 
-            // Sayuran
-            [
-                'name' => 'Bayam Kukus',
-                'category' => 'Sayuran',
-                'icon' => 'eco',
-                'serving_size' => 100,
-                'calories' => 23,
-                'protein' => 2.9,
-                'fat' => 0.4,
-                'carbohydrate' => 3.6,
-                'fiber' => 2.2,
-                'sugar' => 0.4,
-            ],
-            [
-                'name' => 'Wortel Rebus',
-                'category' => 'Sayuran',
-                'icon' => 'eco',
-                'serving_size' => 100,
-                'calories' => 35,
-                'protein' => 0.8,
-                'fat' => 0.2,
-                'carbohydrate' => 8,
-                'fiber' => 3,
-                'sugar' => 3.4,
-            ],
-            [
-                'name' => 'Brokoli Kukus',
-                'category' => 'Sayuran',
-                'icon' => 'eco',
-                'serving_size' => 100,
-                'calories' => 35,
-                'protein' => 2.4,
-                'fat' => 0.4,
-                'carbohydrate' => 7,
-                'fiber' => 3.3,
-                'sugar' => 1.4,
-            ],
-            [
-                'name' => 'Labu Kuning',
-                'category' => 'Sayuran',
-                'icon' => 'eco',
-                'serving_size' => 100,
-                'calories' => 26,
-                'protein' => 1,
-                'fat' => 0.1,
-                'carbohydrate' => 6.5,
-                'fiber' => 0.5,
-                'sugar' => 2.8,
-            ],
+            return;
+        }
 
-            // Buah
-            [
-                'name' => 'Pisang',
-                'category' => 'Buah',
-                'icon' => 'nutrition',
-                'serving_size' => 100,
-                'calories' => 89,
-                'protein' => 1.1,
-                'fat' => 0.3,
-                'carbohydrate' => 23,
-                'fiber' => 2.6,
-                'sugar' => 12,
-            ],
-            [
-                'name' => 'Alpukat',
-                'category' => 'Buah',
-                'icon' => 'nutrition',
-                'serving_size' => 100,
-                'calories' => 160,
-                'protein' => 2,
-                'fat' => 15,
-                'carbohydrate' => 9,
-                'fiber' => 7,
-                'sugar' => 0.7,
-            ],
-            [
-                'name' => 'Pepaya',
-                'category' => 'Buah',
-                'icon' => 'nutrition',
-                'serving_size' => 100,
-                'calories' => 43,
-                'protein' => 0.5,
-                'fat' => 0.3,
-                'carbohydrate' => 11,
-                'fiber' => 1.7,
-                'sugar' => 7.8,
-            ],
-            [
-                'name' => 'Jeruk',
-                'category' => 'Buah',
-                'icon' => 'nutrition',
-                'serving_size' => 100,
-                'calories' => 47,
-                'protein' => 0.9,
-                'fat' => 0.1,
-                'carbohydrate' => 12,
-                'fiber' => 2.4,
-                'sugar' => 9.4,
-            ],
-            [
-                'name' => 'Apel',
-                'category' => 'Buah',
-                'icon' => 'nutrition',
-                'serving_size' => 100,
-                'calories' => 52,
-                'protein' => 0.3,
-                'fat' => 0.2,
-                'carbohydrate' => 14,
-                'fiber' => 2.4,
-                'sugar' => 10,
-            ],
+        $handle = fopen($csvPath, 'r');
+        if ($handle === false) {
+            $this->command->error("Could not open CSV file: {$csvPath}");
 
-            // Susu
-            [
-                'name' => 'Susu UHT',
-                'category' => 'Susu',
-                'icon' => 'local_drink',
-                'serving_size' => 200,
-                'calories' => 122,
-                'protein' => 6.8,
-                'fat' => 6.4,
-                'carbohydrate' => 9.6,
-                'fiber' => 0,
-                'sugar' => 9.6,
-            ],
-            [
-                'name' => 'Yogurt Plain',
-                'category' => 'Susu',
-                'icon' => 'local_drink',
-                'serving_size' => 100,
-                'calories' => 59,
-                'protein' => 10,
-                'fat' => 0.7,
-                'carbohydrate' => 3.6,
-                'fiber' => 0,
-                'sugar' => 3.2,
-            ],
-            [
-                'name' => 'Keju',
-                'category' => 'Susu',
-                'icon' => 'restaurant',
-                'serving_size' => 30,
-                'calories' => 120,
-                'protein' => 7.5,
-                'fat' => 10,
-                'carbohydrate' => 0.4,
-                'fiber' => 0,
-                'sugar' => 0.2,
-            ],
-        ];
+            return;
+        }
 
-        foreach ($foods as $food) {
+        // Skip header rows (line 1: column names, line 2: units)
+        fgetcsv($handle);
+        fgetcsv($handle);
+
+        $count = 0;
+        while (($row = fgetcsv($handle)) !== false) {
+            // Skip empty rows or rows without a name
+            if (empty($row[0]) || trim($row[0]) === '') {
+                continue;
+            }
+
+            $name = trim($row[0]);
+
+            // Stop when reaching summary/footer rows
+            if (str_starts_with($name, 'Perbedaan') || str_starts_with($name, 'jml:')) {
+                break;
+            }
+
+            $servingSize = $this->parseNumber($row[1] ?? '100');
+            $calories = $this->parseNumber($row[2] ?? '0');
+            $protein = $this->parseNumber($row[3] ?? '0');
+            $fat = $this->parseNumber($row[4] ?? '0');
+            $carbohydrate = $this->parseNumber($row[5] ?? '0');
+
+            // Determine category based on food name
+            $category = $this->determineCategory($name);
+            $icon = $this->determineIcon($category);
+
             Food::updateOrCreate(
-                ['name' => $food['name']],
-                array_merge($food, [
+                ['name' => $name],
+                [
+                    'category' => $category,
+                    'icon' => $icon,
+                    'serving_size' => $servingSize,
+                    'calories' => $calories,
+                    'protein' => $protein,
+                    'fat' => $fat,
+                    'carbohydrate' => $carbohydrate,
+                    'fiber' => 0,
+                    'sugar' => 0,
                     'is_active' => true,
                     'is_system' => true,
                     'created_by' => null,
-                ])
+                ]
             );
+            $count++;
         }
+
+        fclose($handle);
+
+        $this->command->info("Seeded {$count} foods from CSV.");
+    }
+
+    /**
+     * Parse a number from CSV cell, handling various formats.
+     */
+    private function parseNumber(string $value): float
+    {
+        $value = trim($value);
+        if ($value === '' || $value === '-') {
+            return 0;
+        }
+
+        // Remove any non-numeric characters except dot and comma
+        $value = preg_replace('/[^\d.,\-]/', '', $value);
+        $value = str_replace(',', '.', $value);
+
+        return (float) $value;
+    }
+
+    /**
+     * Determine food category based on name.
+     */
+    private function determineCategory(string $name): string
+    {
+        $nameLower = strtolower($name);
+
+        // Susu & Produk Susu
+        if (str_contains($nameLower, 'susu') || str_contains($nameLower, 'milo') || str_contains($nameLower, 'dancow') || str_contains($nameLower, 'bebelac') || str_contains($nameLower, 'ultra milk')) {
+            return 'Susu';
+        }
+
+        // Buah
+        $fruits = ['apel', 'pisang', 'jeruk', 'pepaya', 'mangga', 'semangka', 'melon', 'duku', 'durian', 'jambu', 'nangka', 'rambutan', 'salak', 'belimbing'];
+        foreach ($fruits as $fruit) {
+            if (str_contains($nameLower, $fruit)) {
+                return 'Buah';
+            }
+        }
+
+        // Sayuran
+        $vegetables = ['bayam', 'wortel', 'kangkung', 'sawi', 'sayur', 'labu', 'bening', 'tumis', 'selada'];
+        foreach ($vegetables as $veg) {
+            if (str_contains($nameLower, $veg)) {
+                return 'Sayuran';
+            }
+        }
+
+        // Protein - Daging & Telur
+        $proteins = ['ayam', 'daging', 'telur', 'ikan', 'udang', 'cumi', 'tempe', 'tahu', 'bakso', 'sate', 'abon', 'ati', 'hati', 'usus', 'jerohan'];
+        foreach ($proteins as $protein) {
+            if (str_contains($nameLower, $protein)) {
+                return 'Protein';
+            }
+        }
+
+        // Kacang-kacangan
+        if (str_contains($nameLower, 'kacang') || str_contains($nameLower, 'kedele') || str_contains($nameLower, 'toge')) {
+            return 'Kacang';
+        }
+
+        // Karbohidrat
+        $carbs = ['nasi', 'beras', 'roti', 'mie', 'kentang', 'singkong', 'ubi', 'tepung', 'bubur', 'bihun', 'makaroni', 'jagung', 'talas', 'lontong', 'ketupat', 'intip', 'soun', 'misoa'];
+        foreach ($carbs as $carb) {
+            if (str_contains($nameLower, $carb)) {
+                return 'Karbohidrat';
+            }
+        }
+
+        // Camilan/Snack
+        $snacks = ['biskuit', 'oreo', 'tango', 'krupuk', 'kerupuk', 'cilok', 'cireng', 'bakwan', 'donat', 'kue', 'nastar', 'risoles', 'pastel', 'lumpia', 'lemper', 'martabak', 'nagasari'];
+        foreach ($snacks as $snack) {
+            if (str_contains($nameLower, $snack)) {
+                return 'Camilan';
+            }
+        }
+
+        // Minuman
+        if (str_contains($nameLower, 'teh') || str_contains($nameLower, 'es ') || str_contains($nameLower, 'jus') || str_contains($nameLower, 'minuman')) {
+            return 'Minuman';
+        }
+
+        // Default
+        return 'Lainnya';
+    }
+
+    /**
+     * Determine icon based on category.
+     */
+    private function determineIcon(string $category): string
+    {
+        return match ($category) {
+            'Karbohidrat' => 'rice_bowl',
+            'Protein' => 'restaurant',
+            'Sayuran' => 'eco',
+            'Buah' => 'nutrition',
+            'Susu' => 'local_drink',
+            'Kacang' => 'spa',
+            'Camilan' => 'cookie',
+            'Minuman' => 'local_cafe',
+            default => 'restaurant_menu',
+        };
     }
 }

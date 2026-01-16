@@ -1,10 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/components/layouts/app-layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { PaginationNav } from '@/components/ui/pagination-nav';
+import { StatusBadge } from '@/components/ui/status-badge';
 import {
     Table,
     TableBody,
@@ -34,11 +34,7 @@ import {
     Calendar,
     Utensils,
     Plus,
-    Eye,
     Edit,
-    CheckCircle2,
-    XCircle,
-    Clock,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -78,23 +74,10 @@ const statusFilters = [
 
 function getPortionBadge(portion: PmtScheduleListItem['portion']) {
     if (!portion) {
-        return (
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
-                <Clock className="h-3 w-3" />
-                Pending
-            </div>
-        );
+        return <StatusBadge variant="pending" showIcon />;
     }
-
-    const config = {
-        habis: { label: 'Habis (100%)', class: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-        half: { label: 'Setengah (50%)', class: 'bg-blue-50 text-blue-700 border-blue-200' },
-        quarter: { label: 'Seperempat (25%)', class: 'bg-amber-50 text-amber-700 border-amber-200' },
-        none: { label: 'Tidak Dimakan', class: 'bg-red-50 text-red-700 border-red-200' },
-    };
-
-    const { label, class: className } = config[portion];
-    return <Badge variant="outline" className={`${className} font-normal border`}>{label}</Badge>;
+    
+    return <StatusBadge variant={portion} showIcon />;
 }
 
 export default function PmtIndex({ schedules, filters }: Props) {
@@ -212,7 +195,7 @@ export default function PmtIndex({ schedules, filters }: Props) {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="h-8 w-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                                                    <div className="h-8 w-8 rounded-full bg-success-muted flex items-center justify-center text-success">
                                                         <Utensils className="h-4 w-4" />
                                                     </div>
                                                     <span className="font-medium">{schedule.menu_name}</span>

@@ -1,9 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/components/layouts/app-layout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PaginationNav } from '@/components/ui/pagination-nav';
+import { StatusBadge } from '@/components/ui/status-badge';
 import {
     Table,
     TableBody,
@@ -17,7 +18,6 @@ import {
     Eye,
     Edit,
     Filter,
-    MoreHorizontal,
     Plus,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -123,8 +123,8 @@ export default function ChildrenIndex({ children, filters }: Props) {
                                             <TableCell>
                                                 <div className="flex items-center gap-4">
                                                     <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 transition-transform group-hover:scale-105 ${child.gender === 'male'
-                                                            ? 'bg-blue-50 text-blue-600'
-                                                            : 'bg-pink-50 text-pink-600'
+                                                            ? 'bg-male-muted text-male'
+                                                            : 'bg-female-muted text-female'
                                                         }`}>
                                                         {child.name.charAt(0)}
                                                     </div>
@@ -143,17 +143,10 @@ export default function ChildrenIndex({ children, filters }: Props) {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                {child.is_active ? (
-                                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                                        Active
-                                                    </div>
-                                                ) : (
-                                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-700">
-                                                        <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-                                                        Inactive
-                                                    </div>
-                                                )}
+                                                <StatusBadge 
+                                                    variant={child.is_active ? 'active' : 'inactive'} 
+                                                    showDot 
+                                                />
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

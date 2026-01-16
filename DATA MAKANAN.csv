@@ -1,0 +1,275 @@
+﻿Makanan,Jumlah,energy,protein,fat,carbohydr.
+, g,kcal, g, g, g
+Breastmilk ,100,68.8,1.1,4,7
+wortel,100,0.5,0.1,0,0.4
+kacang garing dua kelinci-yani,100,636.2,22.7,50,18.2
+merie susu-yani,100,454.3,9.1,13.6,72.7
+tango-yani,100,115.4,1.3,5.1,16.7
+oreo-yani,100,476.1,3.4,20.4,71.4
+sea crunch-yani,100,175,2.5,3.8,30
+tango,100,500,5,22.5,65
+beras ketan hitam,100,360.9,6.7,0.6,79.5
+beras ketan putih giling,100,360.9,6.7,0.6,79.5
+beras ketan putih tumbuk,100,360.9,6.7,0.6,79.5
+beras merah + beras pth campur,100,338.9,6.6,1.4,72.9
+beras merah giling,100,358,7.4,2.6,75.2
+beras merah tumbuk,100,358,7.4,2.6,75.2
+beras putih giling,100,360.9,6.7,0.6,79.5
+beras putih tumbuk,100,360.9,6.7,0.6,79.5
+bihun,100,381,0.3,0.1,91.3
+bihun goreng,100,237.1,1.9,15.2,22.9
+tepung beras ketan putih,100,360.9,6.7,0.6,79.5
+tepung beras merah,100,358,7.4,2.6,75.2
+tepung beras,100,360.9,6.7,0.6,79.5
+tepung kentang,100,381,0.3,0.1,91.3
+tepung jagung putih,100,362.1,8.1,3.6,76.9
+tepung sagu,100,381,0.3,0.1,91.3
+tepung maizena,100,381,0.3,0.1,91.3
+tepung jagung kuning,100,362.1,8.1,3.6,76.9
+tepung garut / arrowroot,100,381,0.3,0.1,91.3
+tepung tapioka,100,381,0.3,0.1,91.3
+tepung terigu,100,364,10.3,1,76.3
+ubi jalar merah,100,103,1.7,0.1,24.3
+ubi jalar kuning,100,102.1,2.1,0.1,24.3
+ubi jalar ungu,100,112.1,2.4,0.1,26.3
+ubi jalar putih,100,112.1,2.4,0.1,26.3
+bubur buatan pabrik,100,371.9,15.6,6,64.8
+intip,100,169,3.1,0.3,37.2
+jagung kuning pipil baru,100,108,3.3,1.3,25.1
+jagung kuning pipil lama,100,362.1,8.1,3.6,76.9
+jagung putih segar,100,108,3.3,1.3,25.1
+kentang hitam,100,93,2,0.1,21.6
+kentang,100,93,2,0.1,21.6
+makaroni,100,353,12,1.8,70.8
+martabak manis,100,222,2.5,17.1,15.2
+mie + bakso (6) + kuah,100,147.9,11.7,2,19.8
+mie + kuah,100,141,4.8,0.7,28.3
+mie ayam,100,141,4.8,0.7,28.3
+mie bakso,100,141,4.8,0.7,28.3
+mie basah,100,141,4.8,0.7,28.3
+mie kering,100,282,9.6,1.4,56.6
+mie soun,100,381,0.3,0.1,91.3
+misoa,100,310,10.6,1.5,62.3
+nasi goreng,100,250,3.5,17.2,20.1
+nasi jagung,100,120.9,2.8,0.6,27.2
+nasi liwet,100,130,2.4,0.2,28.6
+nasi lunak and kangkung,100,101.1,2.4,0.2,22
+nasi putih,100,130,2.4,0.2,28.6
+nasi putih kukus,100,130,2.4,0.2,28.6
+nasi soto,100,65,1.2,0.1,14.3
+nasi tim,100,117.1,2.2,0.2,25.7
+nasi tim bayam,100,99.9,2.1,0.2,21.8
+nasi tim daging,100,155.1,5.4,4.8,21.5
+nasi tim wortel kentang,100,104.9,2,0.2,23.2
+nasi uduk,100,118.1,2.1,1.5,23.5
+nastar,100,207,4.4,2,42.9
+roti bakar meises,100,283.9,8.6,4.3,52.5
+roti choklat,100,283.9,8.6,4.3,52.5
+roti daging,100,284.9,10.3,5.8,46.7
+roti goreng,100,396,7,22.4,41.5
+roti isi kac ijo,100,257.9,8.7,2.8,48.8
+roti isi nanas,100,251.9,7.5,2.6,49.1
+roti isi strawberry,100,251.9,7.5,2.6,49.1
+roti keju,100,280.1,9.6,4.5,49.4
+roti kukis,100,283.9,8.6,4.3,52.5
+roti manis,100,284.9,7.9,2.7,56.7
+roti mocca,100,283.9,8.6,4.3,52.5
+roti pisang,100,147,3.3,1.3,32
+roti selei nenas,100,280.1,8.4,2.9,54.3
+roti sisir,100,183.1,5,2,36
+roti surabaya,100,183.1,5,2,36
+roti susu,100,305.9,10.8,6.2,51
+roti tawar,100,273.9,8.8,3,51.9
+sarimie,100,141,4.8,0.7,28.3
+singkong kuning,100,126,1.1,0.3,30.8
+singkong parut,100,131,1.1,0.3,31.9
+singkong putih,100,131,1.1,0.3,31.9
+talas mentah,100,112.1,2.4,0.1,26.3
+tempe gembus,100,199.1,19,7.7,17
+tempe kedele murni,100,199.1,19,7.7,17
+tempeh goreng,100,337,19,23.7,17
+tepung hunkwee,100,381,0.3,0.1,91.3
+toge kacang kedele mentah,100,121.9,13.1,6.7,9.6
+toge kacang hijau mentah,100,60.9,6.6,3.4,4.8
+kacang hijau,100,115.9,7.7,0.5,20.8
+kacang kapri mentah,100,83.9,5.4,0.2,15.6
+kacang kapri muda mentah,100,83.9,5.4,0.2,15.6
+kacang tanah kulit,100,414,18.8,35.9,11.8
+kacang tanah muda kulit,100,414,18.8,35.9,11.8
+kacang panjang biji,100,34.9,1.9,0.3,7.9
+roti tawar,100,284.9,7.9,2.7,56.7
+kacang merah,100,335.1,23,1.3,60.2
+kacang tanah tanpa kulit,100,566.9,25.8,49.2,16.1
+kacang panjang biji,100,34.9,1.9,0.3,7.9
+kacang tolo (tonggak),100,115.9,7.7,0.5,20.8
+kapri muda mentah,100,34.9,1.9,0.3,7.9
+kedele hitam,100,414.9,36.5,20,30.3
+kedele kuning,100,414.9,36.5,20,30.3
+pepes tahu,100,76,8.1,4.8,1.9
+sayur tahu,100,180,5.7,13.4,11.3
+sayur tempe,100,265.1,15.9,17,16.7
+semur tahu,100,137,13.7,4.5,10.6
+tahu,100,76,8.1,4.8,1.9
+tahu goreng,100,206,7.3,20.3,1.7
+apel,100,59,0.2,0.4,15.3
+belimbing,100,32,0.6,0.4,7.2
+buah pisang susu,100,92,1,0.5,23.4
+duku,100,59,0.2,0.4,15.3
+durian,100,98,0.8,0.8,24.8
+gori / nangka muda mentah,100,44,1.4,0.2,10.2
+jambu air,100,59,0.2,0.4,15.3
+jambu biji,100,50.9,0.8,0.6,11.9
+jambu bol,100,59,0.2,0.4,15.3
+jeruk bali,100,28.9,1.1,0.3,9.3
+mie ayam,100,141,4.8,0.7,28.3
+nasi tim ayam,100,140.1,5.8,3,21.5
+nasi tim bayam,100,99.9,2.1,0.2,21.8
+bayam merah,100,37,3.7,0.2,7.3
+bayam segar,100,37,3.7,0.2,7.3
+bening bayam belu,100,7.9,1,0.1,1.3
+tumis bayam and sawi belu,100,93.9,1.2,10.1,1.2
+tumis bayam and sawi and timun belu,100,61.9,1.3,6.1,1.7
+tumis bayam belu,100,66,0.7,7.1,0.9
+kuah daging ayam belu,100,74.1,7,4.9,0
+kuah oseng bayam belu,100,21,0.5,2,0.5
+sayur bayam,100,12,1.5,0.2,1.9
+sayur bayam jagung,100,37,1.6,0.5,8.3
+sayur bayam wortel,100,18.9,1,0.1,4.1
+telur ayam,100,155.1,12.6,10.6,1.1
+telur ayam bagian kuning,100,278,19.2,20.7,2.3
+telur ayam bagian putih,100,50,10.5,0,1
+ati ayam,100,157,24.4,5.5,0.9
+ayam,100,284.9,26.9,18.9,0
+usus ayam,100,93.9,14.1,3.8,0
+daging ayam,100,284.9,26.9,18.9,0
+daging ayam bagian kaki,100,202,11.4,17,0
+daging ayam bagian kepala,100,147.9,14,9.8,0
+daging ayam bagian paha,100,213.9,20.2,14.2,0
+daging ayam bagian sayap,100,147.9,14,9.8,0
+hati ayam,100,157,24.4,5.5,0.9
+jantung ayam mentah,100,166.1,29,4.7,0
+jerohan ayam,100,93.9,14.1,3.8,0
+kaldu ayam,100,7.9,0.5,0.3,0.8
+rempelo ayam,100,166.1,29,4.7,0
+sate ayam,100,314.1,25.6,23,0
+sayur sop ayam,100,71.9,5.9,3.8,3.4
+semur daging ayam belu,100,458.9,10.8,47.6,0
+daging ayam goreng,100,332,26.2,23.1,3.7
+bubur ayam,100,158.9,5.1,2.1,28.6
+soto ayam,100,108,7.4,4.6,8.7
+sup ayam belu,100,43,4,2.8,0
+bening selada air and kangkung belu,100,329.1,3.9,14.8,48
+tumis kangkung belu,100,92,2.2,9.2,2
+telur ikan,100,163,19.8,8.4,0.8
+telur ikan lele,100,163,19.8,8.4,0.8
+telur ikan kating,100,163,19.8,8.4,0.8
+telur ikan gabus,100,163,19.8,8.4,0.8
+telur ikan bethik mentah,100,163,19.8,8.4,0.8
+tepung ikan teri,100,375,65.6,10.5,0
+tumis ikan teri,100,101.1,14.8,4.3,0
+ikan asin belanak,100,245,53.1,2,0
+ikan asin gabus,100,245,53.1,2,0
+ikan asin layur,100,83.9,18.2,0.7,0
+ikan asin wader / memreng,100,245,53.1,2,0
+ikan bandeng,100,83.9,14.8,2.3,0
+ikan bawal,100,83.9,18.2,0.7,0
+ikan belanak,100,83.9,14.8,2.3,0
+ikan bethik,100,83.9,18.2,0.7,0
+ikan cumi basah goreng,100,272,26,12.3,12.6
+ikan gabus kering,100,245,53.1,2,0
+ikan goreng,100,159.9,13,12,0
+ikan kakap,100,83.9,18.2,0.7,0
+ikan kembung,100,112.1,21.4,2.3,0
+ikan kembung goreng,100,202,16,15,0
+ikan lele,100,83.9,14.8,2.3,0
+ikan mas bumbu kuning,100,218,16.7,15.7,2.9
+ikan mas goreng,100,202,16,15,0
+ikan mas pepes,100,81,11.5,3.6,0
+ikan mas segar,100,130,18.3,5.8,0
+ikan mujair dendeng mentah,100,335.1,58.6,9.4,0
+ikan mujair segar,100,83.9,18.2,0.7,0
+ikan pindang banjar,100,112.1,21.4,2.3,0
+ikan pindang kembung,100,140.1,26.7,2.9,0
+ikan rebon kering,100,305.9,66.4,2.5,0
+ikan rebon segar,100,79.1,16.7,0.9,0
+ikan tengiri,100,112.1,21.4,2.3,0
+ikan teri asin kering,100,335.1,58.6,9.4,0
+ikan tongkol,100,110.9,24,1,0
+ikan tongkol pindang,100,110.9,24,1,0
+ikan wader,100,83.9,14.8,2.3,0
+gula merah tebu belum dimurnikan,100,376,0,0,97.3
+sayur asem,100,49,1.8,2.7,5.7
+sayur bening campur,100,33,1.2,0.3,7.5
+sayur labu,100,14.1,0.5,0.5,2.3
+sayur lodeh,100,55.9,1.9,3.4,6
+sayur sop,100,104,1.8,7,10.5
+air sayur,100,1.9,0.1,0,0.5
+telur ceplok,100,191,12,15.1,1
+telur dadar,100,186.9,11.5,14.7,1.2
+telur goreng,100,191,12,15.1,1
+telur asin,100,155.1,12.6,10.6,1.1
+telur ayam,100,155.1,12.6,10.6,1.1
+telur ayam bagian kuning,100,278,19.2,20.7,2.3
+telur ayam bagian putih,100,50,10.5,0,1
+telur puyuh,100,185,12.8,13.8,1.5
+tempe bacem,100,237.1,10.8,15,17.6
+tempe goreng,100,354,17.1,26.9,15.3
+tempe oreg/sayur tempe/sambal tempe,100,99.9,9.6,3.9,8.6
+bubur nasi,100,72.9,1.3,0.1,16
+krupuk pasir,100,527,3,30.3,59.7
+teh manis,100,12.9,0,0,3.2
+es krim walls,100,196,3.2,9.9,24.8
+es dawet/cendol,100,30.1,0.1,0.7,6.1
+cilok,100,256,7.8,8,38.9
+susu milo/ milo choklat,100,387,10.8,9.5,65.8
+minuman susu ultra / ultra milk,100,66,3.2,3.9,4.8
+susu sapi,100,66,3.2,3.9,4.8
+susu segar,100,66,3.2,3.9,4.8
+susu kental manis,100,320,7.8,8.7,54.5
+susu kambing,100,69.1,3.6,4.1,4.5
+susu bebelac,100,500,10.8,24.5,60.8
+susu dancow balita,100,463.9,21.6,19,51.6
+susu dancow coklat,100,433.1,13,11.4,70.9
+susu dancow,100,463.9,21.6,19,51.6
+susu dancow instant,100,463.9,21.6,19,51.6
+biskuit-yani,100,455.8,6.9,14.4,75.1
+daging kambing,100,268.9,24.9,18,0
+daging sapi,100,268.9,24.9,18,0
+lontong,100,188.1,2.2,4.2,35.5
+ketupat,100,20.1,0.4,0,4.3
+perkedel jagung,100,142.9,7.3,7.4,13.9
+bakso daging sapi,100,370,23.5,29.9,0.1
+tumis sawi,100,28,1.7,2.1,1.6
+abon,100,315,55.1,8.9,0
+udang segar,100,79.1,16.7,0.9,0
+kerupuk udang,100,549,6.5,28.4,66.6
+krupuk raja udang bandeng,100,527,3,30.3,59.7
+mangga golek,100,65,0.5,0.3,17
+mangga harum manis,100,65,0.5,0.3,17
+mangga indramayu,100,65,0.5,0.3,17
+jus melon,100,47.1,0.2,0.1,12.1
+semangka,100,32,0.6,0.4,7.2
+nagasari,100,213,2.5,8.8,33.5
+nangka masak di pohon,100,115.9,0.8,0.2,31.2
+pepaya,100,39,0.6,0.1,9.8
+salak,100,82,0.2,0.4,21.3
+rambutan,100,49,0.4,0.4,12.4
+kue mangkok/cimplo/apem,100,188.1,2.2,4.2,35.5
+cireng/bakwan,100,539.9,5.3,40.5,39.2
+kue bolu,100,207,4.4,2,42.9
+bubur sumsum/bubur belohok,100,34.9,0.3,0.9,6.7
+donat,100,400.1,5.2,21.8,46.3
+kue dadar gulung,100,289,5.7,8.4,48.3
+lemper,100,188.1,2.2,4.2,35.5
+lumpia,100,126,5,3.7,17.7
+pastel,100,351.1,11.8,26.6,15.5
+risoles,100,246.9,10.3,7.6,33.3
+martabak,100,319.1,7.7,18.1,31
+sate kentang,100,93,2,0.1,21.6
+gula kopi,100,357.1,1.6,0,90.3
+,,,,,
+Perbedaan Analisis : ,,52859.5,2729.7,1743.6,6569.3
+,,100.00%,100.00%,100.00%,100.00%
+,,,,,
+,,,,,
+jml: ,,52859.5,2729.7,1743.6,6569.3

@@ -1,9 +1,18 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     ArrowLeft,
     Calendar,
@@ -19,8 +28,30 @@ import {
     Users,
     FileText,
     Download,
+    Plus,
+    Trash2,
+    Clock,
+    Stethoscope,
     type LucideIcon,
 } from 'lucide-react';
+import { useState, FormEvent } from 'react';
+
+interface Intervention {
+    id: number;
+    domain_id: number | null;
+    domain_name: string | null;
+    domain_code: string | null;
+    type: 'stimulation' | 'referral' | 'follow_up' | 'counseling' | 'other';
+    type_label: string;
+    action: string;
+    notes: string | null;
+    status: 'planned' | 'in_progress' | 'completed' | 'cancelled';
+    status_label: string;
+    follow_up_date: string | null;
+    completed_at: string | null;
+    created_by: string | null;
+    created_at: string;
+}
 
 interface DomainResult {
     domain_id: number;
@@ -52,10 +83,13 @@ interface ScreeningData {
     overall_status: 'sesuai' | 'pantau' | 'perlu_rujukan';
     completed_at: string | null;
     domain_results: DomainResult[];
+    interventions?: Intervention[];
 }
 
 interface Props {
     screening: ScreeningData;
+    typeOptions: Array<{ value: string; label: string }>;
+    statusOptions: Array<{ value: string; label: string }>;
 }
 
 // Map domain codes to icons and colors
@@ -112,13 +146,66 @@ function getDomainStatusBadge(status: string) {
     return <Badge className={className}>{label}</Badge>;
 }
 
-export default function ScreeningResults({ screening }: Props) {
+function getInterventionStatusBadge(status: string) {
+    const config = {
+        planned: { label: 'Direncanakan', className: 'bg-blue-100 text-blue-700' },
+        in_progress: { label: 'Dalam Proses', className: 'bg-amber-100 text-amber-700' },
+        completed: { label: 'Selesai', className: 'bg-emerald-100 text-emerald-700' },
+        cancelled: { label: 'Dibatalkan', className: 'bg-gray-100 text-gray-700' },
+    };
+
+    const { label, className } =
+        config[status as keyof typeof config] || config.planned;
+    return <Badge className={className}>{label}</Badge>;
+}
+
+export default function ScreeningResults({ screening, typeOptions = [], statusOptions = [] }: Props) {
     const domainResults = screening.domain_results || [];
     // Pre-convert scores to numbers for better performance
-    const domainScores = domainResults.map(d => Number(d.total_score));
+    const domainScores = domainResults.map((d) => Number(d.total_score));
     const totalScore = domainScores.reduce((sum, score) => sum + score, 0);
     const maxTotalScore = domainResults.length * MAX_DOMAIN_SCORE;
     const overallProgress = maxTotalScore > 0 ? (totalScore / maxTotalScore) * 100 : 0;
+
+    const [isAddingIntervention, setIsAddingIntervention] = useState(false);
+
+    const {
+        data,
+        setData,
+        post,
+        processing,
+        errors,
+        reset,
+        clearErrors,
+    } = useForm({
+        type: 'stimulation',
+        action: '',
+        notes: '',
+        status: 'planned',
+        follow_up_date: '',
+    });
+
+    const handleAddIntervention = (e: FormEvent) => {
+        e.preventDefault();
+        post(`/screenings/${screening.id}/interventions`, {
+            onSuccess: () => {
+                setIsAddingIntervention(false);
+                reset();
+            },
+        });
+    };
+
+    const handleCompleteIntervention = (id: number) => {
+        if (confirm('Tandai intervensi ini sebagai selesai?')) {
+            router.post(`/screenings/${screening.id}/interventions/${id}/complete`);
+        }
+    };
+
+    const handleDeleteIntervention = (id: number) => {
+        if (confirm('Apakah Anda yakin ingin menghapus intervensi ini?')) {
+            router.delete(`/screenings/${screening.id}/interventions/${id}`);
+        }
+    };
 
     return (
         <AppLayout title="Hasil Screening ASQ-3">
@@ -180,7 +267,9 @@ export default function ScreeningResults({ screening }: Props) {
                             <div className="space-y-3">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Usia saat Screening</p>
-                                    <p className="font-semibold">{screening.age_at_screening_months} bulan ({screening.age_interval})</p>
+                                    <p className="font-semibold">
+                                        {screening.age_at_screening_months} bulan ({screening.age_interval})
+                                    </p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Status</p>
@@ -200,7 +289,9 @@ export default function ScreeningResults({ screening }: Props) {
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Total Skor</span>
-                                <span className="font-semibold">{totalScore} / {maxTotalScore}</span>
+                                <span className="font-semibold">
+                                    {totalScore} / {maxTotalScore}
+                                </span>
                             </div>
                             <Progress value={overallProgress} className="h-3" />
                             <p className="text-xs text-muted-foreground text-center">
@@ -258,8 +349,233 @@ export default function ScreeningResults({ screening }: Props) {
                     </CardContent>
                 </Card>
 
+                {/* Interventions Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <Stethoscope className="h-5 w-5 text-primary" />
+                            Intervensi & Tindak Lanjut
+                        </h2>
+                        {!isAddingIntervention && (
+                            <Button onClick={() => setIsAddingIntervention(true)} className="gap-2">
+                                <Plus className="h-4 w-4" />
+                                Tambah Intervensi
+                            </Button>
+                        )}
+                    </div>
+
+                    {isAddingIntervention && (
+                        <Card className="border-primary/20 bg-primary/5">
+                            <CardHeader>
+                                <CardTitle className="text-lg">Tambah Intervensi Baru</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <form onSubmit={handleAddIntervention} className="space-y-4">
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="type">Jenis Intervensi</Label>
+                                            <Select
+                                                value={data.type}
+                                                onValueChange={(val) => setData('type', val)}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Pilih jenis..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {typeOptions.map((opt) => (
+                                                        <SelectItem key={opt.value} value={opt.value}>
+                                                            {opt.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.type && <p className="text-sm text-red-500">{errors.type}</p>}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="status">Status</Label>
+                                            <Select
+                                                value={data.status}
+                                                onValueChange={(val) => setData('status', val)}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Pilih status..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {statusOptions.map((opt) => (
+                                                        <SelectItem key={opt.value} value={opt.value}>
+                                                            {opt.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.status && <p className="text-sm text-red-500">{errors.status}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="action">Tindakan / Rencana</Label>
+                                        <textarea
+                                            id="action"
+                                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                            placeholder="Deskripsikan tindakan yang akan dilakukan..."
+                                            value={data.action}
+                                            onChange={(e) => setData('action', e.target.value)}
+                                        />
+                                        {errors.action && <p className="text-sm text-red-500">{errors.action}</p>}
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="follow_up_date">Tanggal Tindak Lanjut (Opsional)</Label>
+                                            <Input
+                                                id="follow_up_date"
+                                                type="date"
+                                                value={data.follow_up_date}
+                                                onChange={(e) => setData('follow_up_date', e.target.value)}
+                                            />
+                                            {errors.follow_up_date && (
+                                                <p className="text-sm text-red-500">{errors.follow_up_date}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="notes">Catatan Tambahan (Opsional)</Label>
+                                        <textarea
+                                            id="notes"
+                                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                            placeholder="Catatan tambahan..."
+                                            value={data.notes}
+                                            onChange={(e) => setData('notes', e.target.value)}
+                                        />
+                                        {errors.notes && <p className="text-sm text-red-500">{errors.notes}</p>}
+                                    </div>
+
+                                    <div className="flex justify-end gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => {
+                                                setIsAddingIntervention(false);
+                                                reset();
+                                                clearErrors();
+                                            }}
+                                        >
+                                            Batal
+                                        </Button>
+                                        <Button type="submit" disabled={processing}>
+                                            {processing ? 'Menyimpan...' : 'Simpan Intervensi'}
+                                        </Button>
+                                    </div>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Intervention List */}
+                    <div className="grid gap-4">
+                        {screening.interventions && screening.interventions.length > 0 ? (
+                            screening.interventions.map((intervention) => (
+                                <Card key={intervention.id} className="overflow-hidden">
+                                    <div className="flex flex-col md:flex-row">
+                                        <div
+                                            className={`w-full md:w-2 ${
+                                                intervention.status === 'completed'
+                                                    ? 'bg-emerald-500'
+                                                    : intervention.status === 'cancelled'
+                                                    ? 'bg-gray-400'
+                                                    : 'bg-amber-500'
+                                            }`}
+                                        />
+                                        <div className="flex-1 p-6">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge variant="outline" className="font-normal">
+                                                            {intervention.type_label}
+                                                        </Badge>
+                                                        {getInterventionStatusBadge(intervention.status)}
+                                                    </div>
+                                                    <h3 className="text-lg font-medium">{intervention.action}</h3>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {intervention.status !== 'completed' && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                                            onClick={() => handleCompleteIntervention(intervention.id)}
+                                                            title="Tandai Selesai"
+                                                        >
+                                                            <CheckCircle className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                                        onClick={() => handleDeleteIntervention(intervention.id)}
+                                                        title="Hapus"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid md:grid-cols-2 gap-4 text-sm text-muted-foreground mt-4">
+                                                <div className="space-y-2">
+                                                    {intervention.follow_up_date && (
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar className="h-4 w-4" />
+                                                            <span>
+                                                                Tindak Lanjut:{' '}
+                                                                {new Date(intervention.follow_up_date).toLocaleDateString(
+                                                                    'id-ID',
+                                                                    { day: 'numeric', month: 'long', year: 'numeric' }
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="h-4 w-4" />
+                                                        <span>
+                                                            Dibuat:{' '}
+                                                            {new Date(intervention.created_at).toLocaleDateString(
+                                                                'id-ID',
+                                                                { day: 'numeric', month: 'long', year: 'numeric' }
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                {intervention.notes && (
+                                                    <div className="bg-muted/50 p-3 rounded-md">
+                                                        <p className="italic">{intervention.notes}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))
+                        ) : (
+                            <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg border border-dashed">
+                                <p>Belum ada intervensi yang dicatat.</p>
+                                <Button
+                                    variant="link"
+                                    onClick={() => setIsAddingIntervention(true)}
+                                    className="mt-2"
+                                >
+                                    Tambah Intervensi Sekarang
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
                 {/* Recommendations */}
                 <Card>
+
                     <CardHeader className="border-b">
                         <CardTitle>Rekomendasi</CardTitle>
                     </CardHeader>

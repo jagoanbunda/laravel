@@ -20,8 +20,8 @@ class FoodController extends Controller
 
         // Search filter
         if ($request->has('search') && $request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('category', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('category', 'like', '%'.$request->search.'%');
         }
 
         // Category filter
@@ -39,7 +39,7 @@ class FoodController extends Controller
         }
 
         $foods = $query->orderBy('name')->paginate(15)->withQueryString();
-        
+
         // Get unique categories for filter dropdown
         $categories = Food::whereNotNull('category')
             ->distinct()
@@ -59,7 +59,15 @@ class FoodController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('foods/create');
+        $categories = Food::whereNotNull('category')
+            ->distinct()
+            ->pluck('category')
+            ->sort()
+            ->values();
+
+        return Inertia::render('foods/create', [
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -93,8 +101,15 @@ class FoodController extends Controller
      */
     public function edit(Food $food): Response
     {
+        $categories = Food::whereNotNull('category')
+            ->distinct()
+            ->pluck('category')
+            ->sort()
+            ->values();
+
         return Inertia::render('foods/edit', [
             'food' => $food,
+            'categories' => $categories,
         ]);
     }
 

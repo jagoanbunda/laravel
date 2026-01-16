@@ -22,10 +22,9 @@ class UpdateParentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'full_name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $this->route('parent'),
             'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:500',
         ];
     }
 
@@ -37,7 +36,7 @@ class UpdateParentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'full_name.required' => 'Nama lengkap wajib diisi.',
+            'name.required' => 'Nama lengkap wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Email harus berformat valid.',
             'email.unique' => 'Email sudah digunakan.',

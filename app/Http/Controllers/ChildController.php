@@ -26,7 +26,7 @@ class ChildController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($userQuery) use ($search) {
-                        $userQuery->where('full_name', 'like', "%{$search}%");
+                        $userQuery->where('name', 'like', "%{$search}%");
                     });
             });
         }
@@ -52,9 +52,9 @@ class ChildController extends Controller
             return [
                 'id' => $child->id,
                 'name' => $child->name,
-                'date_of_birth' => $child->date_of_birth,
+                'date_of_birth' => $child->birthday,
                 'gender' => $child->gender,
-                'parent_name' => $child->user->full_name,
+                'parent_name' => $child->user->name,
                 'parent_email' => $child->user->email,
                 'is_active' => $child->is_active,
                 'created_at' => $child->created_at,
@@ -76,11 +76,11 @@ class ChildController extends Controller
      */
     public function create(Request $request): Response
     {
-        $parents = User::orderBy('full_name')
+        $parents = User::orderBy('name')
             ->get()
             ->map(fn ($user) => [
                 'id' => $user->id,
-                'full_name' => $user->full_name,
+                'name' => $user->name,
             ]);
 
         return Inertia::render('children/create', [
@@ -94,7 +94,12 @@ class ChildController extends Controller
      */
     public function store(StoreChildRequest $request): RedirectResponse
     {
-        Child::create($request->validated());
+        $data = $request->validated();
+        $data['birthday'] = $data['date_of_birth'];
+        $data['head_circumference'] = $data['birth_head_circumference'] ?? 0;
+        unset($data['date_of_birth'], $data['birth_head_circumference']);
+
+        Child::create($data);
 
         return redirect()->route('children.index')->with('success', 'Child created successfully');
     }
@@ -126,18 +131,18 @@ class ChildController extends Controller
             'child' => [
                 'id' => $child->id,
                 'name' => $child->name,
-                'date_of_birth' => $child->date_of_birth,
+                'date_of_birth' => $child->birthday,
                 'gender' => $child->gender,
                 'avatar_url' => $child->avatar_url,
                 'birth_weight' => $child->birth_weight,
                 'birth_height' => $child->birth_height,
-                'birth_head_circumference' => $child->birth_head_circumference,
+                'birth_head_circumference' => $child->head_circumference,
                 'blood_type' => $child->blood_type ?? null,
                 'allergy_notes' => $child->allergy_notes ?? null,
                 'is_active' => $child->is_active,
                 'parent' => [
                     'id' => $child->user->id,
-                    'name' => $child->user->full_name,
+                    'name' => $child->user->name,
                     'email' => $child->user->email,
                     'phone' => $child->user->phone,
                 ],
@@ -179,23 +184,23 @@ class ChildController extends Controller
     {
         $child = Child::with('user')->findOrFail($id);
 
-        $parents = User::orderBy('full_name')
+        $parents = User::orderBy('name')
             ->get()
             ->map(fn ($user) => [
                 'id' => $user->id,
-                'full_name' => $user->full_name,
+                'name' => $user->name,
             ]);
 
         return Inertia::render('children/edit', [
             'child' => [
                 'id' => $child->id,
                 'name' => $child->name,
-                'date_of_birth' => $child->date_of_birth->format('Y-m-d'),
+                'date_of_birth' => $child->birthday?->format('Y-m-d'),
                 'gender' => $child->gender,
                 'user_id' => $child->user_id,
                 'birth_weight' => $child->birth_weight,
                 'birth_height' => $child->birth_height,
-                'birth_head_circumference' => $child->birth_head_circumference,
+                'birth_head_circumference' => $child->head_circumference,
                 'blood_type' => $child->blood_type ?? null,
                 'allergy_notes' => $child->allergy_notes ?? null,
                 'is_active' => $child->is_active,
@@ -210,7 +215,18 @@ class ChildController extends Controller
     public function update(UpdateChildRequest $request, string $id): RedirectResponse
     {
         $child = Child::findOrFail($id);
-        $child->update($request->validated());
+
+        $data = $request->validated();
+        if (isset($data['date_of_birth'])) {
+            $data['birthday'] = $data['date_of_birth'];
+            unset($data['date_of_birth']);
+        }
+        if (isset($data['birth_head_circumference'])) {
+            $data['head_circumference'] = $data['birth_head_circumference'];
+            unset($data['birth_head_circumference']);
+        }
+
+        $child->update($data);
 
         return redirect()->route('children.index')->with('success', 'Child updated successfully');
     }

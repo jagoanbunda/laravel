@@ -2,22 +2,17 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { FloatingLabelInput } from '@/components/ui/floating-label-input';
+import { FloatingLabelSelect } from '@/components/ui/floating-label-select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { SelectItem } from '@/components/ui/select';
 import { ArrowLeft } from 'lucide-react';
 import { FormEvent } from 'react';
 
 interface Parent {
     id: number;
-    full_name: string;
+    name: string;
 }
 
 interface Props {
@@ -48,7 +43,7 @@ export default function ChildCreate({ parents, selected_parent_id }: Props) {
         <AppLayout title="Add Child">
             <Head title="Add Child" />
 
-            <div className="space-y-6">
+            <div className="space-y-6 max-w-2xl mx-auto">
                 {/* Breadcrumbs & Header */}
                 <div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
@@ -67,77 +62,61 @@ export default function ChildCreate({ parents, selected_parent_id }: Props) {
                             <CardTitle>Basic Information</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Child Name *</Label>
-                                    <Input
-                                        id="name"
-                                        value={data.name}
-                                        onChange={(e) => setData('name', e.target.value)}
-                                        placeholder="Enter child's name"
-                                        className={errors.name ? 'border-red-500' : ''}
-                                    />
-                                    {errors.name && (
-                                        <p className="text-sm text-red-500">{errors.name}</p>
-                                    )}
-                                </div>
+                            <div className="grid gap-4">
+                                <FloatingLabelInput
+                                    id="name"
+                                    label="Child Name *"
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    placeholder="Enter child's name"
+                                    className={errors.name ? 'border-red-500' : ''}
+                                />
+                                {errors.name && (
+                                    <p className="text-sm text-red-500">{errors.name}</p>
+                                )}
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="user_id">Parent *</Label>
-                                    <Select
-                                        value={data.user_id}
-                                        onValueChange={(value) => setData('user_id', value)}
-                                    >
-                                        <SelectTrigger className={errors.user_id ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder="Select parent" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {parents.map((parent) => (
-                                                <SelectItem key={parent.id} value={String(parent.id)}>
-                                                    {parent.full_name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.user_id && (
-                                        <p className="text-sm text-red-500">{errors.user_id}</p>
-                                    )}
-                                </div>
-                            </div>
+                                <FloatingLabelSelect
+                                    label="Parent *"
+                                    value={data.user_id}
+                                    onValueChange={(value) => setData('user_id', value)}
+                                    placeholder="Select parent"
+                                    error={errors.user_id}
+                                >
+                                    {parents.map((parent) => (
+                                        <SelectItem key={parent.id} value={String(parent.id)}>
+                                            {parent.name}
+                                        </SelectItem>
+                                    ))}
+                                </FloatingLabelSelect>
+                                {errors.user_id && (
+                                    <p className="text-sm text-red-500">{errors.user_id}</p>
+                                )}
 
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="date_of_birth">Date of Birth *</Label>
-                                    <Input
-                                        id="date_of_birth"
-                                        type="date"
-                                        value={data.date_of_birth}
-                                        onChange={(e) => setData('date_of_birth', e.target.value)}
-                                        className={errors.date_of_birth ? 'border-red-500' : ''}
-                                    />
-                                    {errors.date_of_birth && (
-                                        <p className="text-sm text-red-500">{errors.date_of_birth}</p>
-                                    )}
-                                </div>
+                                <FloatingLabelInput
+                                    id="date_of_birth"
+                                    type="date"
+                                    label="Date of Birth *"
+                                    value={data.date_of_birth}
+                                    onChange={(e) => setData('date_of_birth', e.target.value)}
+                                    className={errors.date_of_birth ? 'border-red-500' : ''}
+                                />
+                                {errors.date_of_birth && (
+                                    <p className="text-sm text-red-500">{errors.date_of_birth}</p>
+                                )}
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="gender">Gender *</Label>
-                                    <Select
-                                        value={data.gender}
-                                        onValueChange={(value) => setData('gender', value)}
-                                    >
-                                        <SelectTrigger className={errors.gender ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder="Select gender" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="male">Male</SelectItem>
-                                            <SelectItem value="female">Female</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.gender && (
-                                        <p className="text-sm text-red-500">{errors.gender}</p>
-                                    )}
-                                </div>
+                                <FloatingLabelSelect
+                                    label="Gender *"
+                                    value={data.gender}
+                                    onValueChange={(value) => setData('gender', value)}
+                                    placeholder="Select gender"
+                                    error={errors.gender}
+                                >
+                                    <SelectItem value="male">Male</SelectItem>
+                                    <SelectItem value="female">Female</SelectItem>
+                                </FloatingLabelSelect>
+                                {errors.gender && (
+                                    <p className="text-sm text-red-500">{errors.gender}</p>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -147,11 +126,11 @@ export default function ChildCreate({ parents, selected_parent_id }: Props) {
                             <CardTitle>Birth Information</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid gap-4 md:grid-cols-3">
-                                <div className="space-y-2">
-                                    <Label htmlFor="birth_weight">Birth Weight (kg)</Label>
-                                    <Input
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div className="space-y-4">
+                                    <FloatingLabelInput
                                         id="birth_weight"
+                                        label="Birth Weight (kg)"
                                         type="number"
                                         step="0.01"
                                         value={data.birth_weight}
@@ -162,12 +141,10 @@ export default function ChildCreate({ parents, selected_parent_id }: Props) {
                                     {errors.birth_weight && (
                                         <p className="text-sm text-red-500">{errors.birth_weight}</p>
                                     )}
-                                </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="birth_height">Birth Height (cm)</Label>
-                                    <Input
+                                    <FloatingLabelInput
                                         id="birth_height"
+                                        label="Birth Height (cm)"
                                         type="number"
                                         step="0.1"
                                         value={data.birth_height}
@@ -178,12 +155,10 @@ export default function ChildCreate({ parents, selected_parent_id }: Props) {
                                     {errors.birth_height && (
                                         <p className="text-sm text-red-500">{errors.birth_height}</p>
                                     )}
-                                </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="birth_head_circumference">Head Circumference (cm)</Label>
-                                    <Input
+                                    <FloatingLabelInput
                                         id="birth_head_circumference"
+                                        label="Head Circumference (cm)"
                                         type="number"
                                         step="0.1"
                                         value={data.birth_head_circumference}
@@ -195,31 +170,23 @@ export default function ChildCreate({ parents, selected_parent_id }: Props) {
                                         <p className="text-sm text-red-500">{errors.birth_head_circumference}</p>
                                     )}
                                 </div>
-                            </div>
 
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="blood_type">Blood Type</Label>
-                                    <Select
+                                <div className="space-y-4">
+                                    <FloatingLabelSelect
+                                        label="Blood Type"
                                         value={data.blood_type}
                                         onValueChange={(value) => setData('blood_type', value)}
+                                        placeholder="Select blood type"
                                     >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select blood type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="A">A</SelectItem>
-                                            <SelectItem value="B">B</SelectItem>
-                                            <SelectItem value="AB">AB</SelectItem>
-                                            <SelectItem value="O">O</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                        <SelectItem value="A">A</SelectItem>
+                                        <SelectItem value="B">B</SelectItem>
+                                        <SelectItem value="AB">AB</SelectItem>
+                                        <SelectItem value="O">O</SelectItem>
+                                    </FloatingLabelSelect>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="allergy_notes">Allergy Notes</Label>
-                                    <Input
+                                    <FloatingLabelInput
                                         id="allergy_notes"
+                                        label="Allergy Notes"
                                         value={data.allergy_notes}
                                         onChange={(e) => setData('allergy_notes', e.target.value)}
                                         placeholder="Any known allergies"
@@ -228,16 +195,16 @@ export default function ChildCreate({ parents, selected_parent_id }: Props) {
                                     {errors.allergy_notes && (
                                         <p className="text-sm text-red-500">{errors.allergy_notes}</p>
                                     )}
-                                </div>
-                            </div>
 
-                            <div className="flex items-center gap-2">
-                                <Switch
-                                    id="is_active"
-                                    checked={data.is_active}
-                                    onCheckedChange={(checked) => setData('is_active', checked)}
-                                />
-                                <Label htmlFor="is_active">Active Status</Label>
+                                    <div className="flex items-center gap-2 pt-2">
+                                        <Switch
+                                            id="is_active"
+                                            checked={data.is_active}
+                                            onCheckedChange={(checked) => setData('is_active', checked)}
+                                        />
+                                        <Label htmlFor="is_active">Active Status</Label>
+                                    </div>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>

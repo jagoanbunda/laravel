@@ -17,7 +17,6 @@ import {
     Plus,
     Eye,
     Edit,
-    MoreHorizontal,
     Mail,
     Phone,
     CheckCircle,
@@ -28,7 +27,7 @@ import { useState } from 'react';
 
 interface ParentListItem {
     id: number;
-    full_name: string;
+    name: string;
     email: string;
     phone?: string;
     avatar_url?: string;
@@ -113,10 +112,10 @@ export default function ParentsIndex({ parents, filters }: Props) {
                                         <TableCell>
                                             <div className="flex items-center gap-4">
                                                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary flex-shrink-0">
-                                                    {(parent.full_name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                                    {(parent.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2)}
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-foreground">{parent.full_name}</p>
+                                                    <p className="font-medium text-foreground">{parent.name}</p>
                                                     <p className="text-xs text-muted-foreground">Joined {new Date(parent.created_at).toLocaleDateString()}</p>
                                                 </div>
                                             </div>

@@ -23,7 +23,7 @@ class ParentController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('full_name', 'like', "%{$search}%")
+                $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%");
             });
@@ -35,7 +35,7 @@ class ParentController extends Controller
         $parents = $query->paginate(15)->through(function ($user) {
             return [
                 'id' => $user->id,
-                'full_name' => $user->full_name,
+                'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
                 'avatar_url' => $user->avatar_url,
@@ -65,10 +65,9 @@ class ParentController extends Controller
         return Inertia::render('parents/show', [
             'parent' => [
                 'id' => $parent->id,
-                'full_name' => $parent->full_name,
+                'name' => $parent->name,
                 'email' => $parent->email,
                 'phone' => $parent->phone,
-                'address' => $parent->address,
                 'avatar_url' => $parent->avatar_url,
                 'children_count' => $parent->children_count,
                 'push_notifications' => $parent->push_notifications,
@@ -117,10 +116,9 @@ class ParentController extends Controller
         return Inertia::render('parents/edit', [
             'parent' => [
                 'id' => $parent->id,
-                'full_name' => $parent->full_name,
+                'name' => $parent->name,
                 'email' => $parent->email,
                 'phone' => $parent->phone,
-                'address' => $parent->address,
             ],
         ]);
     }

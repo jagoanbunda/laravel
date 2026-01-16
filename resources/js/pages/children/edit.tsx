@@ -17,7 +17,7 @@ import { FormEvent } from 'react';
 
 interface Parent {
     id: number;
-    full_name: string;
+    name: string;
 }
 
 interface Child {
@@ -108,7 +108,7 @@ export default function ChildEdit({ child, parents }: Props) {
                                         <SelectContent>
                                             {parents.map((parent) => (
                                                 <SelectItem key={parent.id} value={String(parent.id)}>
-                                                    {parent.full_name}
+                                                    {parent.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
