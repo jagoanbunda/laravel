@@ -20,6 +20,7 @@ class ProductionSeeder extends Seeder
             Asq3QuestionSeeder::class,
             FoodSeeder::class,
             PmtMenuSeeder::class,
+            NakesUserSeeder::class,
         ]);
     }
 }

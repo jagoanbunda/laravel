@@ -26,8 +26,8 @@ class DevelopmentSeeder extends Seeder
         // 1. Seed master data first
         $this->call(ProductionSeeder::class);
 
-        // 2. Create test user
-        $testUser = User::factory()->create([
+        // 2. Create test user (parent for API testing)
+        $testUser = User::factory()->asParent()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
@@ -47,9 +47,9 @@ class DevelopmentSeeder extends Seeder
             ->has(Child::factory()->count(rand(1, 3)))
             ->create();
 
-        // 6. Seed PMT schedules and logs (after children exist)
+        // 6. Seed PMT programs with schedules and logs (after children exist)
         $this->call([
-            PmtScheduleSeeder::class,
+            PmtProgramSeeder::class,
             PmtLogSeeder::class,
             Asq3ScreeningSeeder::class,
         ]);
