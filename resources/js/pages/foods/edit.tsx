@@ -85,7 +85,7 @@ export default function FoodEdit({ food, categories }: FoodEditProps) {
         <AppLayout title="Edit Food">
             <Head title={`Edit ${food.name}`} />
 
-            <div className="space-y-6 max-w-3xl mx-auto">
+            <div className="space-y-6 max-w-3xl">
                 {/* Header */}
                 <div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">

@@ -68,7 +68,7 @@ export default function FoodCreate({ categories }: FoodCreateProps) {
         <AppLayout title="Add Food">
             <Head title="Add New Food" />
 
-            <div className="space-y-6 max-w-3xl mx-auto">
+            <div className="space-y-6 max-w-3xl">
                 {/* Header */}
                 <div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">

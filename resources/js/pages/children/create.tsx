@@ -2,11 +2,16 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FloatingLabelInput } from '@/components/ui/floating-label-input';
-import { FloatingLabelSelect } from '@/components/ui/floating-label-select';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { SelectItem } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { ArrowLeft } from 'lucide-react';
 import { FormEvent } from 'react';
 
@@ -43,7 +48,7 @@ export default function ChildCreate({ parents, selected_parent_id }: Props) {
         <AppLayout title="Add Child">
             <Head title="Add Child" />
 
-            <div className="space-y-6 max-w-2xl mx-auto">
+            <div className="space-y-6 max-w-3xl">
                 {/* Breadcrumbs & Header */}
                 <div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
@@ -62,61 +67,75 @@ export default function ChildCreate({ parents, selected_parent_id }: Props) {
                             <CardTitle>Basic Information</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid gap-4">
-                                <FloatingLabelInput
-                                    id="name"
-                                    label="Child Name *"
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    placeholder="Enter child's name"
-                                    className={errors.name ? 'border-red-500' : ''}
-                                />
-                                {errors.name && (
-                                    <p className="text-sm text-red-500">{errors.name}</p>
-                                )}
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Child Name *</Label>
+                                    <Input
+                                        id="name"
+                                        value={data.name}
+                                        onChange={(e) => setData('name', e.target.value)}
+                                        placeholder="Enter child's name"
+                                        className={errors.name ? 'border-red-500' : ''}
+                                    />
+                                    {errors.name && (
+                                        <p className="text-sm text-red-500">{errors.name}</p>
+                                    )}
+                                </div>
 
-                                <FloatingLabelSelect
-                                    label="Parent *"
-                                    value={data.user_id}
-                                    onValueChange={(value) => setData('user_id', value)}
-                                    placeholder="Select parent"
-                                    error={errors.user_id}
-                                >
-                                    {parents.map((parent) => (
-                                        <SelectItem key={parent.id} value={String(parent.id)}>
-                                            {parent.name}
-                                        </SelectItem>
-                                    ))}
-                                </FloatingLabelSelect>
-                                {errors.user_id && (
-                                    <p className="text-sm text-red-500">{errors.user_id}</p>
-                                )}
+                                <div className="space-y-2">
+                                    <Label htmlFor="user_id">Parent *</Label>
+                                    <Select
+                                        value={data.user_id}
+                                        onValueChange={(value) => setData('user_id', value)}
+                                    >
+                                        <SelectTrigger className={errors.user_id ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder="Select parent" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {parents.map((parent) => (
+                                                <SelectItem key={parent.id} value={String(parent.id)}>
+                                                    {parent.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.user_id && (
+                                        <p className="text-sm text-red-500">{errors.user_id}</p>
+                                    )}
+                                </div>
 
-                                <FloatingLabelInput
-                                    id="date_of_birth"
-                                    type="date"
-                                    label="Date of Birth *"
-                                    value={data.date_of_birth}
-                                    onChange={(e) => setData('date_of_birth', e.target.value)}
-                                    className={errors.date_of_birth ? 'border-red-500' : ''}
-                                />
-                                {errors.date_of_birth && (
-                                    <p className="text-sm text-red-500">{errors.date_of_birth}</p>
-                                )}
+                                <div className="space-y-2">
+                                    <Label htmlFor="date_of_birth">Date of Birth *</Label>
+                                    <Input
+                                        id="date_of_birth"
+                                        type="date"
+                                        value={data.date_of_birth}
+                                        onChange={(e) => setData('date_of_birth', e.target.value)}
+                                        className={errors.date_of_birth ? 'border-red-500' : ''}
+                                    />
+                                    {errors.date_of_birth && (
+                                        <p className="text-sm text-red-500">{errors.date_of_birth}</p>
+                                    )}
+                                </div>
 
-                                <FloatingLabelSelect
-                                    label="Gender *"
-                                    value={data.gender}
-                                    onValueChange={(value) => setData('gender', value)}
-                                    placeholder="Select gender"
-                                    error={errors.gender}
-                                >
-                                    <SelectItem value="male">Male</SelectItem>
-                                    <SelectItem value="female">Female</SelectItem>
-                                </FloatingLabelSelect>
-                                {errors.gender && (
-                                    <p className="text-sm text-red-500">{errors.gender}</p>
-                                )}
+                                <div className="space-y-2">
+                                    <Label htmlFor="gender">Gender *</Label>
+                                    <Select
+                                        value={data.gender}
+                                        onValueChange={(value) => setData('gender', value)}
+                                    >
+                                        <SelectTrigger className={errors.gender ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder="Select gender" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="male">Male</SelectItem>
+                                            <SelectItem value="female">Female</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.gender && (
+                                        <p className="text-sm text-red-500">{errors.gender}</p>
+                                    )}
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
@@ -128,73 +147,87 @@ export default function ChildCreate({ parents, selected_parent_id }: Props) {
                         <CardContent className="space-y-4">
                             <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-4">
-                                    <FloatingLabelInput
-                                        id="birth_weight"
-                                        label="Birth Weight (kg)"
-                                        type="number"
-                                        step="0.01"
-                                        value={data.birth_weight}
-                                        onChange={(e) => setData('birth_weight', e.target.value)}
-                                        placeholder="e.g., 3.5"
-                                        className={errors.birth_weight ? 'border-red-500' : ''}
-                                    />
-                                    {errors.birth_weight && (
-                                        <p className="text-sm text-red-500">{errors.birth_weight}</p>
-                                    )}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="birth_weight">Birth Weight (kg)</Label>
+                                        <Input
+                                            id="birth_weight"
+                                            type="number"
+                                            step="0.01"
+                                            value={data.birth_weight}
+                                            onChange={(e) => setData('birth_weight', e.target.value)}
+                                            placeholder="e.g., 3.5"
+                                            className={errors.birth_weight ? 'border-red-500' : ''}
+                                        />
+                                        {errors.birth_weight && (
+                                            <p className="text-sm text-red-500">{errors.birth_weight}</p>
+                                        )}
+                                    </div>
 
-                                    <FloatingLabelInput
-                                        id="birth_height"
-                                        label="Birth Height (cm)"
-                                        type="number"
-                                        step="0.1"
-                                        value={data.birth_height}
-                                        onChange={(e) => setData('birth_height', e.target.value)}
-                                        placeholder="e.g., 50"
-                                        className={errors.birth_height ? 'border-red-500' : ''}
-                                    />
-                                    {errors.birth_height && (
-                                        <p className="text-sm text-red-500">{errors.birth_height}</p>
-                                    )}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="birth_height">Birth Height (cm)</Label>
+                                        <Input
+                                            id="birth_height"
+                                            type="number"
+                                            step="0.1"
+                                            value={data.birth_height}
+                                            onChange={(e) => setData('birth_height', e.target.value)}
+                                            placeholder="e.g., 50"
+                                            className={errors.birth_height ? 'border-red-500' : ''}
+                                        />
+                                        {errors.birth_height && (
+                                            <p className="text-sm text-red-500">{errors.birth_height}</p>
+                                        )}
+                                    </div>
 
-                                    <FloatingLabelInput
-                                        id="birth_head_circumference"
-                                        label="Head Circumference (cm)"
-                                        type="number"
-                                        step="0.1"
-                                        value={data.birth_head_circumference}
-                                        onChange={(e) => setData('birth_head_circumference', e.target.value)}
-                                        placeholder="e.g., 35"
-                                        className={errors.birth_head_circumference ? 'border-red-500' : ''}
-                                    />
-                                    {errors.birth_head_circumference && (
-                                        <p className="text-sm text-red-500">{errors.birth_head_circumference}</p>
-                                    )}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="birth_head_circumference">Head Circumference (cm)</Label>
+                                        <Input
+                                            id="birth_head_circumference"
+                                            type="number"
+                                            step="0.1"
+                                            value={data.birth_head_circumference}
+                                            onChange={(e) => setData('birth_head_circumference', e.target.value)}
+                                            placeholder="e.g., 35"
+                                            className={errors.birth_head_circumference ? 'border-red-500' : ''}
+                                        />
+                                        {errors.birth_head_circumference && (
+                                            <p className="text-sm text-red-500">{errors.birth_head_circumference}</p>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="space-y-4">
-                                    <FloatingLabelSelect
-                                        label="Blood Type"
-                                        value={data.blood_type}
-                                        onValueChange={(value) => setData('blood_type', value)}
-                                        placeholder="Select blood type"
-                                    >
-                                        <SelectItem value="A">A</SelectItem>
-                                        <SelectItem value="B">B</SelectItem>
-                                        <SelectItem value="AB">AB</SelectItem>
-                                        <SelectItem value="O">O</SelectItem>
-                                    </FloatingLabelSelect>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="blood_type">Blood Type</Label>
+                                        <Select
+                                            value={data.blood_type}
+                                            onValueChange={(value) => setData('blood_type', value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select blood type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="A">A</SelectItem>
+                                                <SelectItem value="B">B</SelectItem>
+                                                <SelectItem value="AB">AB</SelectItem>
+                                                <SelectItem value="O">O</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
 
-                                    <FloatingLabelInput
-                                        id="allergy_notes"
-                                        label="Allergy Notes"
-                                        value={data.allergy_notes}
-                                        onChange={(e) => setData('allergy_notes', e.target.value)}
-                                        placeholder="Any known allergies"
-                                        className={errors.allergy_notes ? 'border-red-500' : ''}
-                                    />
-                                    {errors.allergy_notes && (
-                                        <p className="text-sm text-red-500">{errors.allergy_notes}</p>
-                                    )}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="allergy_notes">Allergy Notes</Label>
+                                        <Input
+                                            id="allergy_notes"
+                                            value={data.allergy_notes}
+                                            onChange={(e) => setData('allergy_notes', e.target.value)}
+                                            placeholder="Any known allergies"
+                                            className={errors.allergy_notes ? 'border-red-500' : ''}
+                                        />
+                                        {errors.allergy_notes && (
+                                            <p className="text-sm text-red-500">{errors.allergy_notes}</p>
+                                        )}
+                                    </div>
 
                                     <div className="flex items-center gap-2 pt-2">
                                         <Switch

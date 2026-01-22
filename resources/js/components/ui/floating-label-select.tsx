@@ -12,7 +12,7 @@ interface FloatingLabelSelectProps extends React.ComponentProps<typeof Select> {
     placeholder?: string;
     className?: string;
     children: React.ReactNode;
-    error?: string;
+    error?: boolean;
 }
 
 const FloatingLabelSelect = ({
@@ -24,26 +24,29 @@ const FloatingLabelSelect = ({
     ...props
 }: FloatingLabelSelectProps) => {
     return (
-        <div className={cn(
-            "group relative rounded-lg border border-input bg-background px-3 py-1 shadow-sm transition-colors focus-within:ring-1 focus-within:ring-ring/50 focus-within:border-ring",
-            error && "border-destructive focus-within:border-destructive focus-within:ring-destructive/20",
-            className
-        )}>
-            <label className="block text-xs font-medium text-muted-foreground group-focus-within:text-foreground">
+        <div className="relative">
+            <Select {...props}>
+                <SelectTrigger
+                    className={cn(
+                        "!h-auto !w-full rounded-lg border border-border bg-transparent px-4 py-3 text-sm focus:border-foreground focus:ring-0",
+                        error && "border-red-500 focus:border-red-500",
+                        className
+                    )}
+                >
+                    <SelectValue placeholder={placeholder} />
+                </SelectTrigger>
+                <SelectContent>
+                    {children}
+                </SelectContent>
+            </Select>
+            <label
+                className={cn(
+                    "pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-muted-foreground",
+                    error && "text-red-500"
+                )}
+            >
                 {label}
             </label>
-            <div className="-ml-3 -mr-2">
-                <Select {...props}>
-                    <SelectTrigger
-                        className="h-6 w-full rounded-none border-0 bg-transparent px-3 py-0 shadow-none focus:ring-0 focus:ring-offset-0 data-[placeholder]:text-muted-foreground/50"
-                    >
-                        <SelectValue placeholder={placeholder} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {children}
-                    </SelectContent>
-                </Select>
-            </div>
         </div>
     );
 };

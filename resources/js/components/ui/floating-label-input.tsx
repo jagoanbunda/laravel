@@ -3,27 +3,35 @@ import { cn } from "@/lib/utils";
 
 interface FloatingLabelInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
+    error?: boolean;
 }
 
 const FloatingLabelInput = React.forwardRef<HTMLInputElement, FloatingLabelInputProps>(
-    ({ className, label, id, ...props }, ref) => {
+    ({ className, label, id, error, ...props }, ref) => {
         return (
-            <div className={cn(
-                "group relative rounded-lg border border-input bg-background px-3 py-1 shadow-sm transition-colors focus-within:ring-1 focus-within:ring-ring/50 focus-within:border-ring",
-                className
-            )}>
-                <label
-                    htmlFor={id}
-                    className="block text-xs font-medium text-muted-foreground group-focus-within:text-foreground"
-                >
-                    {label}
-                </label>
+            <div className="relative">
                 <input
                     id={id}
                     ref={ref}
-                    className="block w-full border-0 bg-transparent p-0 text-sm placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 h-6"
+                    className={cn(
+                        "peer block w-full rounded-lg border border-border bg-transparent px-4 py-3 text-sm placeholder:text-transparent focus:border-foreground focus:outline-none focus:ring-0",
+                        error && "border-red-500 focus:border-red-500",
+                        className
+                    )}
+                    placeholder={label}
                     {...props}
                 />
+                <label
+                    htmlFor={id}
+                    className={cn(
+                        "pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-muted-foreground transition-all",
+                        "peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:text-muted-foreground",
+                        "peer-focus:top-0 peer-focus:text-xs peer-focus:text-muted-foreground",
+                        error && "text-red-500"
+                    )}
+                >
+                    {label}
+                </label>
             </div>
         );
     }

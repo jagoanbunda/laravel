@@ -208,7 +208,7 @@ export default function ScreeningResults({ screening, typeOptions = [], statusOp
     };
 
     return (
-        <AppLayout title="Hasil Screening ASQ-3">
+        <AppLayout>
             <Head title="Hasil Screening ASQ-3" />
 
             <div className="max-w-5xl mx-auto space-y-6">
@@ -357,7 +357,7 @@ export default function ScreeningResults({ screening, typeOptions = [], statusOp
                             Intervensi & Tindak Lanjut
                         </h2>
                         {!isAddingIntervention && (
-                            <Button onClick={() => setIsAddingIntervention(true)} className="gap-2">
+                            <Button onClick={() => setIsAddingIntervention(true)} className="gap-2 bg-black hover:bg-gray-900 text-white rounded-full">
                                 <Plus className="h-4 w-4" />
                                 Tambah Intervensi
                             </Button>
@@ -365,22 +365,22 @@ export default function ScreeningResults({ screening, typeOptions = [], statusOp
                     </div>
 
                     {isAddingIntervention && (
-                        <Card className="border-primary/20 bg-primary/5">
+                        <Card className="bg-white border-gray-200">
                             <CardHeader>
                                 <CardTitle className="text-lg">Tambah Intervensi Baru</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleAddIntervention} className="space-y-4">
                                     <div className="grid md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="type">Jenis Intervensi</Label>
-                                            <Select
-                                                value={data.type}
-                                                onValueChange={(val) => setData('type', val)}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Pilih jenis..." />
-                                                </SelectTrigger>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="type" className="text-gray-900">Jenis Intervensi</Label>
+                                        <Select
+                                            value={data.type}
+                                            onValueChange={(val) => setData('type', val)}
+                                        >
+                                            <SelectTrigger className="bg-white border-gray-200">
+                                                <SelectValue placeholder="Pilih jenis..." />
+                                            </SelectTrigger>
                                                 <SelectContent>
                                                     {typeOptions.map((opt) => (
                                                         <SelectItem key={opt.value} value={opt.value}>
@@ -393,12 +393,12 @@ export default function ScreeningResults({ screening, typeOptions = [], statusOp
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="status">Status</Label>
+                                            <Label htmlFor="status" className="text-gray-900">Status</Label>
                                             <Select
                                                 value={data.status}
                                                 onValueChange={(val) => setData('status', val)}
                                             >
-                                                <SelectTrigger>
+                                                <SelectTrigger className="bg-white border-gray-200">
                                                     <SelectValue placeholder="Pilih status..." />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -414,10 +414,10 @@ export default function ScreeningResults({ screening, typeOptions = [], statusOp
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="action">Tindakan / Rencana</Label>
+                                        <Label htmlFor="action" className="text-gray-900">Tindakan / Rencana</Label>
                                         <textarea
                                             id="action"
-                                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="flex min-h-[80px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
                                             placeholder="Deskripsikan tindakan yang akan dilakukan..."
                                             value={data.action}
                                             onChange={(e) => setData('action', e.target.value)}
@@ -427,12 +427,13 @@ export default function ScreeningResults({ screening, typeOptions = [], statusOp
 
                                     <div className="grid md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="follow_up_date">Tanggal Tindak Lanjut (Opsional)</Label>
+                                            <Label htmlFor="follow_up_date" className="text-gray-900">Tanggal Tindak Lanjut (Opsional)</Label>
                                             <Input
                                                 id="follow_up_date"
                                                 type="date"
                                                 value={data.follow_up_date}
                                                 onChange={(e) => setData('follow_up_date', e.target.value)}
+                                                className="bg-white border-gray-200"
                                             />
                                             {errors.follow_up_date && (
                                                 <p className="text-sm text-red-500">{errors.follow_up_date}</p>
@@ -441,10 +442,10 @@ export default function ScreeningResults({ screening, typeOptions = [], statusOp
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="notes">Catatan Tambahan (Opsional)</Label>
+                                        <Label htmlFor="notes" className="text-gray-900">Catatan Tambahan (Opsional)</Label>
                                         <textarea
                                             id="notes"
-                                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="flex min-h-[80px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
                                             placeholder="Catatan tambahan..."
                                             value={data.notes}
                                             onChange={(e) => setData('notes', e.target.value)}
@@ -461,10 +462,11 @@ export default function ScreeningResults({ screening, typeOptions = [], statusOp
                                                 reset();
                                                 clearErrors();
                                             }}
+                                            className="bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-full border-gray-200"
                                         >
                                             Batal
                                         </Button>
-                                        <Button type="submit" disabled={processing}>
+                                        <Button type="submit" disabled={processing} className="bg-black hover:bg-gray-900 text-white rounded-full">
                                             {processing ? 'Menyimpan...' : 'Simpan Intervensi'}
                                         </Button>
                                     </div>
@@ -562,9 +564,8 @@ export default function ScreeningResults({ screening, typeOptions = [], statusOp
                             <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg border border-dashed">
                                 <p>Belum ada intervensi yang dicatat.</p>
                                 <Button
-                                    variant="link"
                                     onClick={() => setIsAddingIntervention(true)}
-                                    className="mt-2"
+                                    className="mt-2 bg-black hover:bg-gray-900 text-white rounded-full"
                                 >
                                     Tambah Intervensi Sekarang
                                 </Button>
