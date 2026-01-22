@@ -31,6 +31,8 @@ class Food extends Model
         'carbohydrate',
         'fiber',
         'sugar',
+        'min_age_months',
+        'max_age_months',
         'is_active',
         'is_system',
         'created_by',
@@ -51,6 +53,8 @@ class Food extends Model
             'carbohydrate' => 'decimal:2',
             'fiber' => 'decimal:2',
             'sugar' => 'decimal:2',
+            'min_age_months' => 'integer',
+            'max_age_months' => 'integer',
             'is_active' => 'boolean',
             'is_system' => 'boolean',
         ];
@@ -86,5 +90,24 @@ class Food extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope to filter foods suitable for a specific age in months.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeForAge($query, int $ageMonths)
+    {
+        return $query->where(function ($q) use ($ageMonths) {
+            $q->where(function ($inner) use ($ageMonths) {
+                $inner->whereNull('min_age_months')
+                    ->orWhere('min_age_months', '<=', $ageMonths);
+            })->where(function ($inner) use ($ageMonths) {
+                $inner->whereNull('max_age_months')
+                    ->orWhere('max_age_months', '>=', $ageMonths);
+            });
+        });
     }
 }
