@@ -36,3 +36,16 @@ public_html/hot
 /.vagrant
 *.backup
 testsprite_tests
+
+# Backup files
+*.backup.tsx
+*.backup.jsx
+*.backup.vue
+*.backup.ts
+*.backup.js
+
+# Windows artifacts
+nul
+
+# IDE/Editor specific
+.opencode/sessions/
