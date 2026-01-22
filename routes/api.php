@@ -36,10 +36,10 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Protected Routes (Requires Authentication)
+    | Protected Routes (Requires Authentication - Parents Only)
     |--------------------------------------------------------------------------
     */
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'ensure.parent'])->group(function () {
 
         /*
         |--------------------------------------------------------------------------
