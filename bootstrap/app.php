@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
         ]);
+
+        $middleware->alias([
+            'ensure.nakes' => \App\Http\Middleware\EnsureNakes::class,
+            'ensure.parent' => \App\Http\Middleware\EnsureParent::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
