@@ -23,8 +23,11 @@ class UpdateParentRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $this->route('parent'),
+            'email' => 'required|email|unique:users,email,'.$this->route('parent'),
             'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'push_notifications' => 'boolean',
+            'weekly_report' => 'boolean',
         ];
     }
 

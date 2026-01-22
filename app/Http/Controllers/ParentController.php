@@ -119,6 +119,9 @@ class ParentController extends Controller
                 'name' => $parent->name,
                 'email' => $parent->email,
                 'phone' => $parent->phone,
+                'address' => $parent->address,
+                'push_notifications' => $parent->push_notifications,
+                'weekly_report' => $parent->weekly_report,
             ],
         ]);
     }

@@ -31,12 +31,12 @@ class PmtController extends Controller
                 $q->whereHas('child', function ($childQuery) use ($search) {
                     $childQuery->where('name', 'like', "%{$search}%")
                         ->orWhereHas('user', function ($userQuery) use ($search) {
-                            $userQuery->where('full_name', 'like', "%{$search}%");
+                            $userQuery->where('name', 'like', "%{$search}%");
                         });
                 })
-                ->orWhereHas('menu', function ($menuQuery) use ($search) {
-                    $menuQuery->where('name', 'like', "%{$search}%");
-                });
+                    ->orWhereHas('menu', function ($menuQuery) use ($search) {
+                        $menuQuery->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -57,7 +57,7 @@ class PmtController extends Controller
                 'id' => $schedule->id,
                 'child_id' => $schedule->child_id,
                 'child_name' => $schedule->child->name,
-                'parent_name' => $schedule->child->user->full_name,
+                'parent_name' => $schedule->child->user->name,
                 'menu_name' => $schedule->menu->name,
                 'scheduled_date' => $schedule->scheduled_date,
                 'portion' => $schedule->log?->portion,
@@ -91,7 +91,7 @@ class PmtController extends Controller
                 ],
                 'parent' => [
                     'id' => $schedule->child->user->id,
-                    'name' => $schedule->child->user->full_name,
+                    'name' => $schedule->child->user->name,
                 ],
                 'menu' => [
                     'id' => $schedule->menu->id,
@@ -123,7 +123,7 @@ class PmtController extends Controller
             ->map(fn ($child) => [
                 'id' => $child->id,
                 'name' => $child->name,
-                'parent_name' => $child->user->full_name,
+                'parent_name' => $child->user->name,
             ]);
 
         $menus = PmtMenu::where('is_active', true)
@@ -156,7 +156,7 @@ class PmtController extends Controller
             ->map(fn ($child) => [
                 'id' => $child->id,
                 'name' => $child->name,
-                'parent_name' => $child->user->full_name,
+                'parent_name' => $child->user->name,
             ]);
 
         $menus = PmtMenu::where('is_active', true)

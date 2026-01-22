@@ -38,19 +38,25 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => [
-                    'id' => 1,
-                    'email' => 'admin@jagoanbunda.id',
-                    'full_name' => 'Admin Nakes',
-                    'phone' => '+6281234567890',
-                    'avatar_url' => null,
-                    'created_at' => now()->toISOString(),
-                    'updated_at' => now()->toISOString(),
-                ],
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'email' => $request->user()->email,
+                    'full_name' => $request->user()->name,
+                    'phone' => $request->user()->phone,
+                    'avatar_url' => $request->user()->avatar_url,
+                    'user_type' => $request->user()->user_type?->value,
+                    'nakes_profile' => $request->user()->isNakes() && $request->user()->nakesProfile ? [
+                        'nik' => $request->user()->nakesProfile->nik,
+                        'position' => $request->user()->nakesProfile->position,
+                        'verified_at' => $request->user()->nakesProfile->verified_at?->toISOString(),
+                    ] : null,
+                    'created_at' => $request->user()->created_at->toISOString(),
+                    'updated_at' => $request->user()->updated_at->toISOString(),
+                ] : null,
             ],
             'flash' => [
-                'success' => fn() => $request->session()->get('success'),
-                'error' => fn() => $request->session()->get('error'),
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
             ],
         ];
     }

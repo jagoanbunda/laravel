@@ -27,7 +27,7 @@ class ScreeningController extends Controller
             $query->whereHas('child', function ($childQuery) use ($search) {
                 $childQuery->where('name', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($userQuery) use ($search) {
-                        $userQuery->where('full_name', 'like', "%{$search}%");
+                        $userQuery->where('name', 'like', "%{$search}%");
                     });
             });
         }
@@ -50,7 +50,7 @@ class ScreeningController extends Controller
                 'id' => $screening->id,
                 'child_id' => $screening->child_id,
                 'child_name' => $screening->child->name,
-                'parent_name' => $screening->child->user->full_name,
+                'parent_name' => $screening->child->user->name,
                 'screening_date' => $screening->screening_date,
                 'age_at_screening_months' => $screening->age_at_screening_months,
                 'age_interval' => $screening->ageInterval->age_label,
@@ -82,7 +82,7 @@ class ScreeningController extends Controller
             ->map(fn ($child) => [
                 'id' => $child->id,
                 'name' => $child->name,
-                'parent_name' => $child->user->full_name,
+                'parent_name' => $child->user->name,
                 'date_of_birth' => $child->date_of_birth->format('Y-m-d'),
                 'age_in_months' => $child->age_in_months,
             ]);
@@ -180,7 +180,7 @@ class ScreeningController extends Controller
                 'gender' => $screening->child->gender,
             ],
             'parent' => [
-                'name' => $screening->child->user->full_name,
+                'name' => $screening->child->user->name,
                 'email' => $screening->child->user->email,
             ],
             'screening_date' => $screening->screening_date,
@@ -230,7 +230,7 @@ class ScreeningController extends Controller
             ->map(fn ($child) => [
                 'id' => $child->id,
                 'name' => $child->name,
-                'parent_name' => $child->user->full_name,
+                'parent_name' => $child->user->name,
                 'date_of_birth' => $child->date_of_birth->format('Y-m-d'),
                 'age_in_months' => $child->age_in_months,
             ]);
