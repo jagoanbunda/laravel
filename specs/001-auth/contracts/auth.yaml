@@ -1,0 +1,396 @@
+openapi: 3.0.3
+info:
+  title: NAKES Parent API Authentication
+  description: |
+    API authentication for Parent users (mobile app only).
+    
+    **IMPORTANT**: This API is for PARENT users only.
+    Nakes (healthcare workers) must use web authentication at /login.
+  version: 1.1.0
+
+servers:
+  - url: /api/v1
+    description: API Version 1
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new parent user
+      description: |
+        Creates a new parent user account for mobile app access.
+        This endpoint ONLY creates parent users.
+        Nakes must register via web at /register.
+      operationId: registerParent
+      tags:
+        - Parent Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /auth/login:
+    post:
+      summary: Login parent user
+      description: |
+        Authenticates a parent user and returns a Sanctum token.
+        
+        **Cross-Auth Prevention**: If a nakes user attempts to login via API,
+        a 403 error is returned directing them to use web login.
+      operationId: loginParent
+      tags:
+        - Parent Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '403':
+          description: User type not allowed for API login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrossAuthError'
+              example:
+                message: "Akun tenaga kesehatan hanya dapat login melalui web."
+                error_code: "NAKES_WEB_ONLY"
+        '422':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /auth/logout:
+    post:
+      summary: Logout parent user
+      description: Revokes current access token
+      operationId: logoutParent
+      tags:
+        - Parent Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '403':
+          description: User type not allowed for API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrossAuthError'
+
+  /auth/refresh:
+    post:
+      summary: Refresh parent token
+      description: Revokes current token and issues new one
+      operationId: refreshParentToken
+      tags:
+        - Parent Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+
+  /auth/me:
+    get:
+      summary: Get parent profile
+      description: Returns authenticated parent user data
+      operationId: getParentProfile
+      tags:
+        - Parent Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+
+  /auth/profile:
+    put:
+      summary: Update parent profile
+      description: Updates authenticated parent user profile data
+      operationId: updateParentProfile
+      tags:
+        - Parent Authentication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+      description: |
+        Sanctum token for parent users only.
+        Obtain via POST /api/v1/auth/login
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - password_confirmation
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: Budi Santoso
+        email:
+          type: string
+          format: email
+          example: budi@example.com
+        password:
+          type: string
+          minLength: 8
+          example: password123
+        password_confirmation:
+          type: string
+          example: password123
+        phone:
+          type: string
+          maxLength: 20
+          example: "081234567890"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: budi@example.com
+        password:
+          type: string
+          example: password123
+        revoke_others:
+          type: boolean
+          default: false
+          description: Revoke all other tokens for this user
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        phone:
+          type: string
+          maxLength: 20
+        avatar_url:
+          type: string
+          format: uri
+          maxLength: 500
+          nullable: true
+        push_notifications:
+          type: boolean
+        weekly_report:
+          type: boolean
+
+    AuthResponse:
+      type: object
+      required:
+        - message
+        - user
+        - token
+      properties:
+        message:
+          type: string
+          example: Login berhasil
+        user:
+          $ref: '#/components/schemas/UserResource'
+        token:
+          type: string
+          example: "1|abc123..."
+
+    ProfileResponse:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          $ref: '#/components/schemas/UserResource'
+
+    TokenResponse:
+      type: object
+      required:
+        - message
+        - token
+      properties:
+        message:
+          type: string
+          example: Token berhasil diperbarui
+        token:
+          type: string
+          example: "2|xyz789..."
+
+    MessageResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Logout berhasil
+
+    UserResource:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - user_type
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Budi Santoso
+        email:
+          type: string
+          format: email
+          example: budi@example.com
+        user_type:
+          type: string
+          enum: [parent]
+          example: parent
+          description: Always 'parent' for API users
+        phone:
+          type: string
+          nullable: true
+          example: "081234567890"
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+        push_notifications:
+          type: boolean
+          example: true
+        weekly_report:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+
+    CrossAuthError:
+      type: object
+      required:
+        - message
+        - error_code
+      properties:
+        message:
+          type: string
+          example: Akun tenaga kesehatan hanya dapat login melalui web.
+        error_code:
+          type: string
+          enum: [NAKES_WEB_ONLY, PARENT_API_ONLY]
+          example: NAKES_WEB_ONLY
+
+    ValidationError:
+      type: object
+      required:
+        - message
+        - errors
+      properties:
+        message:
+          type: string
+          example: The given data was invalid.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    UnauthorizedError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Unauthenticated.

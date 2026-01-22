@@ -1,0 +1,291 @@
+openapi: 3.0.3
+info:
+  title: NAKES Healthcare Worker Web Endpoints
+  description: |
+    Web endpoints for Nakes (healthcare workers).
+    
+    **IMPORTANT**: These endpoints require WEB SESSION authentication.
+    Nakes CANNOT use API token authentication.
+    
+    All endpoints require:
+    - Valid session cookie
+    - CSRF token
+    - user_type = 'nakes'
+  version: 1.1.0
+
+servers:
+  - url: /
+    description: Web application root
+
+paths:
+  /dashboard:
+    get:
+      summary: Nakes dashboard
+      description: |
+        Main dashboard for healthcare workers.
+        Shows summary of assigned families, children status, pending tasks.
+      operationId: getNakesDashboard
+      tags:
+        - Nakes Dashboard
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Dashboard page (Inertia)
+          content:
+            text/html:
+              schema:
+                type: string
+        '302':
+          description: Redirect to /login if not authenticated
+        '403':
+          description: Redirect to /login if not nakes user
+
+  /parents:
+    get:
+      summary: List all parent families
+      description: List all parent users (families) in the system
+      operationId: listParents
+      tags:
+        - Parents Management
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Parents list page (Inertia)
+          content:
+            text/html:
+              schema:
+                type: string
+
+    post:
+      summary: Create parent user
+      description: Nakes can create parent accounts for families
+      operationId: createParent
+      tags:
+        - Parents Management
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateParentRequest'
+      responses:
+        '302':
+          description: Redirect to parents list on success
+        '422':
+          description: Validation error, redirect back with errors
+
+  /children:
+    get:
+      summary: List all children
+      description: List all children across all families
+      operationId: listChildren
+      tags:
+        - Children Management
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: nutritional_status
+          in: query
+          schema:
+            type: string
+            enum: [normal, stunting, wasting, underweight]
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Children list page (Inertia)
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /children/{id}:
+    get:
+      summary: View child details
+      description: View detailed child information including measurements, screenings
+      operationId: viewChild
+      tags:
+        - Children Management
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Child detail page (Inertia)
+          content:
+            text/html:
+              schema:
+                type: string
+        '404':
+          description: Child not found
+
+  /screenings:
+    get:
+      summary: List all screenings
+      description: List ASQ-3 screenings across all children
+      operationId: listScreenings
+      tags:
+        - Screenings
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Screenings list page (Inertia)
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /pmt/programs:
+    get:
+      summary: List PMT programs
+      description: List all PMT (supplementary feeding) programs
+      operationId: listPmtPrograms
+      tags:
+        - PMT Programs
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: PMT programs list page (Inertia)
+          content:
+            text/html:
+              schema:
+                type: string
+
+    post:
+      summary: Create PMT program
+      description: Enroll a child in a PMT program
+      operationId: createPmtProgram
+      tags:
+        - PMT Programs
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreatePmtProgramRequest'
+      responses:
+        '302':
+          description: Redirect to program detail on success
+
+  /reports:
+    get:
+      summary: Generate reports
+      description: Generate health reports for assigned children
+      operationId: generateReports
+      tags:
+        - Reports
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [nutritional, screening, pmt]
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Reports page (Inertia)
+          content:
+            text/html:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: laravel_session
+      description: |
+        Laravel session cookie (web authentication).
+        Obtain by logging in at POST /login.
+        Must include CSRF token in all POST/PUT/DELETE requests.
+
+  schemas:
+    CreateParentRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - password_confirmation
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        password_confirmation:
+          type: string
+        phone:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+        _token:
+          type: string
+          description: CSRF token
+
+    CreatePmtProgramRequest:
+      type: object
+      required:
+        - child_id
+        - start_date
+        - duration_days
+      properties:
+        child_id:
+          type: integer
+        start_date:
+          type: string
+          format: date
+        duration_days:
+          type: integer
+          minimum: 1
+          maximum: 180
+        notes:
+          type: string
+        _token:
+          type: string
+          description: CSRF token
