@@ -14,6 +14,17 @@ import {
     ArrowRight,
 } from 'lucide-react';
 
+/**
+ * VARIANT A: Sage & Soft Peach - Warm/Wellness Theme
+ * 
+ * Color Psychology:
+ * - Sage Green: Calm, mental clarity, anxiety reduction, balance
+ * - Soft Peach: Warmth, cheerfulness, comfort, positivity
+ * - Muted Lavender: Grace, femininity, tranquility
+ * 
+ * Best for: Family/parenting apps, wellness platforms
+ */
+
 const features = [
     {
         icon: Activity,
@@ -37,7 +48,7 @@ const features = [
         icon: ClipboardCheck,
         title: 'Program PMT',
         description: 'Kelola program pemberian makanan tambahan untuk anak yang membutuhkan.',
-        color: 'bg-[oklch(0.82_0.08_65)]', // Soft Peach
+        color: 'bg-[oklch(0.82_0.08_65)]', // Soft Peach/Amber
     },
 ];
 
@@ -76,13 +87,20 @@ const userAvatars = [
     { name: 'User 3', color: 'bg-[oklch(0.78_0.06_300)]' }, // Soft Lavender
 ];
 
-export default function LandingIndex() {
+export default function LandingVariantA() {
     return (
         <LandingLayout>
-            <Head title="JagoanBunda - Monitoring Tumbuh Kembang Anak" />
+            <Head title="JagoanBunda - Variant A (Sage & Peach)" />
+            
+            {/* Theme Indicator */}
+            <div className="fixed top-4 right-4 z-50">
+                <Badge className="bg-[oklch(0.72_0.08_163)] text-white">
+                    Variant A: Sage & Peach
+                </Badge>
+            </div>
 
             {/* Hero Section - Soft Sage & Peach Theme */}
-            <section className="relative overflow-hidden min-h-[90vh] flex items-center">
+            <section className="relative overflow-hidden min-h-[90vh] flex items-center theme-soft-sage">
                 {/* Gradient Background - Warm cream with sage/peach hints */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.975_0.008_85)] via-[oklch(0.96_0.02_145)] to-[oklch(0.97_0.02_55)]" />
 
@@ -112,7 +130,7 @@ export default function LandingIndex() {
                                 Dapatkan analisis akurat dan rekomendasi medis terpercaya.
                             </p>
 
-                            {/* CTA Buttons - Soft sage primary */}
+                            {/* CTA Buttons - Soft sage primary, outlined secondary */}
                             <div className="flex flex-wrap gap-4">
                                 <Link href="/download">
                                     <Button size="lg" className="gap-2 bg-[oklch(0.60_0.12_163)] hover:bg-[oklch(0.55_0.14_163)] text-white px-6 py-6 text-base rounded-xl shadow-lg shadow-[oklch(0.60_0.12_163/0.25)]">
@@ -210,7 +228,7 @@ export default function LandingIndex() {
             </section>
 
             {/* Stats Section - Soft gradient */}
-            <section className="py-20 bg-gradient-to-r from-[oklch(0.72_0.06_163)] to-[oklch(0.75_0.06_180)] text-white">
+            <section className="py-20 bg-gradient-to-r from-[oklch(0.68_0.10_163)] to-[oklch(0.70_0.10_200)] text-white">
                 <div className="container px-4 mx-auto">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl font-bold mb-4">Dipercaya oleh Ribuan Keluarga Indonesia</h2>
@@ -262,7 +280,7 @@ export default function LandingIndex() {
             {/* CTA Section - Soft gradient */}
             <section className="py-20 bg-white">
                 <div className="container px-4 mx-auto">
-                    <Card className="bg-gradient-to-r from-[oklch(0.72_0.06_163)] to-[oklch(0.75_0.06_180)] border-0 overflow-hidden">
+                    <Card className="bg-gradient-to-r from-[oklch(0.68_0.10_163)] to-[oklch(0.70_0.10_200)] border-0 overflow-hidden">
                         <CardContent className="p-12 text-center text-white relative">
                             {/* Decorative elements */}
                             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -284,6 +302,30 @@ export default function LandingIndex() {
                             </div>
                         </CardContent>
                     </Card>
+                </div>
+            </section>
+
+            {/* Comparison Links */}
+            <section className="py-8 bg-[oklch(0.97_0.005_80)] border-t border-[oklch(0.90_0.02_80)]">
+                <div className="container px-4 mx-auto">
+                    <div className="flex flex-wrap justify-center gap-4 items-center">
+                        <span className="text-sm text-[oklch(0.50_0.02_60)]">Compare Variants:</span>
+                        <Link href="/variant-a">
+                            <Badge className="bg-[oklch(0.72_0.08_163)] text-white cursor-pointer">
+                                ✓ Variant A (Current)
+                            </Badge>
+                        </Link>
+                        <Link href="/variant-b">
+                            <Badge variant="outline" className="cursor-pointer border-[oklch(0.70_0.10_250)] text-[oklch(0.50_0.12_250)] hover:bg-[oklch(0.95_0.03_250)]">
+                                Variant B (Blue & Teal)
+                            </Badge>
+                        </Link>
+                        <Link href="/">
+                            <Badge variant="outline" className="cursor-pointer">
+                                Original
+                            </Badge>
+                        </Link>
+                    </div>
                 </div>
             </section>
         </LandingLayout>
