@@ -11,16 +11,43 @@ Semua endpoint API diawali dengan path berikut:
 
 ## Autentikasi
 
-Aplikasi ini menggunakan **Laravel Sanctum** untuk autentikasi. Sebagian besar endpoint memerlukan token Bearer yang valid.
+Aplikasi ini menggunakan **Laravel Sanctum** untuk autentikasi dengan model **Dual Authentication**:
 
-### Mendapatkan Token
-Token diperoleh melalui endpoint `/auth/login` atau `/auth/register`.
+### Model Dual Authentication
+
+| Tipe Pengguna | Channel | Metode Autentikasi |
+|---------------|---------|-------------------|
+| **Parent (Orang Tua)** | API Only (Mobile App) | Token Sanctum |
+| **Nakes (Tenaga Kesehatan)** | Web Only (Dashboard) | Session Laravel |
+
+**Penting:**
+- **Parent** hanya dapat login melalui API `/api/v1/auth/login`. Percobaan login via web akan ditolak.
+- **Nakes** hanya dapat login melalui web `/login`. Percobaan login via API akan ditolak dengan error code `NAKES_WEB_ONLY`.
+- Registrasi Nakes dilakukan oleh admin (seeder/phpMyAdmin), bukan self-registration.
+
+### Mendapatkan Token (Khusus Parent)
+Token diperoleh melalui endpoint `/auth/login` atau `/auth/register`. Endpoint ini **hanya untuk pengguna Parent** (aplikasi mobile).
 
 ### Menggunakan Token
 Sertakan token dalam header `Authorization` pada setiap permintaan yang memerlukan autentikasi:
 
 ```text
 Authorization: Bearer {your_access_token}
+```
+
+### Error Cross-Authentication
+
+| Error Code | HTTP Status | Situasi |
+|------------|-------------|---------|
+| `NAKES_WEB_ONLY` | 403 | Nakes mencoba login via API |
+| `PARENT_API_ONLY` | 403 | Parent dengan token mencoba akses API tapi user_type bukan parent |
+
+**Contoh Response Error:**
+```json
+{
+  "message": "Akun tenaga kesehatan hanya dapat login melalui web.",
+  "error_code": "NAKES_WEB_ONLY"
+}
 ```
 
 ## Format Respon Kesalahan
@@ -54,9 +81,10 @@ Permintaan yang gagal akan mengembalikan kode status HTTP yang sesuai (4xx atau 
 ### Autentikasi (`/auth`)
 
 #### POST /auth/register
-Mendaftarkan pengguna baru.
+Mendaftarkan pengguna baru **sebagai Parent** (orang tua). Endpoint ini khusus untuk aplikasi mobile.
 
 - **Autentikasi Diperlukan:** Tidak
+- **Catatan:** Registrasi ini hanya membuat akun Parent (`user_type: 'parent'`). Nakes didaftarkan oleh admin.
 - **Parameter Body:**
   - `name` (string, required): Nama lengkap pengguna.
   - `email` (string, required): Alamat email unik.
@@ -72,6 +100,7 @@ Mendaftarkan pengguna baru.
       "name": "Bunda Hebat",
       "email": "bunda@example.com",
       "phone": "08123456789",
+      "user_type": "parent",
       "avatar_url": null,
       "push_notifications": true,
       "weekly_report": true,
@@ -82,9 +111,10 @@ Mendaftarkan pengguna baru.
   ```
 
 #### POST /auth/login
-Masuk ke aplikasi dan mendapatkan token akses.
+Masuk ke aplikasi dan mendapatkan token akses. **Khusus untuk pengguna Parent**.
 
 - **Autentikasi Diperlukan:** Tidak
+- **Catatan:** Nakes tidak dapat login via API. Mereka harus login via web `/login`.
 - **Parameter Body:**
   - `email` (string, required): Email terdaftar.
   - `password` (string, required): Password akun.
@@ -93,8 +123,20 @@ Masuk ke aplikasi dan mendapatkan token akses.
   ```json
   {
     "message": "Login berhasil",
-    "user": { ... },
+    "user": { 
+      "id": 1,
+      "name": "Bunda Hebat",
+      "user_type": "parent",
+      ...
+    },
     "token": "2|ghjkl7890..."
+  }
+  ```
+- **Respon Gagal - Nakes mencoba login (403 Forbidden):**
+  ```json
+  {
+    "message": "Akun tenaga kesehatan hanya dapat login melalui web.",
+    "error_code": "NAKES_WEB_ONLY"
   }
   ```
 
@@ -132,6 +174,7 @@ Mendapatkan profil pengguna yang sedang login.
       "id": 1,
       "name": "Bunda Hebat",
       "email": "bunda@example.com",
+      "user_type": "parent",
       ...
     }
   }
