@@ -58,8 +58,8 @@ FROM serversideup/php:8.4-fpm-nginx AS production
 # Labels for container registry and Coolify
 LABEL org.opencontainers.image.title="JagoanBunda"
 LABEL org.opencontainers.image.description="Child health monitoring system - stunting, ASQ-3 development screening, PMT nutrition"
-LABEL org.opencontainers.image.source="https://github.com/kreanova/nakes"
-LABEL org.opencontainers.image.vendor="Kreanova"
+LABEL org.opencontainers.image.source="https://github.com/jagoanbunda/laravel-nakes"
+LABEL org.opencontainers.image.vendor="JagoanBunda"
 
 # Environment variables for production
 ENV APP_ENV=production
@@ -81,8 +81,11 @@ USER root
 # Note: Extensions already installed in composer-stage, skipped here
 
 # Install Node.js for any runtime needs (optional, can be removed if not needed)
-# Note: serversideup/php is Alpine-based, use apk
-RUN apk add --no-cache nodejs npm
+# Note: serversideup/php is Debian/Ubuntu-based, use apt-get
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Switch back to www-data for security
 USER www-data
