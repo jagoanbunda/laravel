@@ -1,0 +1,164 @@
+# =============================================================================
+# NAKES (JagoanBunda) - Docker Compose
+# For local development and as Coolify Service Stack reference
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Main Application
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: ghcr.io/${GITHUB_REPOSITORY:-kreanova/nakes}:${IMAGE_TAG:-latest}
+    container_name: nakes-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      # Laravel Configuration
+      APP_NAME: ${APP_NAME:-NAKES}
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Jakarta}
+      APP_LOCALE: ${APP_LOCALE:-en}
+      
+      # Database
+      DB_CONNECTION: ${DB_CONNECTION:-mysql}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE:-jagoanbunda}
+      DB_USERNAME: ${DB_USERNAME:-nakes}
+      DB_PASSWORD: ${DB_PASSWORD}
+      
+      # Session/Cache/Queue (all use database driver)
+      SESSION_DRIVER: ${SESSION_DRIVER:-database}
+      CACHE_STORE: ${CACHE_STORE:-database}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      
+      # Logging
+      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+      LOG_LEVEL: ${LOG_LEVEL:-warning}
+      
+      # ServersideUp specific
+      AUTORUN_ENABLED: "true"
+      AUTORUN_LARAVEL_MIGRATION: "true"
+      AUTORUN_LARAVEL_STORAGE_LINK: "true"
+      AUTORUN_LARAVEL_OPTIMIZE: "true"
+      PHP_OPCACHE_ENABLE: "1"
+      SSL_MODE: "off"
+    volumes:
+      - app-storage:/var/www/html/storage
+    networks:
+      - nakes-network
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Queue Worker (uses same image)
+  # ---------------------------------------------------------------------------
+  queue:
+    image: ghcr.io/${GITHUB_REPOSITORY:-kreanova/nakes}:${IMAGE_TAG:-latest}
+    container_name: nakes-queue
+    restart: unless-stopped
+    command: ["php", "/var/www/html/artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+    environment:
+      APP_NAME: ${APP_NAME:-NAKES}
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      DB_CONNECTION: ${DB_CONNECTION:-mysql}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE:-jagoanbunda}
+      DB_USERNAME: ${DB_USERNAME:-nakes}
+      DB_PASSWORD: ${DB_PASSWORD}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+      PHP_FPM_POOL_NAME: "queue"
+    volumes:
+      - app-storage:/var/www/html/storage
+    networks:
+      - nakes-network
+    depends_on:
+      - app
+
+  # ---------------------------------------------------------------------------
+  # Scheduler (uses same image)
+  # ---------------------------------------------------------------------------
+  scheduler:
+    image: ghcr.io/${GITHUB_REPOSITORY:-kreanova/nakes}:${IMAGE_TAG:-latest}
+    container_name: nakes-scheduler
+    restart: unless-stopped
+    command: ["php", "/var/www/html/artisan", "schedule:work"]
+    environment:
+      APP_NAME: ${APP_NAME:-NAKES}
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      DB_CONNECTION: ${DB_CONNECTION:-mysql}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE:-jagoanbunda}
+      DB_USERNAME: ${DB_USERNAME:-nakes}
+      DB_PASSWORD: ${DB_PASSWORD}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+      PHP_FPM_POOL_NAME: "scheduler"
+    volumes:
+      - app-storage:/var/www/html/storage
+    networks:
+      - nakes-network
+    depends_on:
+      - app
+
+  # ---------------------------------------------------------------------------
+  # MySQL Database (for local development only)
+  # In Coolify, create a separate MySQL resource instead
+  # ---------------------------------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: nakes-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_DATABASE:-jagoanbunda}
+      MYSQL_USER: ${DB_USERNAME:-nakes}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-nakespassword}
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - nakes-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+# -----------------------------------------------------------------------------
+# Volumes
+# -----------------------------------------------------------------------------
+volumes:
+  app-storage:
+    driver: local
+  db-data:
+    driver: local
+
+# -----------------------------------------------------------------------------
+# Networks
+# -----------------------------------------------------------------------------
+networks:
+  nakes-network:
+    driver: bridge

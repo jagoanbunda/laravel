@@ -1,0 +1,75 @@
+# =============================================================================
+# Docker Ignore File
+# Exclude files not needed in production Docker image
+# =============================================================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# GitHub
+.github
+
+# IDE & Editor
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Node.js (built assets are copied from node-builder stage)
+node_modules
+
+# Composer vendor (copied from composer-stage)
+vendor
+
+# Testing
+tests
+testsprite_tests
+phpunit.xml
+.phpunit.cache
+.phpunit.result.cache
+coverage
+
+# Development files
+.env
+.env.local
+.env.*.local
+*.log
+
+# Documentation (not needed in production)
+README.md
+COOLIFY.md
+AGENTS.md
+docs
+specs
+
+# Docker files (prevent recursive builds)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Laravel storage (mounted as volume in production)
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/app/public/*
+!storage/logs/.gitignore
+!storage/framework/cache/.gitignore
+!storage/framework/sessions/.gitignore
+!storage/framework/views/.gitignore
+!storage/app/public/.gitignore
+
+# Laravel bootstrap cache
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+
+# Other
+*.md
+!vendor/**/*.md
+.specify
+npm-debug.log
+yarn-error.log
