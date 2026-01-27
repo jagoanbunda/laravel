@@ -22,13 +22,96 @@ import {
     Utensils,
     ClipboardList,
     Pill,
-    Syringe,
     ChevronRight,
-    ChevronUp,
-    ChevronDown,
     AlertTriangle,
     ArrowRight,
 } from 'lucide-react';
+
+import {
+    type Asq3ScreeningDetail,
+    type Asq3ScreeningHistoryItem,
+} from '@/types/models';
+
+interface PmtScheduleItem {
+    id: number;
+    food_name: string | null;
+    scheduled_date: string;
+    portion: 'habis' | 'half' | 'quarter' | 'none' | null;
+    portion_label: string | null;
+    logged_at: string | null;
+    photo_url: string | null;
+    notes: string | null;
+}
+
+interface FoodLogItem {
+    id: number;
+    food_name: string | null;
+    quantity: string;
+    serving_size: string;
+    calories: string;
+    protein: string;
+}
+
+interface FoodLog {
+    id: number;
+    log_date: string;
+    meal_time: string | null;
+    total_calories: string;
+    total_protein: string;
+    total_fat: string;
+    total_carbohydrate: string;
+    notes: string | null;
+    items: FoodLogItem[];
+}
+
+interface GrowthMeasurement {
+    id: number;
+    measurement_date: string;
+    age_in_months: number | null;
+    age_label: string;
+    weight: number;
+    height: number;
+    head_circumference: number;
+    is_lying: boolean;
+    measurement_location: string;
+    weight_for_age_zscore: number;
+    height_for_age_zscore: number;
+    weight_for_height_zscore: number;
+    bmi_for_age_zscore: number;
+    nutritional_status: string;
+    stunting_status: string;
+    wasting_status: string;
+}
+
+interface GrowthDataPagination {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+}
+
+interface GrowthData {
+    chart_data: GrowthMeasurement[];
+    table_data: GrowthMeasurement[];
+    pagination: GrowthDataPagination;
+}
+
+interface GrowthFilters {
+    date_range: string;
+    chart_type: string;
+}
+
+interface PmtStatus {
+    status: 'healthy' | 'needs_enrollment' | 'active' | 'no_data';
+    latest_nutritional_status: string | null;
+    latest_stunting_status: string | null;
+    latest_wasting_status: string | null;
+    has_active_program: boolean;
+    has_historical_programs: boolean;
+    message: string;
+}
 
 interface Props {
     child: {
@@ -47,39 +130,17 @@ interface Props {
             email: string;
             phone?: string;
         };
-        growth_data: any[];
-        food_logs: any[];
-        pmt_schedules: any[];
-        screenings: any[];
+        growth_data: GrowthData;
+        food_logs: FoodLog[];
+        pmt_schedules: PmtScheduleItem[];
+        pmt_status: PmtStatus;
+        screenings: {
+            latestScreening: Asq3ScreeningDetail | null;
+            screeningHistory: Asq3ScreeningHistoryItem[];
+        };
     };
+    growth_filters: GrowthFilters;
 }
-
-const recentActivities = [
-    {
-        id: 1,
-        type: 'vaccine',
-        title: 'Polio Vaccine Administered',
-        time: 'Today, 10:30 AM by Dr. Smith',
-        icon: Syringe,
-        color: 'bg-blue-100 text-blue-600',
-    },
-    {
-        id: 2,
-        type: 'checkup',
-        title: 'Growth Check-up',
-        time: '2 days ago, 9:00 AM',
-        icon: Ruler,
-        color: 'bg-emerald-100 text-emerald-600',
-    },
-    {
-        id: 3,
-        type: 'supplement',
-        title: 'Vitamin A Supplement',
-        time: '1 week ago',
-        icon: Pill,
-        color: 'bg-purple-100 text-purple-600',
-    },
-];
 
 const tabs = [
     { id: 'overview', label: 'Overview', icon: Activity },
@@ -113,12 +174,12 @@ function calculateAge(dateOfBirth: string) {
     return { years, months, totalMonths: ageInMonths };
 }
 
-export default function ChildDetail({ child }: Props) {
+export default function ChildDetail({ child, growth_filters }: Props) {
     const [activeTab, setActiveTab] = useState('overview');
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     const age = calculateAge(child.date_of_birth);
-    const latestGrowth = child.growth_data[0]; // Most recent measurement
+    const chartData = child.growth_data.chart_data;
+    const latestGrowth = chartData.length > 0 ? chartData[chartData.length - 1] : null; // Most recent measurement
 
     return (
         <AppLayout title="Child Profile">
@@ -150,296 +211,262 @@ export default function ChildDetail({ child }: Props) {
                     </div>
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-6 items-start">
-                    {/* Left Column: Profile Card */}
-                    <aside className={`w-full flex flex-col gap-6 lg:sticky lg:top-24 transition-all duration-300 ${sidebarCollapsed ? 'lg:w-auto' : 'lg:w-1/3'}`}>
-                        <Card className="overflow-hidden" style={{ background: 'linear-gradient(180deg, #DEEBC5 0%, #DEEBC5 120px, white 120px, white 100%)' }}>
-                            {/* Collapse Toggle Button */}
-                            <button
-                                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                                className="hidden lg:flex absolute top-2 right-2 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm border border-gray-200 text-gray-500 hover:text-gray-700 transition-colors"
-                                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                            >
-                                {sidebarCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                            </button>
-
-                            {/* Profile Header */}
-                            <div className={`p-6 flex flex-col items-center border-b ${sidebarCollapsed ? 'py-4' : ''}`}>
-                                <div className="relative mb-4">
-                                    <div className={`rounded-full flex items-center justify-center font-bold border-4 border-white shadow-md transition-all ${sidebarCollapsed ? 'w-16 h-16 text-xl' : 'w-28 h-28 text-3xl'} ${child.gender === 'female' ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'}`}>
+                {/* Compact Profile Header */}
+                <Card className="overflow-hidden">
+                    <CardContent className="p-0">
+                        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+                            {/* Avatar & Basic Info */}
+                            <div className="flex items-center gap-4 p-4 md:p-5">
+                                <div className="relative">
+                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl border-4 border-white shadow-md ${child.gender === 'female' ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'}`}>
                                         {child.name.charAt(0)}
                                     </div>
-                                    <div className={`absolute rounded-full border-2 border-white ${sidebarCollapsed ? 'bottom-0 right-0 w-4 h-4' : 'bottom-1 right-1 w-5 h-5'}`} style={{ backgroundColor: '#9aba59' }} title="Active Status" />
+                                    <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white" style={{ backgroundColor: '#9aba59' }} title="Active Status" />
                                 </div>
-                                {!sidebarCollapsed && (
-                                    <>
-                                        <h2 className="text-xl font-bold text-center mb-1">{child.name}</h2>
-                                        <Badge variant="secondary" className="mb-4">ID: #{child.id}</Badge>
-                                        <div className="flex justify-center gap-6 w-full">
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-xs text-muted-foreground uppercase tracking-wide">Age</span>
-                                                <span className="font-semibold">{age.years} Yrs {age.months} Mo</span>
-                                            </div>
-                                            <div className="w-px h-8 bg-border" />
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-xs text-muted-foreground uppercase tracking-wide">Gender</span>
-                                                <span className="font-semibold capitalize">{child.gender}</span>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                                {sidebarCollapsed && (
-                                    <p className="text-sm font-semibold text-center mt-1">{child.name.split(' ')[0]}</p>
-                                )}
+                                <div>
+                                    <h2 className="text-lg font-bold">{child.name}</h2>
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Badge variant="secondary" className="text-xs">ID: #{child.id}</Badge>
+                                        <span>•</span>
+                                        <span>{age.years} Yrs {age.months} Mo</span>
+                                        <span>•</span>
+                                        <span className="capitalize">{child.gender}</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Profile Details - Hidden when collapsed */}
-                            {!sidebarCollapsed && (
-                                <CardContent className="p-0">
-                                    <div className="px-6 py-4 border-b flex items-center gap-3 hover:bg-muted/50 transition-colors">
-                                        <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
-                                            <User className="h-5 w-5" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Primary Guardian</p>
-                                            <p className="text-sm font-medium">{child.parent.name}</p>
-                                        </div>
+                            {/* Divider */}
+                            <div className="hidden md:block w-px h-12 bg-border" />
+
+                            {/* Details Grid */}
+                            <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 md:py-4 md:pr-5 border-t md:border-t-0">
+                                <div className="flex items-center gap-2">
+                                    <div className="bg-blue-100 text-blue-600 p-1.5 rounded-lg">
+                                        <User className="h-4 w-4" />
                                     </div>
-                                    <div className="px-6 py-4 border-b flex items-center gap-3 hover:bg-muted/50 transition-colors">
-                                        <div className="bg-purple-100 text-purple-600 p-2 rounded-lg">
-                                            <Phone className="h-5 w-5" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Contact Number</p>
-                                            <p className="text-sm font-medium">{child.parent.phone}</p>
-                                        </div>
+                                    <div>
+                                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Guardian</p>
+                                        <p className="text-sm font-medium truncate">{child.parent.name}</p>
                                     </div>
-                                    <div className="px-6 py-4 border-b flex items-center gap-3 hover:bg-muted/50 transition-colors">
-                                        <div className="bg-orange-100 text-orange-600 p-2 rounded-lg">
-                                            <Cake className="h-5 w-5" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Date of Birth</p>
-                                            <p className="text-sm font-medium">
-                                                {new Date(child.date_of_birth).toLocaleDateString('id-ID', {
-                                                    day: 'numeric',
-                                                    month: 'long',
-                                                    year: 'numeric',
-                                                })}
-                                            </p>
-                                        </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="bg-purple-100 text-purple-600 p-1.5 rounded-lg">
+                                        <Phone className="h-4 w-4" />
                                     </div>
-                                    <div className="px-6 py-4 flex items-center gap-3 hover:bg-muted/50 transition-colors">
-                                        <div className="bg-teal-100 text-teal-600 p-2 rounded-lg">
-                                            <Scale className="h-5 w-5" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Birth Weight</p>
-                                            <p className="text-sm font-medium">{child.birth_weight} kg</p>
-                                        </div>
+                                    <div>
+                                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Phone</p>
+                                        <p className="text-sm font-medium truncate">{child.parent.phone || '-'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="bg-orange-100 text-orange-600 p-1.5 rounded-lg">
+                                        <Cake className="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Born</p>
+                                        <p className="text-sm font-medium">
+                                            {new Date(child.date_of_birth).toLocaleDateString('id-ID', {
+                                                day: 'numeric',
+                                                month: 'short',
+                                                year: 'numeric',
+                                            })}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="bg-teal-100 text-teal-600 p-1.5 rounded-lg">
+                                        <Scale className="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Birth Weight</p>
+                                        <p className="text-sm font-medium">{child.birth_weight} kg</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Tabs */}
+                <Card className="p-1">
+                    <nav className="flex gap-1 overflow-x-auto">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-4 py-3 text-sm font-medium rounded-lg flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === tab.id
+                                    ? 'bg-[#DEEBC5] text-[#000000]'
+                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                    }`}
+                            >
+                                <tab.icon className="h-4 w-4" />
+                                {tab.label}
+                            </button>
+                        ))}
+                    </nav>
+                </Card>
+
+                {/* Content Area */}
+                {activeTab === 'growth' ? (
+                    <GrowthTabContent
+                        childId={child.id}
+                        growthData={child.growth_data}
+                        filters={growth_filters}
+                    />
+                ) : activeTab === 'pmt' ? (
+                    <PmtTabContent
+                        childId={child.id}
+                        schedules={child.pmt_schedules}
+                        pmtStatus={child.pmt_status}
+                        onTabChange={setActiveTab}
+                    />
+                ) : activeTab === 'screenings' ? (
+                    <ScreeningsTabContent
+                        childId={child.id}
+                        latestScreening={child.screenings.latestScreening}
+                        screeningHistory={child.screenings.screeningHistory}
+                    />
+                ) : activeTab === 'nutrition' ? (
+                    <NutritionTabContent foodLogs={child.food_logs} />
+                ) : (
+                    <div className="flex flex-col gap-6">
+                        {/* Latest Measurements Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {/* Weight */}
+                            <Card className="relative overflow-hidden group">
+                                <CardContent className="p-5">
+                                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                                        <Scale className="h-16 w-16 text-emerald-500" />
+                                    </div>
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <Scale className="h-5 w-5" />
+                                        <span className="text-sm font-medium">Weight</span>
+                                    </div>
+                                    <div className="flex items-baseline gap-2 mt-2">
+                                        <span className="text-3xl font-bold tracking-tight">{latestGrowth?.weight || '-'}</span>
+                                        <span className="text-sm font-medium text-muted-foreground">kg</span>
+                                    </div>
+                                    <div className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md mt-2" style={{ backgroundColor: '#DEEBC5', color: '#000000' }}>
+                                        <TrendingUp className="h-3 w-3" />
+                                        {latestGrowth ? 'Latest measurement' : 'No data'}
                                     </div>
                                 </CardContent>
-                            )}
-                        </Card>
-                    </aside>
+                            </Card>
 
-                    {/* Right Column: Tabs & Content */}
-                    <main className={`w-full flex flex-col gap-6 transition-all duration-300 ${sidebarCollapsed ? 'lg:flex-1' : 'lg:w-2/3'}`}>
-                        {/* Tabs */}
-                        <Card className="p-1">
-                            <nav className="flex gap-1 overflow-x-auto">
-                                {tabs.map((tab) => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`px-4 py-3 text-sm font-medium rounded-lg flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === tab.id
-                                            ? 'bg-[#DEEBC5] text-[#000000]'
-                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                                            }`}
-                                    >
-                                        <tab.icon className="h-4 w-4" />
-                                        {tab.label}
-                                    </button>
-                                ))}
-                            </nav>
-                        </Card>
+                            {/* Height */}
+                            <Card className="relative overflow-hidden group">
+                                <CardContent className="p-5">
+                                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                                        <Ruler className="h-16 w-16 text-blue-500" />
+                                    </div>
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <Ruler className="h-5 w-5" />
+                                        <span className="text-sm font-medium">Height</span>
+                                    </div>
+                                    <div className="flex items-baseline gap-2 mt-2">
+                                        <span className="text-3xl font-bold tracking-tight">{latestGrowth?.height || '-'}</span>
+                                        <span className="text-sm font-medium text-muted-foreground">cm</span>
+                                    </div>
+                                    <div className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md mt-2" style={{ backgroundColor: '#DEEBC5', color: '#000000' }}>
+                                        <TrendingUp className="h-3 w-3" />
+                                        {latestGrowth ? 'Latest measurement' : 'No data'}
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                        {/* Content Area */}
-                        {activeTab === 'growth' ? (
-                            <GrowthTabContent />
-                        ) : activeTab === 'pmt' ? (
-                            <PmtTabContent />
-                        ) : activeTab === 'screenings' ? (
-                            <ScreeningsTabContent />
-                        ) : activeTab === 'nutrition' ? (
-                            <NutritionTabContent />
-                        ) : (
-                            <div className="flex flex-col gap-6">
-                                {/* Latest Measurements Grid */}
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    {/* Weight */}
-                                    <Card className="relative overflow-hidden group">
-                                        <CardContent className="p-5">
-                                            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                                                <Scale className="h-16 w-16 text-emerald-500" />
-                                            </div>
-                                            <div className="flex items-center gap-2 text-muted-foreground">
-                                                <Scale className="h-5 w-5" />
-                                                <span className="text-sm font-medium">Weight</span>
-                                            </div>
-                                            <div className="flex items-baseline gap-2 mt-2">
-                                                <span className="text-3xl font-bold tracking-tight">{latestGrowth?.weight || '-'}</span>
-                                                <span className="text-sm font-medium text-muted-foreground">kg</span>
-                                            </div>
-                                            <div className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md mt-2" style={{ backgroundColor: '#DEEBC5', color: '#000000' }}>
-                                                <TrendingUp className="h-3 w-3" />
-                                                {latestGrowth ? 'Latest measurement' : 'No data'}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
+                            {/* MUAC */}
+                            <Card className="relative overflow-hidden group">
+                                <CardContent className="p-5">
+                                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                                        <Activity className="h-16 w-16 text-purple-500" />
+                                    </div>
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <Activity className="h-5 w-5" />
+                                        <span className="text-sm font-medium">MUAC</span>
+                                    </div>
+                                    <div className="flex items-baseline gap-2 mt-2">
+                                        <span className="text-3xl font-bold tracking-tight">{latestGrowth?.head_circumference || '-'}</span>
+                                        <span className="text-sm font-medium text-muted-foreground">cm</span>
+                                    </div>
+                                    <div className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md mt-2">
+                                        No change
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
 
-                                    {/* Height */}
-                                    <Card className="relative overflow-hidden group">
-                                        <CardContent className="p-5">
-                                            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                                                <Ruler className="h-16 w-16 text-blue-500" />
-                                            </div>
-                                            <div className="flex items-center gap-2 text-muted-foreground">
-                                                <Ruler className="h-5 w-5" />
-                                                <span className="text-sm font-medium">Height</span>
-                                            </div>
-                                            <div className="flex items-baseline gap-2 mt-2">
-                                                <span className="text-3xl font-bold tracking-tight">{latestGrowth?.height || '-'}</span>
-                                                <span className="text-sm font-medium text-muted-foreground">cm</span>
-                                            </div>
-                                            <div className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md mt-2" style={{ backgroundColor: '#DEEBC5', color: '#000000' }}>
-                                                <TrendingUp className="h-3 w-3" />
-                                                {latestGrowth ? 'Latest measurement' : 'No data'}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-
-                                    {/* MUAC */}
-                                    <Card className="relative overflow-hidden group">
-                                        <CardContent className="p-5">
-                                            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                                                <Activity className="h-16 w-16 text-purple-500" />
-                                            </div>
-                                            <div className="flex items-center gap-2 text-muted-foreground">
-                                                <Activity className="h-5 w-5" />
-                                                <span className="text-sm font-medium">MUAC</span>
-                                            </div>
-                                            <div className="flex items-baseline gap-2 mt-2">
-                                                <span className="text-3xl font-bold tracking-tight">{latestGrowth?.head_circumference || '-'}</span>
-                                                <span className="text-sm font-medium text-muted-foreground">cm</span>
-                                            </div>
-                                            <div className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md mt-2">
-                                                No change
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Health Status Summary */}
-                                    {/* Quick Health Overview */}
-                                    <Card className="flex flex-col h-full">
-                                        <CardHeader className="pb-3">
-                                            <CardTitle className="text-lg">Health Overview</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="flex-1 flex flex-col gap-4">
-                                            {/* Nutritional Status */}
-                                            <div className="flex items-center justify-between p-3 rounded-lg border" style={{ backgroundColor: '#DEEBC5', borderColor: '#c5daa6' }}>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="bg-white p-2 rounded-full shadow-sm" style={{ color: '#6b8a3e' }}>
-                                                        <Utensils className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-semibold" style={{ color: '#000000' }}>Nutritional Status</p>
-                                                        <p className="text-xs" style={{ color: '#000000' }}>Within normal range</p>
-                                                    </div>
-                                                </div>
-                                                {getStatusBadge('normal')}
-                                            </div>
-
-                                            {/* Stunting Status */}
-                                            <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-100">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="bg-white p-2 rounded-full shadow-sm text-amber-600">
-                                                        <Ruler className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-semibold text-amber-900">Stunting Risk</p>
-                                                        <p className="text-xs text-amber-700">Height-for-age is slightly low</p>
-                                                    </div>
-                                                </div>
-                                                {getStatusBadge('normal')}
-                                            </div>
-
-                                            {/* Wasting Status */}
-                                            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="bg-white p-2 rounded-full shadow-sm text-gray-600">
-                                                        <Scale className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-semibold">Wasting</p>
-                                                        <p className="text-xs text-muted-foreground">Weight-for-height ratio</p>
-                                                    </div>
-                                                </div>
-                                                {getStatusBadge('normal')}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-
-                                    {/* Recent Activity Timeline */}
-                                    <Card className="flex flex-col h-full">
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                            <CardTitle className="text-lg">Recent Activity</CardTitle>
-                                            <Button variant="link" size="sm" style={{ color: '#000000' }}>View All</Button>
-                                        </CardHeader>
-                                        <CardContent className="relative">
-                                            {/* Vertical Line */}
-                                            <div className="absolute left-9 top-0 bottom-0 w-0.5 bg-border" />
-                                            <div className="space-y-6">
-                                                {recentActivities.map((activity) => (
-                                                    <div key={activity.id} className="relative flex gap-4">
-                                                        <div className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full shrink-0 border-2 border-white ${activity.color}`}>
-                                                            <activity.icon className="h-4 w-4" />
-                                                        </div>
-                                                        <div className="flex flex-col gap-1">
-                                                            <p className="text-sm font-medium">{activity.title}</p>
-                                                            <span className="text-xs text-muted-foreground">{activity.time}</span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-
-                                {/* Action Footer */}
-                                <Card className="p-4">
-                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="grid grid-cols-1 gap-6">
+                            {/* Quick Health Overview */}
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg">Health Overview</CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex-1 flex flex-col gap-4">
+                                    {/* Nutritional Status */}
+                                    <div className="flex items-center justify-between p-3 rounded-lg border" style={{ backgroundColor: '#DEEBC5', borderColor: '#c5daa6' }}>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
-                                                <AlertTriangle className="h-5 w-5" />
+                                            <div className="bg-white p-2 rounded-full shadow-sm" style={{ color: '#6b8a3e' }}>
+                                                <Utensils className="h-5 w-5" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold">Screening Due</p>
-                                                <p className="text-xs text-muted-foreground">Developmental screening is due for 24 months.</p>
+                                                <p className="text-sm font-semibold" style={{ color: '#000000' }}>Nutritional Status</p>
+                                                <p className="text-xs" style={{ color: '#000000' }}>Within normal range</p>
                                             </div>
                                         </div>
-                                        <Button className="w-full sm:w-auto gap-2 bg-gray-900 hover:bg-gray-800">
-                                            Start Screening
-                                            <ArrowRight className="h-4 w-4" />
-                                        </Button>
+                                        {getStatusBadge('normal')}
                                     </div>
-                                </Card>
+
+                                    {/* Stunting Status */}
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-100">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-white p-2 rounded-full shadow-sm text-amber-600">
+                                                <Ruler className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-amber-900">Stunting Risk</p>
+                                                <p className="text-xs text-amber-700">Height-for-age is slightly low</p>
+                                            </div>
+                                        </div>
+                                        {getStatusBadge('normal')}
+                                    </div>
+
+                                    {/* Wasting Status */}
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-white p-2 rounded-full shadow-sm text-gray-600">
+                                                <Scale className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold">Wasting</p>
+                                                <p className="text-xs text-muted-foreground">Weight-for-height ratio</p>
+                                            </div>
+                                        </div>
+                                        {getStatusBadge('normal')}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* Action Footer */}
+                        <Card className="p-4">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
+                                        <AlertTriangle className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-semibold">Screening Due</p>
+                                        <p className="text-xs text-muted-foreground">Developmental screening is due for 24 months.</p>
+                                    </div>
+                                </div>
+                                <Button className="w-full sm:w-auto gap-2 bg-gray-900 hover:bg-gray-800">
+                                    Start Screening
+                                    <ArrowRight className="h-4 w-4" />
+                                </Button>
                             </div>
-                        )}
-                    </main>
-                </div>
+                        </Card>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );

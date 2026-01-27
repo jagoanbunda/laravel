@@ -1,19 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Link } from '@inertiajs/react';
 import {
     Package,
     Calendar,
-    Scale,
     TrendingUp,
     Check,
     Phone,
     FileText,
     Plus,
-    Zap,
     Clock,
-    Flag,
-    Utensils,
     Percent,
+    AlertTriangle,
+    FileQuestion,
+    ArrowRight,
+    CheckCircle2
 } from 'lucide-react';
 import {
     type PmtPortion,
@@ -22,66 +23,238 @@ import {
     getPortionColor,
 } from '@/types/models';
 
-// Mock distribution history data with portion tracking
-const distributionHistory: {
+interface PmtScheduleItem {
     id: number;
-    date: string;
-    package: string;
-    contents: string;
-    status: 'received' | 'pending';
-    portion: PmtPortion;
-    officer: { name: string; initials: string; color: string };
-}[] = [
-        {
-            id: 1,
-            date: '28 Des 2024',
-            package: 'Bubur Kacang Hijau',
-            contents: '5 sachet @200ml',
-            status: 'received',
-            portion: 'habis',
-            officer: { name: 'Bidan Siti', initials: 'BS', color: 'bg-gray-200 text-gray-600' },
-        },
-        {
-            id: 2,
-            date: '21 Des 2024',
-            package: 'Biskuit PMT + Susu',
-            contents: '10 pcs Biskuit, 2 Kotak Susu',
-            status: 'received',
-            portion: 'half',
-            officer: { name: 'Kader Ani', initials: 'KA', color: 'bg-purple-100 text-purple-600' },
-        },
-        {
-            id: 3,
-            date: '14 Des 2024',
-            package: 'Telur + Tempe',
-            contents: '5 Butir Telur, 500g Tempe',
-            status: 'received',
-            portion: 'quarter',
-            officer: { name: 'Bidan Siti', initials: 'BS', color: 'bg-gray-200 text-gray-600' },
-        },
-    ];
+    food_name: string | null;
+    scheduled_date: string;
+    portion: PmtPortion | null;
+    portion_label: string | null;
+    logged_at: string | null;
+    photo_url: string | null;
+    notes: string | null;
+}
 
-// Mock menu items
-const menuItems = [
-    {
-        id: 1,
-        name: 'Bubur Kacang Hijau',
-        category: 'Protein Nabati',
-        calories: '150 kkal/porsi',
-        frequency: '2x / minggu',
-        image: '/images/bubur-kacang-hijau.jpg',
-    },
-    {
-        id: 2,
-        name: 'Telur Rebus & Tempe',
-        category: 'Protein Hewani',
-        calories: '200 kkal/porsi',
-        frequency: '3x / minggu',
-        image: '/images/telur-tempe.jpg',
-    },
-];
+export interface PmtStatus {
+    status: 'healthy' | 'needs_enrollment' | 'active' | 'no_data';
+    latest_nutritional_status: string | null;
+    latest_stunting_status: string | null;
+    latest_wasting_status: string | null;
+    has_active_program: boolean;
+    has_historical_programs: boolean;
+    message: string;
+}
 
-export default function PmtTabContent() {
+interface Props {
+    childId: number;
+    schedules: PmtScheduleItem[];
+    pmtStatus: PmtStatus;
+    onTabChange: (tab: string) => void;
+}
+
+export default function PmtTabContent({ childId, schedules, pmtStatus, onTabChange }: Props) {
+    // Render based on status
+    if (pmtStatus.status === 'healthy') {
+        return (
+            <HealthyEmptyState 
+                childId={childId}
+                pmtStatus={pmtStatus} 
+                onTabChange={onTabChange} 
+            />
+        );
+    }
+
+    if (pmtStatus.status === 'needs_enrollment') {
+        return (
+            <NeedsEnrollmentState 
+                childId={childId}
+                pmtStatus={pmtStatus} 
+            />
+        );
+    }
+
+    if (pmtStatus.status === 'no_data') {
+        return (
+            <NoDataState 
+                pmtStatus={pmtStatus} 
+                onTabChange={onTabChange} 
+            />
+        );
+    }
+
+    // Default to Active State (existing logic)
+    return (
+        <ActivePmtState 
+            schedules={schedules} 
+            childId={childId}
+        />
+    );
+}
+
+function HealthyEmptyState({ 
+    childId, 
+    pmtStatus, 
+    onTabChange 
+}: { 
+    childId: number; 
+    pmtStatus: PmtStatus; 
+    onTabChange: (tab: string) => void;
+}) {
+    return (
+        <Card className="border-dashed border-2 bg-gradient-to-br from-white to-[#f4f9ea] border-[#DEEBC5] overflow-hidden">
+            <CardContent className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <div className="w-20 h-20 rounded-full bg-[#DEEBC5]/50 flex items-center justify-center mb-6 ring-4 ring-white shadow-sm">
+                    <CheckCircle2 className="h-10 w-10 text-[#5f8b2d]" />
+                </div>
+                
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    Status Gizi Baik
+                </h3>
+                
+                <p className="text-muted-foreground max-w-md mb-2">
+                    {pmtStatus.message}
+                </p>
+                <p className="text-sm text-gray-500 max-w-md mb-8">
+                    Tetap pantau pertumbuhan secara berkala untuk memastikan tumbuh kembang yang optimal.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <Button 
+                        onClick={() => onTabChange('growth')}
+                        className="bg-[#DEEBC5] text-black hover:bg-[#c5daa6] gap-2 shadow-sm"
+                    >
+                        <TrendingUp className="h-4 w-4" />
+                        Lihat Pertumbuhan
+                    </Button>
+                    
+                    {pmtStatus.has_historical_programs && (
+                        <Button 
+                            variant="outline" 
+                            asChild
+                            className="gap-2"
+                        >
+                            <Link href={`/pmt/programs?child_id=${childId}`}>
+                                <Package className="h-4 w-4" />
+                                Lihat Riwayat PMT
+                            </Link>
+                        </Button>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function NeedsEnrollmentState({ 
+    childId, 
+    pmtStatus 
+}: { 
+    childId: number; 
+    pmtStatus: PmtStatus;
+}) {
+    return (
+        <Card className="border-amber-200 bg-amber-50/50 overflow-hidden">
+            <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-6 text-amber-600">
+                    <AlertTriangle className="h-8 w-8" />
+                </div>
+
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Perlu Program PMT
+                </h3>
+                
+                <p className="text-gray-600 max-w-lg mb-6">
+                    {pmtStatus.message}
+                </p>
+
+                {/* Status Indicators */}
+                <div className="flex flex-wrap gap-2 justify-center mb-8">
+                    {pmtStatus.latest_stunting_status && pmtStatus.latest_stunting_status !== 'Normal' && (
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+                            {pmtStatus.latest_stunting_status}
+                        </span>
+                    )}
+                    {pmtStatus.latest_wasting_status && pmtStatus.latest_wasting_status !== 'Gizi Baik' && (
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+                            {pmtStatus.latest_wasting_status}
+                        </span>
+                    )}
+                    {pmtStatus.latest_nutritional_status && pmtStatus.latest_nutritional_status !== 'Berat Badan Normal' && (
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+                            {pmtStatus.latest_nutritional_status}
+                        </span>
+                    )}
+                </div>
+
+                <Button 
+                    asChild 
+                    size="lg"
+                    className="bg-amber-600 hover:bg-amber-700 text-white gap-2 shadow-sm"
+                >
+                    <Link href={`/pmt/programs/create?child_id=${childId}`}>
+                        <Plus className="h-5 w-5" />
+                        Daftarkan Program PMT
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
+
+function NoDataState({ 
+    pmtStatus, 
+    onTabChange 
+}: { 
+    pmtStatus: PmtStatus; 
+    onTabChange: (tab: string) => void;
+}) {
+    return (
+        <Card className="bg-gray-50/50 border-gray-200">
+            <CardContent className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-6 text-gray-400">
+                    <FileQuestion className="h-8 w-8" />
+                </div>
+
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Belum Ada Data Pengukuran
+                </h3>
+                
+                <p className="text-muted-foreground max-w-md mb-8">
+                    {pmtStatus.message || "Lakukan pengukuran pertumbuhan terlebih dahulu untuk menentukan apakah anak memerlukan program PMT."}
+                </p>
+
+                <Button 
+                    onClick={() => onTabChange('growth')}
+                    className="gap-2"
+                    variant="default"
+                >
+                    <TrendingUp className="h-4 w-4" />
+                    Lihat Pertumbuhan
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
+
+// Original implementation wrapped in a component
+function ActivePmtState({ schedules, childId }: { schedules: PmtScheduleItem[], childId: number }) {
+    const loggedSchedules = schedules.filter((s) => s.portion !== null);
+    const pendingSchedules = schedules.filter((s) => s.portion === null);
+    const totalDistributions = loggedSchedules.length;
+    const thisMonthDistributions = loggedSchedules.filter((s) => {
+        const date = new Date(s.scheduled_date);
+        const now = new Date();
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+    }).length;
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+        });
+    };
+
     return (
         <div className="flex flex-col gap-6">
             {/* Section 1: PMT Status Banner */}
@@ -93,18 +266,20 @@ export default function PmtTabContent() {
                     <div className="z-10 flex flex-col gap-4 max-w-xl">
                         <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm border border-white/20 w-fit">
                             <div className="w-2 h-2 rounded-full bg-green-300 mr-2 animate-pulse" />
-                            <span className="text-xs font-semibold tracking-wide">Program Aktif</span>
+                            <span className="text-xs font-semibold tracking-wide">
+                                {schedules.length > 0 ? 'Program Aktif' : 'Belum Ada Program'}
+                            </span>
                         </div>
                         <div>
                             <h2 className="text-2xl md:text-3xl font-bold mb-1">PMT Balita Stunting</h2>
                             <div className="flex items-center gap-2 text-white/80 text-sm">
                                 <Calendar className="h-4 w-4" />
-                                <span>Terdaftar sejak 1 Oktober 2024</span>
+                                <span>{totalDistributions} jadwal tercatat</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 text-white/90 font-medium">
                             <Clock className="h-4 w-4" />
-                            <span>Bulan ke-3 dari 6 bulan program</span>
+                            <span>{pendingSchedules.length} jadwal menunggu</span>
                         </div>
                     </div>
 
@@ -130,15 +305,17 @@ export default function PmtTabContent() {
                                     stroke="currentColor"
                                     strokeWidth="4"
                                     strokeDasharray="175.9"
-                                    strokeDashoffset="87.95"
+                                    strokeDashoffset={175.9 - (175.9 * (schedules.length > 0 ? (loggedSchedules.length / schedules.length) * 100 : 0)) / 100}
                                     strokeLinecap="round"
                                 />
                             </svg>
-                            <span className="absolute text-xs font-bold">50%</span>
+                            <span className="absolute text-xs font-bold">
+                                {schedules.length > 0 ? Math.round((loggedSchedules.length / schedules.length) * 100) : 0}%
+                            </span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-xs uppercase tracking-wider text-white/70">Durasi</span>
-                            <span className="text-lg font-bold">3/6 Bulan</span>
+                            <span className="text-xs uppercase tracking-wider text-white/70">Tercatat</span>
+                            <span className="text-lg font-bold">{loggedSchedules.length}/{schedules.length}</span>
                         </div>
                     </div>
                 </div>
@@ -152,7 +329,7 @@ export default function PmtTabContent() {
                             <Package className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold">12x</p>
+                            <p className="text-2xl font-bold">{totalDistributions}x</p>
                             <p className="text-xs text-muted-foreground font-medium">Total Distribusi</p>
                         </div>
                     </CardContent>
@@ -164,7 +341,7 @@ export default function PmtTabContent() {
                             <Calendar className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold">4x</p>
+                            <p className="text-2xl font-bold">{thisMonthDistributions}x</p>
                             <p className="text-xs text-muted-foreground font-medium">Distribusi Bulan Ini</p>
                         </div>
                     </CardContent>
@@ -173,11 +350,11 @@ export default function PmtTabContent() {
                 <Card>
                     <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
-                            <Scale className="h-5 w-5" />
+                            <Clock className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold">10.2 <span className="text-sm font-normal text-muted-foreground">kg</span></p>
-                            <p className="text-xs text-muted-foreground font-medium">Berat Awal (1 Okt)</p>
+                            <p className="text-2xl font-bold">{pendingSchedules.length}</p>
+                            <p className="text-xs text-muted-foreground font-medium">Menunggu</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -188,259 +365,117 @@ export default function PmtTabContent() {
                             <TrendingUp className="h-5 w-5" />
                         </div>
                         <div>
-                            <div className="flex items-center gap-2">
-                                <p className="text-2xl font-bold">12.5 <span className="text-sm font-normal text-muted-foreground">kg</span></p>
-                                <span className="text-xs font-bold text-black bg-[#DEEBC5] px-1.5 py-0.5 rounded flex items-center">
-                                    <TrendingUp className="h-3 w-3 mr-0.5" />+2.3
-                                </span>
-                            </div>
-                            <p className="text-xs text-muted-foreground font-medium">Berat Sekarang</p>
+                            <p className="text-2xl font-bold">
+                                {schedules.length > 0 ? Math.round((loggedSchedules.length / schedules.length) * 100) : 0}%
+                            </p>
+                            <p className="text-xs text-muted-foreground font-medium">Tingkat Kepatuhan</p>
                         </div>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Section 3: Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left: Distribution History */}
-                <Card className="flex flex-col h-full">
-                    <CardHeader className="flex flex-row justify-between items-center border-b pb-4">
-                        <CardTitle className="text-lg">Riwayat Distribusi PMT</CardTitle>
-                        <Button variant="link" className="text-black p-0 h-auto">Filter</Button>
-                    </CardHeader>
-                    <CardContent className="p-5 flex-1 relative">
-                        {/* Vertical Line */}
-                        <div className="absolute left-9 top-6 bottom-6 w-0.5 bg-gray-100" />
+            {/* Section 3: Distribution History */}
+            <Card className="flex flex-col h-full">
+                <CardHeader className="flex flex-row justify-between items-center border-b border-gray-100 pb-4">
+                    <CardTitle className="text-lg">Riwayat Distribusi PMT</CardTitle>
+                </CardHeader>
+                <CardContent className="p-5 flex-1 relative">
+                    {schedules.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                            <Package className="h-12 w-12 mb-4 opacity-50" />
+                            <p className="text-sm">Belum ada jadwal PMT</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Vertical Line */}
+                            <div className="absolute left-9 top-6 bottom-6 w-0.5 bg-gray-100" />
 
-                        <div className="flex flex-col gap-6">
-                            {distributionHistory.map((item) => {
-                                const portionPercentage = getPortionPercentage(item.portion);
-                                const portionLabel = PmtPortionLabels[item.portion];
-                                const portionColorClass = getPortionColor(item.portion);
-                                return (
-                                    <div key={item.id} className="flex gap-4 relative z-10">
-                                        <div className="w-10 h-10 rounded-full bg-white border-2 border-[#9aba59] flex items-center justify-center shrink-0 shadow-sm">
-                                            <Check className="h-4 w-4 text-[#9aba59]" />
-                                        </div>
-                                        <div className="flex-1 bg-gray-50 rounded-xl p-4 border">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="text-xs font-bold text-muted-foreground bg-white px-2 py-1 rounded border">{item.date}</span>
-                                                <span className="flex items-center text-xs font-medium text-black bg-[#DEEBC5] px-2 py-1 rounded-full gap-1">
-                                                    <Check className="h-3 w-3" /> Diterima
-                                                </span>
+                            <div className="flex flex-col gap-6">
+                                {schedules.map((item) => {
+                                    const isLogged = item.portion !== null;
+                                    const portionPercentage = item.portion ? getPortionPercentage(item.portion) : 0;
+                                    const portionLabel = item.portion ? PmtPortionLabels[item.portion] : 'Belum dicatat';
+                                    const portionColorClass = item.portion ? getPortionColor(item.portion) : 'bg-gray-100 text-gray-600';
+                                    
+                                    return (
+                                        <div key={item.id} className="flex gap-4 relative z-10">
+                                            <div className={`w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center shrink-0 shadow-sm ${isLogged ? 'border-[#9aba59]' : 'border-gray-300'}`}>
+                                                {isLogged ? (
+                                                    <Check className="h-4 w-4 text-[#9aba59]" />
+                                                ) : (
+                                                    <Clock className="h-4 w-4 text-gray-400" />
+                                                )}
                                             </div>
-                                            <p className="font-bold text-sm mb-1">Paket: {item.package}</p>
-                                            <p className="text-xs text-muted-foreground mb-3">Isi: {item.contents}</p>
-
-                                            {/* Portion Tracking */}
-                                            <div className="bg-white rounded-lg p-3 border mb-3">
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                                                        <Percent className="h-3 w-3" /> Porsi Dikonsumsi
+                                            <div className="flex-1 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="text-xs font-bold text-muted-foreground bg-white px-2 py-1 rounded border border-gray-100">
+                                                        {formatDate(item.scheduled_date)}
                                                     </span>
-                                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${portionColorClass}`}>
-                                                        {portionLabel}
+                                                    <span className={`flex items-center text-xs font-medium px-2 py-1 rounded-full gap-1 ${isLogged ? 'text-black bg-[#DEEBC5]' : 'text-gray-600 bg-gray-200'}`}>
+                                                        {isLogged ? (
+                                                            <>
+                                                                <Check className="h-3 w-3" /> Dicatat
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Clock className="h-3 w-3" /> Menunggu
+                                                            </>
+                                                        )}
                                                     </span>
                                                 </div>
-                                                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                                                    <div
-                                                        className={`h-2 rounded-full transition-all ${portionPercentage === 100 ? 'bg-[#DEEBC5]' : portionPercentage >= 50 ? 'bg-blue-500' : portionPercentage > 0 ? 'bg-amber-400' : 'bg-red-400'}`}
-                                                        style={{ width: `${portionPercentage}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-2 border-t pt-2 mt-1">
-                                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${item.officer.color}`}>
-                                                    {item.officer.initials}
-                                                </div>
-                                                <p className="text-xs text-muted-foreground">
-                                                    Petugas: <span className="font-medium text-foreground">{item.officer.name}</span>
+                                                <p className="font-bold text-sm mb-1">
+                                                    {item.food_name || 'Makanan belum ditentukan'}
                                                 </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </CardContent>
-                    <div className="p-4 border-t text-center">
-                        <Button variant="link" className="text-black font-semibold">
-                            Lihat Semua Riwayat
-                        </Button>
-                    </div>
-                </Card>
 
-                {/* Right: PMT Menu */}
-                <Card className="flex flex-col h-full">
-                    <CardHeader className="flex flex-row justify-between items-center border-b pb-4">
-                        <CardTitle className="text-lg">Menu PMT Bulan Ini</CardTitle>
-                        <span className="text-xs font-medium bg-gray-100 text-muted-foreground px-2 py-1 rounded">Desember</span>
-                    </CardHeader>
-                    <CardContent className="p-5 flex-1">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {menuItems.map((item) => (
-                                <div key={item.id} className="border rounded-xl overflow-hidden hover:shadow-md transition-shadow group">
-                                    <div className="h-32 bg-gradient-to-br from-[#DEEBC5] to-teal-50 overflow-hidden relative flex items-center justify-center">
-                                        <Utensils className="h-12 w-12 text-[#b8d49a]" />
-                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                                            <p className="text-white text-xs font-medium">{item.category}</p>
-                                        </div>
-                                    </div>
-                                    <div className="p-3">
-                                        <h4 className="font-bold text-sm mb-1">{item.name}</h4>
-                                        <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-                                            <div className="flex items-center gap-1">
-                                                <Zap className="h-3.5 w-3.5 text-orange-400" />
-                                                <span>{item.calories}</span>
+                                                {/* Portion Tracking */}
+                                                {isLogged && (
+                                                    <div className="bg-white rounded-lg p-3 border border-gray-100 mt-3">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                                                                <Percent className="h-3 w-3" /> Porsi Dikonsumsi
+                                                            </span>
+                                                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${portionColorClass}`}>
+                                                                {portionLabel}
+                                                            </span>
+                                                        </div>
+                                                        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                                            <div
+                                                                className={`h-2 rounded-full transition-all ${portionPercentage === 100 ? 'bg-[#DEEBC5]' : portionPercentage >= 50 ? 'bg-blue-500' : portionPercentage > 0 ? 'bg-amber-400' : 'bg-red-400'}`}
+                                                                style={{ width: `${portionPercentage}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {item.notes && (
+                                                    <div className="mt-3 text-xs text-muted-foreground bg-white rounded-lg p-2 border border-gray-100">
+                                                        <span className="font-medium">Catatan:</span> {item.notes}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="flex items-center gap-1">
-                                                <Clock className="h-3.5 w-3.5 text-blue-400" />
-                                                <span>{item.frequency}</span>
-                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                    <div className="mt-auto p-4 bg-[#f0f7e4] border-t border-[#DEEBC5] mx-5 mb-5 rounded-lg flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-white rounded-full shadow-sm text-black">
-                                <Utensils className="h-5 w-5" />
+                                    );
+                                })}
                             </div>
-                            <div>
-                                <p className="text-xs text-muted-foreground font-medium">Target Harian</p>
-                                <p className="text-sm font-bold">500 kkal tambahan</p>
-                            </div>
-                        </div>
-                    </div>
-                </Card>
-            </div>
-
-            {/* Section 4: Progress Chart */}
-            <Card className="p-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                    <div>
-                        <h3 className="font-bold text-lg">Progres Berat Badan</h3>
-                        <p className="text-sm text-muted-foreground">Monitoring kenaikan berat badan selama program PMT</p>
-                    </div>
-                    <div className="flex items-center gap-4 text-xs">
-                        <div className="flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-[#DEEBC5]" />
-                            <span className="text-muted-foreground">Aktual</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-gray-300 border border-dashed border-gray-400" />
-                            <span className="text-muted-foreground">Proyeksi</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-sm bg-green-100 border border-green-200" />
-                            <span className="text-muted-foreground">Target Zone</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Custom SVG Chart */}
-                <div className="w-full h-[300px] relative">
-                    {/* Y Axis Labels */}
-                    <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-400 w-10 text-right pr-2">
-                        <span>15kg</span>
-                        <span>14kg</span>
-                        <span>13kg</span>
-                        <span>12kg</span>
-                        <span>11kg</span>
-                        <span>10kg</span>
-                    </div>
-
-                    {/* Chart Area */}
-                    <div className="absolute left-10 right-0 top-2 bottom-8 border-l border-b border-gray-200">
-                        {/* Target Zone */}
-                        <div className="absolute left-0 right-0 top-[20%] bottom-[40%] bg-green-50/50 border-y border-green-100/50" />
-
-                        {/* Grid Lines */}
-                        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                            {[...Array(5)].map((_, i) => (
-                                <div key={i} className="border-b border-gray-100 h-full w-full" />
-                            ))}
-                        </div>
-
-                        {/* Data Visualization */}
-                        <svg className="w-full h-full overflow-visible" preserveAspectRatio="none">
-                            {/* Dashed Projection Line */}
-                            <line
-                                x1="40%"
-                                y1="50%"
-                                x2="100%"
-                                y2="30%"
-                                stroke="#9ca3af"
-                                strokeWidth="2"
-                                strokeDasharray="6,4"
-                            />
-                            {/* Actual Data Line */}
-                            <polyline
-                                points="0,96% 20%,80% 40%,50%"
-                                fill="none"
-                                stroke="#10b77f"
-                                strokeWidth="3"
-                            />
-                            {/* Points */}
-                            <circle cx="0%" cy="96%" r="5" fill="#10b77f" stroke="white" strokeWidth="2" />
-                            <circle cx="20%" cy="80%" r="5" fill="#10b77f" stroke="white" strokeWidth="2" />
-                            <circle cx="40%" cy="50%" r="6" fill="#10b77f" stroke="white" strokeWidth="3" />
-                            {/* Target Point */}
-                            <circle cx="100%" cy="30%" r="5" fill="#f6f8f7" stroke="#9ca3af" strokeWidth="2" strokeDasharray="2,2" />
-                        </svg>
-
-                        {/* Tooltip */}
-                        <div className="absolute left-[40%] top-[40%] transform -translate-x-1/2 -translate-y-full mb-2 bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg pointer-events-none">
-                            12.5 kg
-                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 border-4 border-transparent border-t-gray-900" />
-                        </div>
-                    </div>
-
-                    {/* X Axis Labels */}
-                    <div className="absolute left-10 right-0 bottom-0 flex justify-between text-xs text-muted-foreground pt-2">
-                        <span>Okt</span>
-                        <span>Nov</span>
-                        <span className="font-bold text-foreground">Des</span>
-                        <span>Jan</span>
-                        <span>Feb</span>
-                        <span>Mar</span>
-                    </div>
-                </div>
-
-                {/* Progress Footer */}
-                <div className="mt-8 flex flex-col md:flex-row items-center gap-6 bg-[#f0f7e4] p-4 rounded-xl border border-[#DEEBC5]">
-                    <div className="flex-1 w-full">
-                        <div className="flex justify-between mb-2">
-                            <span className="text-sm font-bold">Menuju Target Akhir</span>
-                            <span className="text-sm font-bold text-black">85%</span>
-                        </div>
-                        <div className="w-full bg-[#c5daa6] rounded-full h-2.5">
-                            <div className="bg-[#DEEBC5] h-2.5 rounded-full" style={{ width: '85%' }} />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3 w-full md:w-auto border-t md:border-t-0 md:border-l border-[#c5daa6] pt-4 md:pt-0 md:pl-6">
-                        <Flag className="h-8 w-8 text-black" />
-                        <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase">Target (Gizi Normal)</p>
-                            <p className="text-lg font-bold">13.5 kg</p>
-                        </div>
-                    </div>
-                </div>
+                        </>
+                    )}
+                </CardContent>
             </Card>
 
-            {/* Section 5: Actions Footer */}
-            <Card className="p-6 sticky bottom-0 z-20 flex flex-col sm:flex-row gap-4 justify-between items-center">
+            {/* Section 4: Actions Footer */}
+            <Card className="p-6 sticky bottom-0 z-20 flex flex-col sm:flex-row gap-4 justify-between items-center shadow-lg border-t bg-white/95 backdrop-blur-sm">
                 <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                    <Button className="bg-[#DEEBC5] text-black hover:bg-[#c5daa6] gap-2">
-                        <Plus className="h-5 w-5" />
-                        Catat Distribusi Baru
+                    <Button className="bg-[#DEEBC5] text-black hover:bg-[#c5daa6] gap-2 shadow-sm" asChild>
+                        <Link href={`/pmt/programs/create?child_id=${childId}`}>
+                            <Plus className="h-5 w-5" />
+                            Catat Distribusi Baru
+                        </Link>
                     </Button>
-                    <Button variant="outline" className="gap-2">
-                        <FileText className="h-5 w-5 text-gray-500" />
-                        Lihat Laporan PMT
+                    <Button variant="outline" className="gap-2" asChild>
+                         <Link href={`/pmt/reports?child_id=${childId}`}>
+                            <FileText className="h-5 w-5 text-gray-500" />
+                            Lihat Laporan PMT
+                         </Link>
                     </Button>
                 </div>
                 <Button variant="ghost" className="text-muted-foreground hover:text-black gap-2 w-full sm:w-auto">

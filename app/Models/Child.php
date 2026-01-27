@@ -89,6 +89,14 @@ class Child extends Model
     }
 
     /**
+     * Get PMT programs for this child.
+     */
+    public function pmtPrograms(): HasMany
+    {
+        return $this->hasMany(PmtProgram::class);
+    }
+
+    /**
      * Get the age in months.
      */
     public function getAgeInMonthsAttribute(): ?int

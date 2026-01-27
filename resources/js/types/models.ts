@@ -36,9 +36,9 @@ export interface Child {
 
 // Anthropometry types
 export type MeasurementLocation = 'posyandu' | 'home' | 'clinic' | 'hospital' | 'other';
-export type NutritionalStatus = 'severely_underweight' | 'underweight' | 'normal' | 'overweight' | 'obese';
+export type NutritionalStatus = 'severely_underweight' | 'underweight' | 'normal' | 'risk_overweight';
 export type StuntingStatus = 'severely_stunted' | 'stunted' | 'normal' | 'tall';
-export type WastingStatus = 'severely_wasted' | 'wasted' | 'normal' | 'overweight' | 'obese';
+export type WastingStatus = 'severely_wasted' | 'wasted' | 'normal' | 'risk_overweight' | 'overweight' | 'obese';
 
 export interface AnthropometryMeasurement {
     id: number;
@@ -66,6 +66,8 @@ export type ScreeningStatus = 'in_progress' | 'completed' | 'cancelled';
 export type ScreeningResult = 'sesuai' | 'pantau' | 'perlu_rujukan';
 export type AnswerType = 'yes' | 'sometimes' | 'no';
 export type ASQ3DomainCode = 'communication' | 'gross_motor' | 'fine_motor' | 'problem_solving' | 'personal_social';
+export type InterventionType = 'stimulation' | 'referral' | 'follow_up' | 'counseling' | 'other';
+export type InterventionStatus = 'planned' | 'in_progress' | 'completed' | 'cancelled';
 
 export interface ASQ3Domain {
     id: number;
@@ -109,6 +111,90 @@ export interface ASQ3Recommendation {
     age_interval_id?: number;
     recommendation_text: string;
     priority: number;
+}
+
+/**
+ * Domain result with computed fields for display
+ */
+export interface Asq3DomainResult {
+    id: number;
+    domain_code: ASQ3DomainCode;
+    domain_name: string;
+    total_score: number;
+    cutoff_score: number;
+    monitoring_score: number;
+    max_score: number;
+    status: ScreeningResult;
+}
+
+/**
+ * Recommendation with domain info for display
+ */
+export interface Asq3RecommendationDisplay {
+    id: number;
+    domain_id: number;
+    domain_code: ASQ3DomainCode;
+    title: string;
+    recommendation_text: string;
+    priority: number;
+}
+
+/**
+ * Intervention record for a screening
+ */
+export interface Asq3Intervention {
+    id: number;
+    type: InterventionType;
+    type_label: string;
+    action: string;
+    notes: string | null;
+    status: InterventionStatus;
+    status_label: string;
+    follow_up_date: string | null;
+    completed_at: string | null;
+    domain_code: ASQ3DomainCode | null;
+}
+
+/**
+ * Complete screening detail with all related data
+ */
+export interface Asq3ScreeningDetail {
+    id: number;
+    child_id: number;
+    age_interval_id: number;
+    screening_date: string;
+    age_at_screening_months: number;
+    age_at_screening_days: number;
+    age_interval_label: string;
+    status: ScreeningStatus;
+    overall_status: ScreeningResult | null;
+    total_score: number;
+    max_score: number;
+    domain_results: Asq3DomainResult[];
+    recommendations: Asq3RecommendationDisplay[];
+    interventions: Asq3Intervention[];
+    next_screening_date: string | null;
+    days_until_next: number | null;
+}
+
+/**
+ * Minimal screening data for history list
+ */
+export interface Asq3ScreeningHistoryItem {
+    id: number;
+    screening_date: string;
+    age_at_screening_months: number;
+    total_score: number;
+    overall_status: ScreeningResult;
+}
+
+/**
+ * Props for ScreeningsTabContent component
+ */
+export interface ScreeningsTabProps {
+    childId: number;
+    latestScreening: Asq3ScreeningDetail | null;
+    screeningHistory: Asq3ScreeningHistoryItem[];
 }
 
 // PMT types
@@ -247,11 +333,10 @@ export const MeasurementLocationLabels: Record<MeasurementLocation, string> = {
 };
 
 export const NutritionalStatusLabels: Record<NutritionalStatus, string> = {
-    severely_underweight: 'Gizi Buruk',
-    underweight: 'Gizi Kurang',
-    normal: 'Gizi Baik',
-    overweight: 'Risiko Gizi Lebih',
-    obese: 'Gizi Lebih',
+    severely_underweight: 'Berat Badan Sangat Kurang',
+    underweight: 'Berat Badan Kurang',
+    normal: 'Berat Badan Normal',
+    risk_overweight: 'Risiko Berat Badan Lebih',
 };
 
 export const StuntingStatusLabels: Record<StuntingStatus, string> = {
@@ -265,8 +350,9 @@ export const WastingStatusLabels: Record<WastingStatus, string> = {
     severely_wasted: 'Gizi Buruk',
     wasted: 'Gizi Kurang',
     normal: 'Gizi Baik',
-    overweight: 'Berisiko Gizi Lebih',
-    obese: 'Gizi Lebih',
+    risk_overweight: 'Berisiko Gizi Lebih',
+    overweight: 'Gizi Lebih',
+    obese: 'Obesitas',
 };
 
 export const ScreeningResultLabels: Record<ScreeningResult, string> = {
@@ -281,6 +367,21 @@ export const ASQ3DomainLabels: Record<ASQ3DomainCode, string> = {
     fine_motor: 'Motorik Halus',
     problem_solving: 'Pemecahan Masalah',
     personal_social: 'Personal Sosial',
+};
+
+export const InterventionTypeLabels: Record<InterventionType, string> = {
+    stimulation: 'Stimulasi',
+    referral: 'Rujukan',
+    follow_up: 'Tindak Lanjut',
+    counseling: 'Konseling',
+    other: 'Lainnya',
+};
+
+export const InterventionStatusLabels: Record<InterventionStatus, string> = {
+    planned: 'Direncanakan',
+    in_progress: 'Sedang Berjalan',
+    completed: 'Selesai',
+    cancelled: 'Dibatalkan',
 };
 
 export const PmtPortionLabels: Record<PmtPortion, string> = {
@@ -336,10 +437,8 @@ export function getNutritionalStatusColor(status: NutritionalStatus): string {
             return 'bg-amber-100 text-amber-700 border-amber-200';
         case 'normal':
             return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-        case 'overweight':
+        case 'risk_overweight':
             return 'bg-orange-100 text-orange-700 border-orange-200';
-        case 'obese':
-            return 'bg-red-100 text-red-700 border-red-200';
         default:
             return 'bg-gray-100 text-gray-700 border-gray-200';
     }
@@ -355,6 +454,25 @@ export function getStuntingStatusColor(status: StuntingStatus): string {
             return 'bg-emerald-100 text-emerald-700 border-emerald-200';
         case 'tall':
             return 'bg-blue-100 text-blue-700 border-blue-200';
+        default:
+            return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+}
+
+export function getWastingStatusColor(status: WastingStatus): string {
+    switch (status) {
+        case 'severely_wasted':
+            return 'bg-red-100 text-red-700 border-red-200';
+        case 'wasted':
+            return 'bg-amber-100 text-amber-700 border-amber-200';
+        case 'normal':
+            return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+        case 'risk_overweight':
+            return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        case 'overweight':
+            return 'bg-orange-100 text-orange-700 border-orange-200';
+        case 'obese':
+            return 'bg-red-100 text-red-700 border-red-200';
         default:
             return 'bg-gray-100 text-gray-700 border-gray-200';
     }
@@ -401,5 +519,36 @@ export function getPortionColor(portion: PmtPortion): string {
         default:
             return 'bg-gray-100 text-gray-700 border-gray-200';
     }
+}
+
+export function getZScoreIndicatorColor(zscore: number | null | undefined): string {
+    if (zscore === null || zscore === undefined) return 'bg-gray-300';
+    if (zscore < -3) return 'bg-red-500';
+    if (zscore < -2) return 'bg-amber-500';
+    if (zscore <= 2) return 'bg-emerald-500';
+    if (zscore <= 3) return 'bg-amber-500';
+    return 'bg-red-500';
+}
+
+/**
+ * Calculate percentage score for display
+ */
+export function calculateScorePercentage(score: number, maxScore: number): number {
+    if (maxScore === 0) return 0;
+    return Math.round((score / maxScore) * 100);
+}
+
+/**
+ * Get icon component name for a domain
+ */
+export function getDomainIconName(domainCode: ASQ3DomainCode): string {
+    const iconMap: Record<ASQ3DomainCode, string> = {
+        communication: 'MessageCircle',
+        gross_motor: 'Activity',
+        fine_motor: 'Hand',
+        problem_solving: 'Puzzle',
+        personal_social: 'Users',
+    };
+    return iconMap[domainCode];
 }
 
