@@ -48,6 +48,8 @@ specs
 
 # Docker files (prevent recursive builds)
 Dockerfile
+Dockerfile.base
+Dockerfile.old
 docker-compose*.yml
 .dockerignore
 

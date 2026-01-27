@@ -1,48 +1,25 @@
 # =============================================================================
-# GitHub Actions: Build and Push BASE Docker Image to GitHub Container Registry
+# GitHub Actions: Build and Push APPLICATION Docker Image to GitHub Container Registry
 #
 # This workflow:
-# - Triggers when Dockerfile.base, composer.json, or package.json changes
-# - Builds multi-platform base image (amd64, arm64) with all dependencies
-# - Pushes to ghcr.io/jagoanbunda/laravel:base
-# - Used by docker-build-app.yml to build final app image
+# - Triggers on ANY push to main/develop (code changes)
+# - Uses pre-built base image from ghcr.io/jagoanbunda/laravel:base
+# - Only builds app layer (very fast ~30 seconds)
+# - Pushes to ghcr.io/jagoanbunda/laravel
+# - Tags with 'latest' for main branch
 # =============================================================================
 
-name: Build and Push Base Image
+name: Build and Push Application Image
 
 on:
   push:
     branches:
       - main
       - develop
-    paths:
-      - 'Dockerfile.base'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - 'docker-compose.yml'
-      - 'composer.json'
-      - 'composer.lock'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/docker-build.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'Dockerfile.base'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - 'docker-compose.yml'
-      - 'composer.json'
-      - 'composer.lock'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/docker-build.yml'
-  # Allow manual trigger
   workflow_dispatch:
     inputs:
       force_build:
-        description: 'Force build even without Dockerfile changes'
+        description: 'Force build'
         required: false
         default: 'false'
         type: boolean
@@ -53,7 +30,7 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Check if build should run (skip if no relevant changes)
+  # Check if build should run (always run on main/develop)
   # ---------------------------------------------------------------------------
   check-changes:
     runs-on: ubuntu-latest
@@ -63,19 +40,10 @@ jobs:
       - name: Check if build should run
         id: check
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ inputs.force_build }}" == "true" ]; then
-            echo "should_build=true" >> $GITHUB_OUTPUT
-            echo "Force build requested"
-          elif [ "${{ github.event_name }}" == "push" ] || [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "should_build=true" >> $GITHUB_OUTPUT
-            echo "Triggered by path filter"
-          else
-            echo "should_build=false" >> $GITHUB_OUTPUT
-            echo "No relevant changes detected"
-          fi
+          echo "should_build=true" >> $GITHUB_OUTPUT
 
   # ---------------------------------------------------------------------------
-  # Build and Push Docker Image
+  # Build and Push Application Image
   # ---------------------------------------------------------------------------
   build-and-push:
     runs-on: ubuntu-latest
@@ -98,7 +66,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -111,32 +78,33 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Set 'base' tag for base image
-            type=raw,value=base
-            # Set 'latest-base' tag for main branch
-            type=raw,value=latest-base,enable={{is_default_branch}}
-            # Set 'develop-base' tag for develop branch
-            type=raw,value=develop-base,enable=${{ github.ref == 'refs/heads/develop' }}
+            # Set 'latest' tag for main branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            # Set 'develop' tag for develop branch
+            type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
             # Short SHA for all commits
-            type=sha,prefix=base-,format=short
+            type=sha,prefix=,format=short
+            # Full SHA
+            type=sha,prefix=,format=long
+            # Branch name
+            type=ref,event=branch
+            # PR number
+            type=ref,event=pr
 
-      - name: Build and push Base Docker image
+      - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile.base
+          file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          provenance: true
-          sbom: true
 
       - name: Generate artifact attestation
-        if: github.event_name != 'pull_request'
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
@@ -148,13 +116,15 @@ jobs:
 
       - name: Summary
         run: |
-          echo "## Base Image Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Application Image Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Base Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Application Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Based on:** \`ghcr.io/jagoanbunda/laravel:base\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Digest:** \`${{ steps.push.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**When to rebuild:** When Dockerfile.base, composer.json, or package.json changes" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Time:** Fast (~30 seconds - only app layer)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

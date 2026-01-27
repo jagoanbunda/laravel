@@ -1,111 +1,37 @@
 # =============================================================================
-# NAKES (JagoanBunda) - Production Dockerfile
-# Multi-stage build optimized for Laravel 12 + Inertia.js React + Coolify
+# NAKES (JagoanBunda) - Application Image
+# Application code only - built on every code change
+# Uses pre-built base image with all dependencies
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# Stage 1: Composer dependencies
-# -----------------------------------------------------------------------------
-FROM composer:2.8 AS composer-stage
-
-WORKDIR /app
-
-# Install system dependencies and PHP extensions before composer install
-# Note: composer:2.8 is Alpine-based, use apk
-RUN apk add --no-cache \
-    libpng-dev \
-    icu-dev \
-    libzip-dev \
-    && docker-php-ext-install gd intl zip
-
-# Copy composer files first for better layer caching
-COPY composer.json composer.lock ./
-
-# Install production dependencies only
-RUN composer install \
-    --no-dev \
-    --no-scripts \
-    --no-autoloader \
-    --prefer-dist \
-    --no-interaction \
-    --no-progress
-
-# -----------------------------------------------------------------------------
-# Stage 2: Node.js build (frontend assets)
-# -----------------------------------------------------------------------------
-FROM node:22-alpine AS node-builder
-
-WORKDIR /app
-
-# Copy package files first for better layer caching
-COPY package.json package-lock.json ./
-
-# Install dependencies
-RUN npm ci --legacy-peer-deps
-
-# Copy source files needed for build
-COPY resources/ resources/
-COPY vite.config.js tsconfig.json ./
-
-# Build production assets
-RUN npm run build
-
-# -----------------------------------------------------------------------------
-# Stage 3: Production image
-# -----------------------------------------------------------------------------
-FROM serversideup/php:8.4-fpm-nginx AS production
+# Use the base image from same repository
+FROM ghcr.io/jagoanbunda/laravel:base AS production
 
 # Labels for container registry and Coolify
 LABEL org.opencontainers.image.title="JagoanBunda"
-LABEL org.opencontainers.image.description="Child health monitoring system - stunting, ASQ-3 development screening, PMT nutrition"
-LABEL org.opencontainers.image.source="https://github.com/jagoanbunda/laravel-nakes"
+LABEL org.opencontainers.image.description="Child health monitoring system - application layer"
+LABEL org.opencontainers.image.source="https://github.com/jagoanbunda/laravel"
 LABEL org.opencontainers.image.vendor="JagoanBunda"
 
 # Environment variables for production
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV LOG_CHANNEL=stderr
-ENV PHP_OPCACHE_ENABLE=1
 ENV AUTORUN_ENABLED=true
 ENV AUTORUN_LARAVEL_MIGRATION=true
-ENV AUTORUN_LARAVEL_SEEDING=true
-ENV SSL_MODE=off
-
-# Switch to root to install additional packages
-USER root
-
-# Install additional PHP extensions needed for the application
-# - intl: for localization (id_ID locale)
-# - gd: for image processing (potential future use)
-# - zip: for Excel exports (maatwebsite/excel)
-# Note: Extensions already installed in composer-stage, skipped here
-
-# Install Node.js for any runtime needs (optional, can be removed if not needed)
-# Note: serversideup/php is Debian/Ubuntu-based, use apt-get
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Switch back to www-data for security
-USER www-data
+ENV AUTORUN_LARAVEL_STORAGE_LINK=true
+ENV AUTORUN_LARAVEL_OPTIMIZE=true
 
 WORKDIR /var/www/html
 
-# Copy composer dependencies from composer stage
-COPY --from=composer-stage --chown=www-data:www-data /app/vendor ./vendor
-
 # Copy application source code
 COPY --chown=www-data:www-data . .
-
-# Copy built frontend assets from node stage
-COPY --from=node-builder --chown=www-data:www-data /app/public/build ./public/build
 
 # Generate optimized autoloader and run post-install scripts
 RUN composer dump-autoload --optimize --no-dev \
     && composer run-script post-autoload-dump
 
-# Create required directories with proper permissions
+# Create storage directories (in case base image doesn't have them)
 RUN mkdir -p \
     storage/framework/cache/data \
     storage/framework/sessions \
@@ -118,5 +44,5 @@ RUN mkdir -p \
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8080/up || exit 1
 
-# Expose the port (serversideup/php uses 8080 by default for non-root)
+# Expose port (serversideup/php uses 8080 by default for non-root)
 EXPOSE 8080

@@ -28,7 +28,7 @@ This guide explains how to deploy the NAKES application to Coolify using the pre
 
 1. In Coolify, go to **Projects** → **Add Resource** → **Application**
 2. Select **Docker Image**
-3. Enter image: `ghcr.io/kreanova/nakes:latest`
+3. Enter image: `ghcr.io/jagoanbunda/laravel:latest`
 4. Set **Port Exposes**: `8080`
 5. Add environment variables (see [Environment Variables](#environment-variables))
 6. Deploy!
@@ -40,6 +40,20 @@ Use the `docker-compose.yml` file from the repository for a complete setup with 
 ---
 
 ## Detailed Setup
+
+### Docker Images Overview
+
+This project uses **separated Docker images** for optimized builds:
+
+| Image | Purpose | Rebuild Time |
+|-------|----------|---------------|
+| `ghcr.io/jagoanbunda/laravel:base` | Dependencies (PHP extensions, Composer vendor, Node modules) | ~2-5 min |
+| `ghcr.io/jagoanbunda/laravel:latest` | Application code only | ~30 sec |
+
+**Why this approach:**
+- Code changes trigger fast app builds (30s)
+- Dependency changes trigger full base builds (2-5min)
+- Coolify deployments are instant (no dependency rebuild)
 
 ### Step 1: Create Database Resource
 
@@ -58,11 +72,12 @@ Use the `docker-compose.yml` file from the repository for a complete setup with 
 
 #### Method A: Docker Image (Recommended)
 - Select **Docker Image**
-- Image: `ghcr.io/kreanova/nakes:latest`
+- Image: `ghcr.io/jagoanbunda/laravel:latest`
+- Note: This image contains application code only (dependencies in separate base image)
 
 #### Method B: From Git Repository with Dockerfile
 - Select **Git Repository**
-- Repository URL: `https://github.com/kreanova/nakes`
+- Repository URL: `https://github.com/jagoanbunda/laravel`
 - Build Pack: **Dockerfile**
 - Dockerfile Location: `./Dockerfile`
 
@@ -160,7 +175,7 @@ Create this file for Coolify-specific configuration:
 services:
   # Main Application
   app:
-    image: ghcr.io/kreanova/nakes:latest
+    image: ghcr.io/jagoanbunda/laravel:latest
     environment:
       APP_NAME: ${APP_NAME}
       APP_ENV: production
@@ -192,7 +207,7 @@ services:
 
   # Queue Worker
   queue:
-    image: ghcr.io/kreanova/nakes:latest
+    image: ghcr.io/jagoanbunda/laravel:latest
     command: ["php", "/var/www/html/artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
     environment:
       APP_NAME: ${APP_NAME}
@@ -213,7 +228,7 @@ services:
 
   # Scheduler
   scheduler:
-    image: ghcr.io/kreanova/nakes:latest
+    image: ghcr.io/jagoanbunda/laravel:latest
     command: ["php", "/var/www/html/artisan", "schedule:work"]
     environment:
       APP_NAME: ${APP_NAME}
@@ -353,6 +368,40 @@ php /var/www/html/artisan optimize
 
 ## Updating the Application
 
+### New Deployment Workflow (Separated Base + App Images)
+
+The project now uses **separated Docker images** for faster deployments:
+
+#### Image Structure
+- **Base Image** (`ghcr.io/jagoanbunda/laravel:base`)
+  - Contains: PHP extensions, Composer vendor, Node modules, built frontend
+  - Built only when: Dockerfile.base, composer.json, or package.json changes
+  - Build time: ~2-5 minutes
+  - Updated rarely
+
+- **Application Image** (`ghcr.io/jagoanbunda/laravel:latest`)
+  - Contains: Application code only
+  - Built on: Every push to main/develop branches
+  - Build time: ~30 seconds (uses pre-built base image)
+  - Updated frequently
+
+#### Deployment Workflow
+
+1. **Dependency Changes** (composer.json, package.json, Dockerfile.base):
+   ```
+   Push to GitHub → docker-build.yml runs → Base image rebuilds (2-5 min)
+   ```
+
+2. **Code Changes** (PHP, React, routes, etc.):
+   ```
+   Push to GitHub → docker-build-app.yml runs → App image rebuilds (30 sec)
+   Coolify pulls latest → Fast deployment
+   ```
+
+3. **Manual Force Rebuild**:
+   - Use `workflow_dispatch` in GitHub Actions
+   - Go to Actions tab → Select workflow → Run workflow
+
 ### Automatic Updates (Recommended)
 
 1. Push changes to GitHub
@@ -373,12 +422,37 @@ Coolify supports zero-downtime deployments when health checks are configured. Th
 
 ## CI/CD Integration
 
-The GitHub Actions workflow (`.github/workflows/docker-build.yml`) automatically:
+The project now has **two GitHub Actions workflows**:
 
-1. Builds the Docker image when `Dockerfile` changes
-2. Pushes to `ghcr.io/kreanova/nakes`
-3. Tags with `latest`, `develop`, and commit SHA
+### 1. Base Image Build (`.github/workflows/docker-build.yml`)
 
+**Triggers:**
+- Dockerfile.base changes
+- Dockerfile changes
+- docker-compose.yml changes
+- composer.json changes
+- package.json changes
+
+**Builds:**
+- `ghcr.io/jagoanbunda/laravel:base`
+- Full image with PHP extensions, Composer vendor, Node modules
+- Build time: ~2-5 minutes
+
+**When it runs:** Rarely (dependency updates only)
+
+### 2. Application Image Build (`.github/workflows/docker-build-app.yml`)
+
+**Triggers:**
+- ANY push to main/develop branches
+- Manual workflow dispatch
+
+**Builds:**
+- `ghcr.io/jagoanbunda/laravel:latest`
+- Application code only (uses pre-built base image)
+- Build time: ~30 seconds
+
+**When it runs:** Every code push (fast deployment)
+ 
 ### Coolify Webhook (Optional)
 
 To trigger automatic deployments:
