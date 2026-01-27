@@ -52,7 +52,7 @@ const bottomNavItems: NavItem[] = [
     { label: 'Settings', href: '/settings', icon: <Settings className="h-5 w-5" /> },
 ];
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({ children, title }: { children: React.ReactNode; title?: string }) {
     const { auth } = usePage<{ auth: { user: User | null } }>().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -154,7 +154,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                                 "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                                                 sidebarCollapsed && !sidebarOpen && "lg:justify-center lg:px-2",
                                                 isParentActive
-                                                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                                                    ? "bg-primary/10 text-primary font-semibold shadow-sm"
                                                     : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
                                             )}
                                             title={sidebarCollapsed ? item.label : undefined}
@@ -180,7 +180,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                                         className={cn(
                                                             "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
                                                             currentPath === child.href || currentPath.startsWith(child.href + '/')
-                                                                ? "bg-primary/10 text-primary font-medium"
+                                                                ? "bg-primary/10 text-primary font-semibold"
                                                                 : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
                                                         )}
                                                     >
@@ -203,7 +203,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                         "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                                         sidebarCollapsed && !sidebarOpen && "lg:justify-center lg:px-2",
                                         currentPath.startsWith(item.href)
-                                            ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                                            ? "bg-primary/10 text-primary font-semibold shadow-sm"
                                             : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
                                     )}
                                     title={sidebarCollapsed ? item.label : undefined}
@@ -267,7 +267,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     </button>
 
                     <div className="flex-1">
-                        {/* Title or Breadcrumbs could go here */}
+                        {title && (
+                            <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+                        )}
                     </div>
 
                     <div className="ml-auto flex items-center gap-4">
