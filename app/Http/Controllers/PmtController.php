@@ -22,9 +22,9 @@ class PmtController extends Controller
      */
     public function index(Request $request): Response
     {
-        $query = PmtSchedule::with(['child.user', 'menu', 'log']);
+        $query = PmtSchedule::with(['child.user', 'log.food']);
 
-        // Search by child name, parent name, or menu name
+        // Search by child name or parent name
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -34,8 +34,8 @@ class PmtController extends Controller
                             $userQuery->where('name', 'like', "%{$search}%");
                         });
                 })
-                    ->orWhereHas('menu', function ($menuQuery) use ($search) {
-                        $menuQuery->where('name', 'like', "%{$search}%");
+                    ->orWhereHas('log.food', function ($foodQuery) use ($search) {
+                        $foodQuery->where('name', 'like', "%{$search}%");
                     });
             });
         }
@@ -58,7 +58,7 @@ class PmtController extends Controller
                 'child_id' => $schedule->child_id,
                 'child_name' => $schedule->child->name,
                 'parent_name' => $schedule->child->user->name,
-                'menu_name' => $schedule->menu->name,
+                'food_name' => $schedule->log?->food?->name,
                 'scheduled_date' => $schedule->scheduled_date,
                 'portion' => $schedule->log?->portion,
                 'logged_at' => $schedule->log?->logged_at,
@@ -80,7 +80,7 @@ class PmtController extends Controller
      */
     public function show(string $id): Response
     {
-        $schedule = PmtSchedule::with(['child.user', 'menu', 'log'])->findOrFail($id);
+        $schedule = PmtSchedule::with(['child.user', 'log.food'])->findOrFail($id);
 
         return Inertia::render('pmt/show', [
             'schedule' => [
@@ -93,16 +93,13 @@ class PmtController extends Controller
                     'id' => $schedule->child->user->id,
                     'name' => $schedule->child->user->name,
                 ],
-                'menu' => [
-                    'id' => $schedule->menu->id,
-                    'name' => $schedule->menu->name,
-                    'description' => $schedule->menu->description,
-                    'calories' => $schedule->menu->calories,
-                    'protein' => $schedule->menu->protein,
-                ],
                 'scheduled_date' => $schedule->scheduled_date,
                 'log' => $schedule->log ? [
+                    'food_name' => $schedule->log->food?->name,
+                    'food_calories' => $schedule->log->food?->calories,
+                    'food_protein' => $schedule->log->food?->protein,
                     'portion' => $schedule->log->portion,
+                    'portion_label' => $schedule->log->portion_label,
                     'logged_at' => $schedule->log->logged_at,
                     'notes' => $schedule->log->notes,
                     'photo_url' => $schedule->log->photo_url,

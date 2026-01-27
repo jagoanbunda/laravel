@@ -38,13 +38,13 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-// ERD-aligned mock data
+// ERD-aligned data structure
 interface PmtScheduleListItem {
     id: number;
     child_id: number;
     child_name: string;
     parent_name: string;
-    menu_name: string;
+    food_name: string | null;
     scheduled_date: string;
     portion: 'habis' | 'half' | 'quarter' | 'none' | null;
     photo_url: string | null;
@@ -82,14 +82,14 @@ function getPortionBadge(portion: PmtScheduleListItem['portion']) {
 
 export default function PmtIndex({ schedules, filters }: Props) {
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
-    const [activeFilter, setActiveFilter] = useState('all');
+    const [activeFilter, setActiveFilter] = useState(filters.status || 'all');
     const [logDialogOpen, setLogDialogOpen] = useState(false);
     const [selectedSchedule, setSelectedSchedule] = useState<PmtScheduleListItem | null>(null);
     const [selectedPortion, setSelectedPortion] = useState<string>('');
 
-    const handleSearch = (value: string) => {
-        setSearchQuery(value);
-        router.get('/pmt', { ...filters, search: value }, { preserveState: true });
+    const handleFilterChange = (status: string) => {
+        setActiveFilter(status);
+        router.get('/pmt', { ...filters, status: status === 'all' ? undefined : status }, { preserveState: true });
     };
 
     const handleLogDistribution = (schedule: PmtScheduleListItem) => {
@@ -104,17 +104,6 @@ export default function PmtIndex({ schedules, filters }: Props) {
         setSelectedSchedule(null);
         setSelectedPortion('');
     };
-
-    const filteredSchedules = schedules.data.filter((schedule) => {
-        const matchesSearch = schedule.child_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            schedule.parent_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            schedule.menu_name.toLowerCase().includes(searchQuery.toLowerCase());
-
-        if (activeFilter === 'all') return matchesSearch;
-        if (activeFilter === 'logged') return matchesSearch && schedule.portion !== null;
-        if (activeFilter === 'not_logged') return matchesSearch && schedule.portion === null;
-        return matchesSearch;
-    });
 
     return (
         <AppLayout title="PMT Programs">
@@ -142,7 +131,7 @@ export default function PmtIndex({ schedules, filters }: Props) {
                     <div className="relative flex-1 max-w-sm w-full">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search child, parent, or menu..."
+                            placeholder="Search child or parent..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-10 rounded-full border-border/60 bg-card"
@@ -152,7 +141,7 @@ export default function PmtIndex({ schedules, filters }: Props) {
                         {statusFilters.map((filter) => (
                             <button
                                 key={filter.value}
-                                onClick={() => setActiveFilter(filter.value)}
+                                onClick={() => handleFilterChange(filter.value)}
                                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${activeFilter === filter.value
                                     ? 'bg-primary text-primary-foreground shadow-sm'
                                     : 'bg-muted/50 text-muted-foreground hover:bg-muted'
@@ -171,7 +160,7 @@ export default function PmtIndex({ schedules, filters }: Props) {
                             <TableHeader>
                                 <TableRow className="hover:bg-transparent">
                                     <TableHead className="w-[250px]">Child & Parent</TableHead>
-                                    <TableHead>Menu Item</TableHead>
+                                    <TableHead>Food Item</TableHead>
                                     <TableHead>Date</TableHead>
                                     <TableHead>Portion</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
@@ -198,7 +187,7 @@ export default function PmtIndex({ schedules, filters }: Props) {
                                                     <div className="h-8 w-8 rounded-full bg-success-muted flex items-center justify-center text-success">
                                                         <Utensils className="h-4 w-4" />
                                                     </div>
-                                                    <span className="font-medium">{schedule.menu_name}</span>
+                                                    <span className="font-medium">{schedule.food_name || 'Belum ditentukan'}</span>
                                                 </div>
                                             </TableCell>
                                             <TableCell>
