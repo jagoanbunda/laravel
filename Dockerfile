@@ -49,7 +49,7 @@ RUN npm run build
 # -----------------------------------------------------------------------------
 # Stage 3: Production image
 # -----------------------------------------------------------------------------
-FROM serversideup/php:8.3-fpm-nginx AS production
+FROM serversideup/php:8.4-fpm-nginx AS production
 
 # Labels for container registry and Coolify
 LABEL org.opencontainers.image.title="JagoanBunda"
