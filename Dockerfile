@@ -20,7 +20,8 @@ RUN composer install \
     --no-autoloader \
     --prefer-dist \
     --no-interaction \
-    --no-progress
+    --no-progress \
+    --ignore-platform-reqs
 
 # -----------------------------------------------------------------------------
 # Stage 2: Node.js build (frontend assets)
