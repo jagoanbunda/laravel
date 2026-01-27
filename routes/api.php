@@ -58,8 +58,14 @@ Route::prefix('v1')->group(function () {
         | Children Routes
         |--------------------------------------------------------------------------
         */
-        Route::apiResource('children', ChildController::class);
-        Route::get('children/{child}/summary', [ChildController::class, 'summary']);
+        Route::apiResource('children', ChildController::class)->names([
+            'index' => 'api.children.index',
+            'store' => 'api.children.store',
+            'show' => 'api.children.show',
+            'update' => 'api.children.update',
+            'destroy' => 'api.children.destroy',
+        ]);
+        Route::get('children/{child}/summary', [ChildController::class, 'summary'])->name('api.children.summary');
 
         /*
         |--------------------------------------------------------------------------
@@ -80,8 +86,14 @@ Route::prefix('v1')->group(function () {
         | Foods Routes
         |--------------------------------------------------------------------------
         */
-        Route::apiResource('foods', FoodController::class);
-        Route::get('foods-categories', [FoodController::class, 'categories']);
+        Route::apiResource('foods', FoodController::class)->names([
+            'index' => 'api.foods.index',
+            'store' => 'api.foods.store',
+            'show' => 'api.foods.show',
+            'update' => 'api.foods.update',
+            'destroy' => 'api.foods.destroy',
+        ]);
+        Route::get('foods-categories', [FoodController::class, 'categories'])->name('api.foods.categories');
 
         /*
         |--------------------------------------------------------------------------
