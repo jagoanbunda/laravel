@@ -11,7 +11,11 @@ FROM composer:2.8 AS composer-stage
 WORKDIR /app
 
 # Install system dependencies and PHP extensions before composer install
-RUN apt-get update && apt-get install -y libpng-dev \
+# Note: composer:2.8 is Alpine-based, use apk
+RUN apk add --no-cache \
+    libpng-dev \
+    icu-dev \
+    libzip-dev \
     && docker-php-ext-install gd intl zip
 
 # Copy composer files first for better layer caching
@@ -64,6 +68,7 @@ ENV LOG_CHANNEL=stderr
 ENV PHP_OPCACHE_ENABLE=1
 ENV AUTORUN_ENABLED=true
 ENV AUTORUN_LARAVEL_MIGRATION=true
+ENV AUTORUN_LARAVEL_SEEDING=true
 ENV SSL_MODE=off
 
 # Switch to root to install additional packages
@@ -76,10 +81,8 @@ USER root
 # Note: Extensions already installed in composer-stage, skipped here
 
 # Install Node.js for any runtime needs (optional, can be removed if not needed)
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Note: serversideup/php is Alpine-based, use apk
+RUN apk add --no-cache nodejs npm
 
 # Switch back to www-data for security
 USER www-data

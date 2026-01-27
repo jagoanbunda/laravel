@@ -14,12 +14,12 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      *
      * Routes to the appropriate seeder based on environment:
-     * - Production: Seeds only master/reference data
-     * - Development/Local: Seeds master data + test users + sample data
+     * - Production/Staging: Seeds only master/reference data + admin nakes user
+     * - Development/Local: Seeds master data + test parents, children, sample data
      */
     public function run(): void
     {
-        if (App::environment('production')) {
+        if (App::environment(['production', 'staging'])) {
             $this->call(ProductionSeeder::class);
         } else {
             $this->call(DevelopmentSeeder::class);

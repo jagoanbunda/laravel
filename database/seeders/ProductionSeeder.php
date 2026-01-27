@@ -7,10 +7,15 @@ use Illuminate\Database\Seeder;
 class ProductionSeeder extends Seeder
 {
     /**
-     * Seed master/reference data required for production.
+     * Seed master/reference data required for production and staging.
      *
      * This seeder contains only essential data that must exist
-     * for the application to function correctly.
+     * for the application to function correctly:
+     * - ASQ-3 domains, age intervals, cutoff scores, questions, recommendations
+     * - Food database and PMT menu items
+     * - Admin nakes user (with generated password)
+     *
+     * Note: No parent users, children, or sample data are created.
      */
     public function run(): void
     {

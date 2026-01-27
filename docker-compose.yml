@@ -47,6 +47,7 @@ services:
       # ServersideUp specific
       AUTORUN_ENABLED: "true"
       AUTORUN_LARAVEL_MIGRATION: "true"
+      AUTORUN_LARAVEL_SEEDING: "true"
       AUTORUN_LARAVEL_STORAGE_LINK: "true"
       AUTORUN_LARAVEL_OPTIMIZE: "true"
       PHP_OPCACHE_ENABLE: "1"

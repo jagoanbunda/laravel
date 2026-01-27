@@ -12,10 +12,13 @@ class NakesUserSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     *
+     * Production/Staging: Creates admin nakes with generated password (shown in console).
+     * Development: Creates test nakes users with known passwords for testing.
      */
     public function run(): void
     {
-        if (app()->environment('production')) {
+        if (app()->environment(['production', 'staging'])) {
             $this->createProductionNakes();
         } else {
             $this->createDevelopmentNakes();
@@ -23,7 +26,7 @@ class NakesUserSeeder extends Seeder
     }
 
     /**
-     * Create production nakes with generated credentials.
+     * Create production/staging nakes with generated credentials.
      * Outputs the credentials so admin can note them.
      */
     protected function createProductionNakes(): void
@@ -37,6 +40,7 @@ class NakesUserSeeder extends Seeder
         }
 
         $password = fake()->password(12, 16);
+        $environment = strtoupper(app()->environment());
 
         $user = User::create([
             'name' => 'Admin Nakes',
@@ -58,7 +62,7 @@ class NakesUserSeeder extends Seeder
         ]);
 
         $this->command?->warn('===========================================');
-        $this->command?->warn('PRODUCTION NAKES ADMIN CREATED');
+        $this->command?->warn("{$environment} NAKES ADMIN CREATED");
         $this->command?->warn('Email: '.$email);
         $this->command?->warn('Password: '.$password);
         $this->command?->warn('SAVE THIS PASSWORD - IT WILL NOT BE SHOWN AGAIN');
