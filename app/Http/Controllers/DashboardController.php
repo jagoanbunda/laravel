@@ -7,7 +7,6 @@ use App\Models\Child;
 use App\Models\PmtLog;
 use App\Models\PmtSchedule;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -73,29 +72,45 @@ class DashboardController extends Controller
     {
         $months = collect(range(5, 0))->map(function ($i) {
             $date = now()->subMonths($i);
+
             return [
                 'month' => $date->format('M'),
                 'children' => Child::whereMonth('created_at', $date->month)->whereYear('created_at', $date->year)->count(),
                 'screenings' => Asq3Screening::whereMonth('created_at', $date->month)->whereYear('created_at', $date->year)->count(),
             ];
         });
+
         return $months->values()->toArray();
     }
 
     private function getChildrenAtRisk(): array
     {
         return Child::whereHas('asq3Screenings', fn ($q) => $q->where('overall_status', 'perlu_rujukan'))
-            ->with(['user', 'asq3Screenings' => fn ($q) => $q->latest()->limit(1)])
+            ->with([
+                'user',
+                'asq3Screenings' => fn ($q) => $q->where('overall_status', 'perlu_rujukan')
+                    ->latest()
+                    ->limit(1)
+                    ->with(['results' => fn ($r) => $r->where('status', 'perlu_rujukan')->with('domain')]),
+            ])
             ->limit(5)
             ->get()
-            ->map(fn ($child) => [
-                'id' => $child->id,
-                'name' => $child->name,
-                'age_months' => $child->age_in_months,
-                'parent_name' => $child->user->full_name,
-                'status' => $child->asq3Screenings->first()?->overall_status,
-                'last_screening' => $child->asq3Screenings->first()?->screening_date,
-            ])
+            ->map(function ($child) {
+                $latestRiskScreening = $child->asq3Screenings->first();
+                $riskDomains = $latestRiskScreening?->results
+                    ->map(fn ($r) => $r->domain->name)
+                    ->toArray() ?? [];
+
+                return [
+                    'id' => $child->id,
+                    'name' => $child->name,
+                    'age_months' => $child->age_in_months,
+                    'parent_name' => $child->user->full_name,
+                    'status' => $latestRiskScreening?->overall_status ?? 'perlu_rujukan',
+                    'last_screening' => $latestRiskScreening?->screening_date,
+                    'risk_domains' => $riskDomains,
+                ];
+            })
             ->toArray();
     }
 
@@ -106,7 +121,7 @@ class DashboardController extends Controller
         // Recent screenings
         Asq3Screening::with('child')->latest()->limit(3)->get()->each(function ($s) use ($activities) {
             $activities->push([
-                'id' => 's' . $s->id,
+                'id' => 's'.$s->id,
                 'type' => 'screening',
                 'text' => "ASQ-3 screening for {$s->child->name}",
                 'time' => $s->created_at->diffForHumans(),
@@ -117,7 +132,7 @@ class DashboardController extends Controller
         // Recent PMT logs
         PmtLog::with('schedule.child')->orderBy('logged_at', 'desc')->limit(2)->get()->each(function ($log) use ($activities) {
             $activities->push([
-                'id' => 'p' . $log->id,
+                'id' => 'p'.$log->id,
                 'type' => 'pmt',
                 'text' => "PMT logged for {$log->schedule->child->name}",
                 'time' => $log->logged_at->diffForHumans(),

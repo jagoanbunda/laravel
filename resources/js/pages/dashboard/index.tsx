@@ -1,8 +1,9 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/components/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import {
     Users,
     AlertTriangle,
@@ -11,8 +12,13 @@ import {
     TrendingUp,
     Plus,
     Utensils,
+    CheckCircle2,
 } from 'lucide-react';
-import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+import { StatCard } from './components/stat-card';
+import { NutritionalPieChart } from './components/nutritional-pie-chart';
+import { ScreeningBarChart } from './components/screening-bar-chart';
+import { MonthlyTrendsChart } from './components/monthly-trends-chart';
 
 interface Props {
     stats: {
@@ -27,163 +33,18 @@ interface Props {
     screening_results: Array<{ name: string; value: number; color: string }>;
     pmt_distribution: Array<{ name: string; value: number; color: string }>;
     monthly_trends: Array<{ month: string; children: number; screenings: number }>;
-    children_at_risk: Array<{ id: number; name: string; age_months: number; parent_name: string; status: string; last_screening: string }>;
+    children_at_risk: Array<{ id: number; name: string; age_months: number; parent_name: string; status: string; last_screening: string; risk_domains: string[] }>;
     recent_activities: Array<{ id: string; type: string; text: string; time: string; timestamp: number }>;
 }
-
-function NutritionalPieChart({ data }: { data: Props['nutritional_distribution'] }) {
-    return (
-        <ResponsiveContainer width="100%" height={240}>
-            <PieChart>
-                <Pie
-                    data={data}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                >
-                    {data.map((entry, index) => (
-                        <Cell key={index} fill={entry.color} strokeWidth={0} />
-                    ))}
-                </Pie>
-                <Tooltip
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                />
-                <Legend iconType="circle" verticalAlign="bottom" height={36} />
-            </PieChart>
-        </ResponsiveContainer>
-    );
-}
-
-function ScreeningBarChart({ data }: { data: Props['screening_results'] }) {
-    return (
-        <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={data} barSize={48} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                <XAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
-                    dy={10}
-                />
-                <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
-                />
-                <Tooltip
-                    cursor={{ fill: 'var(--muted)/0.5' }}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                />
-                <Bar dataKey="value" name="Count" radius={[6, 6, 0, 0]}>
-                    {data.map((entry, index) => (
-                        <Cell key={index} fill={entry.color} />
-                    ))}
-                </Bar>
-            </BarChart>
-        </ResponsiveContainer>
-    );
-}
-
-function MonthlyTrendsChart({ data }: { data: Props['monthly_trends'] }) {
-    return (
-        <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
-                    dy={10}
-                />
-                <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
-                />
-                <Tooltip
-                    contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                />
-                <Legend iconType="circle" />
-                <Line
-                    type="monotone"
-                    dataKey="children"
-                    stroke="var(--primary)"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 6, strokeWidth: 0, fill: "var(--primary)" }}
-                    name="Children"
-                />
-                <Line
-                    type="monotone"
-                    dataKey="screenings"
-                    stroke="var(--chart-1)"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 6, strokeWidth: 0, fill: "var(--chart-1)" }}
-                    name="Screenings"
-                />
-            </LineChart>
-        </ResponsiveContainer>
-    );
-}
-
-function StatCard({
-    title,
-    value,
-    trend,
-    icon: Icon,
-}: {
-    title: string;
-    value: string | number;
-    trend?: string;
-    icon?: any;
-}) {
-    return (
-        <Card className="shadow-sm hover:shadow-md transition-all duration-200 border-border/50">
-            <CardContent className="p-6">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-                        {Icon && (
-                            <div className="h-8 w-8 rounded-full bg-secondary/50 flex items-center justify-center text-primary">
-                                <Icon className="h-4 w-4" />
-                            </div>
-                        )}
-                    </div>
-                    <div className="flex items-baseline justify-between mt-2">
-                        <h3 className="text-3xl font-semibold tracking-tight">{value.toLocaleString()}</h3>
-                        {trend && (
-                            <div className="flex items-center gap-1 text-sm font-medium text-success-muted-foreground bg-success-muted px-2 py-0.5 rounded-full">
-                                <TrendingUp className="h-3 w-3" />
-                                {trend}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
-// ... (QuickAction and getStatusBadge remain unchanged, no need to replace if not touching them, but since I'm using AllowMultiple I should target specific blocks)
-
-// Using another ReplacementChunk for usage:
-
-
 
 function QuickAction({ label, icon: Icon, onClick }: { label: string, icon: any, onClick?: () => void }) {
     return (
         <button
-            className="flex flex-col items-center justify-center p-4 rounded-xl border border-border/50 bg-card hover:bg-secondary/50 hover:border-border transition-all group"
+            className="flex flex-col items-center justify-center p-4 rounded-xl border border-border/60 bg-background hover:border-primary/50 hover:bg-primary/5 hover:shadow-md transition-all group cursor-pointer"
             onClick={onClick}
         >
-            <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center group-hover:scale-110 transition-transform mb-3">
-                <Icon className="h-5 w-5 text-foreground" />
+            <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 mb-3">
+                <Icon className="h-5 w-5 text-foreground group-hover:text-primary-foreground transition-colors" />
             </div>
             <span className="text-sm font-medium">{label}</span>
         </button>
@@ -221,6 +82,16 @@ export default function Dashboard({ stats, nutritional_distribution, screening_r
                     </div>
                 </div>
 
+                {/* Risk Alert Banner */}
+                {children_at_risk.length > 0 && (
+                    <Alert variant="error" className="shadow-md border-destructive/30 bg-gradient-to-r from-destructive/10 to-destructive/5">
+                        <AlertTitle className="text-base font-semibold">Review Required</AlertTitle>
+                        <AlertDescription className="mt-1">
+                            <span className="font-semibold">{children_at_risk.length} {children_at_risk.length === 1 ? 'child needs' : 'children need'}</span> referral review based on latest ASQ-3 screening results.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 {/* Main Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StatCard
@@ -254,7 +125,7 @@ export default function Dashboard({ stats, nutritional_distribution, screening_r
                         {/* Monthly Trends */}
                         <Card className="border-border/50 shadow-sm">
                             <CardHeader>
-                                <CardTitle>Growth Trends</CardTitle>
+                                <CardTitle>Activity Trends</CardTitle>
                                 <CardDescription>Children registered vs screenings over time</CardDescription>
                             </CardHeader>
                             <CardContent className="pl-0">
@@ -296,6 +167,52 @@ export default function Dashboard({ stats, nutritional_distribution, screening_r
 
                     {/* Right Side: Breakdown & Lists */}
                     <div className="space-y-6">
+                        {/* Children at Risk - Compact List */}
+                        <Card className="border-destructive/20 shadow-sm bg-destructive/5">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-destructive flex items-center gap-2">
+                                    <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+                                    Risk Attention
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {children_at_risk.length > 0 ? (
+                                    <ul className="space-y-3">
+                                        {children_at_risk.slice(0, 3).map(child => (
+                                            <li key={child.id} className="flex items-center justify-between bg-white/60 p-3 rounded-lg border border-destructive/10">
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-medium truncate">{child.name}</p>
+                                                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                                        {getStatusBadge(child.status)}
+                                                        {child.risk_domains.length > 0 && (
+                                                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
+                                                                <AlertTriangle className="h-2.5 w-2.5" />
+                                                                {child.risk_domains.slice(0, 2).join(', ')}
+                                                                {child.risk_domains.length > 2 && ` +${child.risk_domains.length - 2}`}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <Button asChild size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0">
+                                                    <Link href={`/children/${child.id}`} aria-label={`View details for ${child.name}`}>
+                                                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                                                    </Link>
+                                                </Button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                                        <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center mb-3 ring-4 ring-success/5">
+                                            <CheckCircle2 className="h-6 w-6 text-success" aria-hidden="true" />
+                                        </div>
+                                        <p className="text-sm font-medium text-foreground">All Clear</p>
+                                        <p className="text-xs text-muted-foreground mt-1">No children currently flagged at risk.</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
                         <Card className="border-border/50 shadow-sm">
                             <CardHeader>
                                 <CardTitle>Nutritional Status</CardTitle>
@@ -311,34 +228,6 @@ export default function Dashboard({ stats, nutritional_distribution, screening_r
                             </CardHeader>
                             <CardContent>
                                 <ScreeningBarChart data={screening_results} />
-                            </CardContent>
-                        </Card>
-
-                        {/* Children at Risk - Compact List */}
-                        <Card className="border-destructive/20 shadow-sm bg-destructive/5">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-destructive flex items-center gap-2">
-                                    <AlertTriangle className="h-4 w-4" />
-                                    Risk Attention
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-3">
-                                    {children_at_risk.slice(0, 3).map(child => (
-                                        <div key={child.id} className="flex items-center justify-between bg-white/50 p-2 rounded-lg">
-                                            <div>
-                                                <p className="text-sm font-medium">{child.name}</p>
-                                                <p className="text-xs text-muted-foreground">{getStatusBadge(child.status)}</p>
-                                            </div>
-                                            <Button size="icon" variant="ghost" className="h-6 w-6">
-                                                <ArrowRight className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                    {children_at_risk.length === 0 && (
-                                        <p className="text-sm text-muted-foreground">No children flagged at risk.</p>
-                                    )}
-                                </div>
                             </CardContent>
                         </Card>
                     </div>
