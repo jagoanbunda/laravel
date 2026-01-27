@@ -17,7 +17,9 @@ class ProductionSeeder extends Seeder
         $this->call([
             Asq3DomainSeeder::class,
             Asq3AgeIntervalSeeder::class,
+            Asq3CutoffScoreSeeder::class,
             Asq3QuestionSeeder::class,
+            Asq3RecommendationSeeder::class,
             FoodSeeder::class,
             PmtMenuSeeder::class,
             NakesUserSeeder::class,

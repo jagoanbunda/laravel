@@ -2,16 +2,17 @@
 
 namespace Database\Seeders;
 
-use App\Models\Asq3Screening;
-use App\Models\Asq3ScreeningResult;
-use App\Models\Asq3ScreeningAnswer;
-use App\Models\Asq3Question;
 use App\Models\Asq3AgeInterval;
-use App\Models\Asq3Domain;
 use App\Models\Asq3CutoffScore;
+use App\Models\Asq3Domain;
+use App\Models\Asq3Question;
+use App\Models\Asq3Screening;
+use App\Models\Asq3ScreeningAnswer;
+use App\Models\Asq3ScreeningIntervention;
+use App\Models\Asq3ScreeningResult;
 use App\Models\Child;
-use Illuminate\Database\Seeder;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class Asq3ScreeningSeeder extends Seeder
 {
@@ -25,6 +26,7 @@ class Asq3ScreeningSeeder extends Seeder
 
         if ($children->isEmpty() || $ageIntervals->isEmpty()) {
             $this->command->warn('No children or age intervals found.');
+
             return;
         }
 
@@ -40,22 +42,24 @@ class Asq3ScreeningSeeder extends Seeder
                 return $ageMonths >= $interval->min_age_months && $ageMonths <= $interval->max_age_months;
             });
 
-            if (!$ageInterval) {
+            if (! $ageInterval) {
                 // Try to find closest interval
                 $ageInterval = $ageIntervals->sortBy(function ($interval) use ($ageMonths) {
                     return abs($interval->min_age_months - $ageMonths);
                 })->first();
             }
 
-            if (!$ageInterval) continue;
+            if (! $ageInterval) {
+                continue;
+            }
 
             // Create 2-3 screenings per child at different ages
             $screeningCount = rand(2, 3);
-            
+
             for ($i = 0; $i < $screeningCount; $i++) {
                 $screeningDate = Carbon::now()->subMonths(rand(0, 12));
                 $status = $statuses[array_rand($statuses)];
-                
+
                 // Adjust age at screening
                 $ageAtScreening = max(2, $ageMonths - (($screeningCount - $i - 1) * 6));
                 $ageDays = $ageAtScreening * 30;
@@ -119,11 +123,11 @@ class Asq3ScreeningSeeder extends Seeder
             $domainStatus = 'sesuai';
             $cutoffValue = 0;
             $monitoringValue = 0;
-            
+
             if ($cutoffScore) {
                 $cutoffValue = $cutoffScore->cutoff_score;
                 $monitoringValue = $cutoffScore->monitoring_score;
-                
+
                 if ($totalScore < $cutoffScore->cutoff_score) {
                     $domainStatus = 'perlu_rujukan';
                 } elseif ($totalScore < $cutoffScore->monitoring_score) {
@@ -140,6 +144,40 @@ class Asq3ScreeningSeeder extends Seeder
                 'monitoring_score' => $monitoringValue,
                 'status' => $domainStatus,
             ]);
+
+            // Create intervention for non-sesuai results
+            if ($domainStatus !== 'sesuai') {
+                $this->createIntervention($screening, $domain, $domainStatus);
+            }
         }
+    }
+
+    /**
+     * Create an intervention record for domains that need follow-up.
+     */
+    private function createIntervention(Asq3Screening $screening, Asq3Domain $domain, string $domainStatus): void
+    {
+        $interventionTypes = ['stimulation', 'follow_up', 'counseling'];
+        $type = $domainStatus === 'perlu_rujukan' ? 'referral' : $interventionTypes[array_rand($interventionTypes)];
+
+        $actions = [
+            'stimulation' => "Lakukan stimulasi harian untuk domain {$domain->name} sesuai rekomendasi.",
+            'referral' => "Rujuk ke spesialis tumbuh kembang untuk evaluasi domain {$domain->name}.",
+            'follow_up' => "Jadwalkan pemeriksaan ulang domain {$domain->name} dalam 1 bulan.",
+            'counseling' => "Berikan konseling kepada orang tua tentang stimulasi domain {$domain->name}.",
+        ];
+
+        $statuses = ['planned', 'in_progress'];
+        $status = $statuses[array_rand($statuses)];
+
+        Asq3ScreeningIntervention::create([
+            'screening_id' => $screening->id,
+            'domain_id' => $domain->id,
+            'type' => $type,
+            'action' => $actions[$type],
+            'notes' => "Status domain: {$domainStatus}",
+            'status' => $status,
+            'follow_up_date' => $status === 'planned' ? Carbon::now()->addWeeks(rand(2, 4))->format('Y-m-d') : null,
+        ]);
     }
 }
