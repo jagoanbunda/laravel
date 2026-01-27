@@ -10,6 +10,10 @@ FROM composer:2.8 AS composer-stage
 
 WORKDIR /app
 
+# Install system dependencies and PHP extensions before composer install
+RUN apt-get update && apt-get install -y libpng-dev \
+    && docker-php-ext-install gd intl zip
+
 # Copy composer files first for better layer caching
 COPY composer.json composer.lock ./
 
@@ -20,8 +24,7 @@ RUN composer install \
     --no-autoloader \
     --prefer-dist \
     --no-interaction \
-    --no-progress \
-    --ignore-platform-reqs
+    --no-progress
 
 # -----------------------------------------------------------------------------
 # Stage 2: Node.js build (frontend assets)
@@ -70,7 +73,7 @@ USER root
 # - intl: for localization (id_ID locale)
 # - gd: for image processing (potential future use)
 # - zip: for Excel exports (maatwebsite/excel)
-RUN install-php-extensions intl gd zip
+# Note: Extensions already installed in composer-stage, skipped here
 
 # Install Node.js for any runtime needs (optional, can be removed if not needed)
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
