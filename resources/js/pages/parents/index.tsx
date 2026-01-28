@@ -111,9 +111,17 @@ export default function ParentsIndex({ parents, filters }: Props) {
                                     <TableRow key={parent.id} className="group">
                                         <TableCell>
                                             <div className="flex items-center gap-4">
-                                                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary flex-shrink-0">
-                                                    {(parent.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2)}
-                                                </div>
+                                                {parent.avatar_url ? (
+                                                    <img
+                                                        src={parent.avatar_url.startsWith('http') ? parent.avatar_url : `/storage/${parent.avatar_url}`}
+                                                        alt={parent.name}
+                                                        className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                                                    />
+                                                ) : (
+                                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary flex-shrink-0">
+                                                        {(parent.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                                    </div>
+                                                )}
                                                 <div>
                                                     <p className="font-medium text-foreground">{parent.name}</p>
                                                     <p className="text-xs text-muted-foreground">Joined {new Date(parent.created_at).toLocaleDateString()}</p>

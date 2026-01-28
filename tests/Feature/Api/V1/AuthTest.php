@@ -4,6 +4,8 @@ namespace Tests\Feature\Api\V1;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -310,5 +312,122 @@ class AuthTest extends TestCase
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors(['name']);
+    }
+
+    /**
+     * T015: Test avatar file upload
+     */
+    public function test_user_can_upload_avatar(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $file = UploadedFile::fake()->image('avatar.jpg', 200, 200);
+
+        $response = $this->putJson('/api/v1/auth/profile', [
+            'avatar' => $file,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'message',
+                'user' => ['id', 'name', 'avatar_url'],
+            ])
+            ->assertJson([
+                'message' => 'Profil berhasil diperbarui',
+            ]);
+
+        // Assert file was stored
+        $this->assertTrue(Storage::disk('public')->exists('avatars/'.$file->hashName()));
+
+        // Assert user avatar_url was updated
+        $user->refresh();
+        $this->assertNotNull($user->avatar_url);
+        $this->assertStringStartsWith('avatars/', $user->avatar_url);
+    }
+
+    public function test_avatar_upload_validates_image_type(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+
+        $response = $this->putJson('/api/v1/auth/profile', [
+            'avatar' => $file,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['avatar']);
+    }
+
+    public function test_avatar_upload_validates_max_size(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        // Create a file larger than 2MB (2048KB)
+        $file = UploadedFile::fake()->image('large_avatar.jpg')->size(3000);
+
+        $response = $this->putJson('/api/v1/auth/profile', [
+            'avatar' => $file,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['avatar']);
+    }
+
+    public function test_avatar_upload_deletes_old_avatar(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create([
+            'avatar_url' => 'avatars/old_avatar.jpg',
+        ]);
+
+        // Create old avatar file
+        Storage::disk('public')->put('avatars/old_avatar.jpg', 'old content');
+
+        Sanctum::actingAs($user);
+
+        $file = UploadedFile::fake()->image('new_avatar.jpg', 200, 200);
+
+        $response = $this->putJson('/api/v1/auth/profile', [
+            'avatar' => $file,
+        ]);
+
+        $response->assertOk();
+
+        // Assert old file was deleted
+        $this->assertFalse(Storage::disk('public')->exists('avatars/old_avatar.jpg'));
+
+        // Assert new file exists
+        $this->assertTrue(Storage::disk('public')->exists('avatars/'.$file->hashName()));
+    }
+
+    public function test_user_can_update_avatar_url_directly(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $avatarUrl = 'https://example.com/avatars/user123.jpg';
+
+        $response = $this->putJson('/api/v1/auth/profile', [
+            'avatar_url' => $avatarUrl,
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'message' => 'Profil berhasil diperbarui',
+            ]);
+
+        $user->refresh();
+        $this->assertEquals($avatarUrl, $user->avatar_url);
     }
 }

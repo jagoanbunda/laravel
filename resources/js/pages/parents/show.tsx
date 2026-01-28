@@ -126,9 +126,17 @@ export default function ParentShow({ parent }: Props) {
                             {/* Profile Header */}
                             <div className={`p-6 flex flex-col items-center border-b ${sidebarCollapsed ? 'py-4' : ''}`}>
                                 <div className="relative mb-4">
-                                    <div className={`rounded-full flex items-center justify-center font-bold border-4 border-white shadow-md transition-all bg-sky-100 text-sky-600 ${sidebarCollapsed ? 'w-16 h-16 text-xl' : 'w-28 h-28 text-3xl'}`}>
-                                        {(parent.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2)}
-                                    </div>
+                                    {parent.avatar_url ? (
+                                        <img
+                                            src={parent.avatar_url.startsWith('http') ? parent.avatar_url : `/storage/${parent.avatar_url}`}
+                                            alt={parent.name}
+                                            className={`rounded-full border-4 border-white shadow-md object-cover transition-all ${sidebarCollapsed ? 'w-16 h-16' : 'w-28 h-28'}`}
+                                        />
+                                    ) : (
+                                        <div className={`rounded-full flex items-center justify-center font-bold border-4 border-white shadow-md transition-all bg-sky-100 text-sky-600 ${sidebarCollapsed ? 'w-16 h-16 text-xl' : 'w-28 h-28 text-3xl'}`}>
+                                            {(parent.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                        </div>
+                                    )}
                                     <div className={`absolute rounded-full border-2 border-white ${sidebarCollapsed ? 'bottom-0 right-0 w-4 h-4' : 'bottom-1 right-1 w-5 h-5'}`} style={{ backgroundColor: '#0ea5e9' }} title="Active Status" />
                                 </div>
                                 {!sidebarCollapsed && (

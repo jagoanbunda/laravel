@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -131,19 +132,36 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'sometimes|string|max:255',
             'phone' => 'sometimes|string|max:20',
+            'avatar' => 'sometimes|nullable|image|mimes:jpeg,jpg,png|max:2048',
             'avatar_url' => 'sometimes|nullable|url|max:500',
             'push_notifications' => 'sometimes|boolean',
             'weekly_report' => 'sometimes|boolean',
         ]);
 
         $user = $request->user();
-        $user->update($request->only([
-            'name',
-            'phone',
-            'avatar_url',
-            'push_notifications',
-            'weekly_report',
-        ]));
+
+        // Handle avatar file upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($user->avatar_url && str_starts_with($user->avatar_url, 'avatars/')) {
+                Storage::disk('public')->delete($user->avatar_url);
+            }
+
+            // Store new avatar
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar_url = $path;
+        } elseif ($request->has('avatar_url')) {
+            // Handle avatar URL (external service)
+            $user->avatar_url = $request->avatar_url;
+        }
+
+        // Update other fields
+        $user->update(array_filter([
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'push_notifications' => $request->push_notifications,
+            'weekly_report' => $request->weekly_report,
+        ], fn ($value) => $value !== null));
 
         return response()->json([
             'message' => 'Profil berhasil diperbarui',
