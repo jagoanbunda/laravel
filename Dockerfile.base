@@ -59,9 +59,14 @@ ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV LOG_CHANNEL=stderr
 ENV PHP_OPCACHE_ENABLE=1
+ENV TZ=Asia/Jakarta
 
 # Switch to root to install additional packages
 USER root
+
+# Set container timezone to Asia/Jakarta
+RUN ln -snf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime \
+    && echo "Asia/Jakarta" > /etc/timezone
 
 # Install Node.js for any runtime needs (optional)
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \

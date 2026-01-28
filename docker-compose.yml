@@ -18,6 +18,9 @@ services:
     ports:
       - "${APP_PORT:-8080}:8080"
     environment:
+      # Timezone
+      TZ: ${TZ:-Asia/Jakarta}
+      
       # Laravel Configuration
       APP_NAME: ${APP_NAME:-NAKES}
       APP_ENV: ${APP_ENV:-production}
@@ -75,6 +78,7 @@ services:
     restart: unless-stopped
     command: ["php", "/var/www/html/artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
     environment:
+      TZ: ${TZ:-Asia/Jakarta}
       APP_NAME: ${APP_NAME:-NAKES}
       APP_ENV: ${APP_ENV:-production}
       APP_KEY: ${APP_KEY}
@@ -104,6 +108,7 @@ services:
     restart: unless-stopped
     command: ["php", "/var/www/html/artisan", "schedule:work"]
     environment:
+      TZ: ${TZ:-Asia/Jakarta}
       APP_NAME: ${APP_NAME:-NAKES}
       APP_ENV: ${APP_ENV:-production}
       APP_KEY: ${APP_KEY}
