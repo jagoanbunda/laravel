@@ -7,6 +7,7 @@ use App\Models\NakesProfile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class NakesUserSeeder extends Seeder
 {
@@ -39,7 +40,7 @@ class NakesUserSeeder extends Seeder
             return;
         }
 
-        $password = fake()->password(12, 16);
+        $password = Str::random(16);
         $environment = strtoupper(app()->environment());
 
         $user = User::create([
@@ -47,7 +48,7 @@ class NakesUserSeeder extends Seeder
             'email' => $email,
             'password' => Hash::make($password),
             'email_verified_at' => now(),
-            'phone' => fake('id_ID')->phoneNumber(),
+            'phone' => null,
             'user_type' => UserType::Nakes->value,
             'push_notifications' => false,
             'weekly_report' => false,
@@ -55,7 +56,7 @@ class NakesUserSeeder extends Seeder
 
         NakesProfile::create([
             'user_id' => $user->id,
-            'nik' => fake()->numerify('################'),
+            'nik' => str_pad((string) random_int(0, 9999999999999999), 16, '0', STR_PAD_LEFT),
             'puskesmas_id' => null,
             'position' => 'Administrator',
             'verified_at' => now(),
