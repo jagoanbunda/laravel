@@ -5,6 +5,8 @@ namespace Tests\Feature\Api\V1;
 use App\Models\Child;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -296,5 +298,126 @@ class ChildTest extends TestCase
         $response = $this->getJson("/api/v1/children/{$child->id}/summary");
 
         $response->assertForbidden();
+    }
+
+    /**
+     * Test create child with avatar file upload
+     */
+    public function test_user_can_create_child_with_avatar(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $file = UploadedFile::fake()->image('avatar.jpg', 200, 200);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/v1/children', [
+            'name' => 'Test Child',
+            'birthday' => '2023-01-15',
+            'gender' => 'male',
+            'avatar' => $file,
+        ]);
+
+        $response->assertCreated();
+        Storage::disk('public')->assertExists('children/avatars/'.$file->hashName());
+        $this->assertDatabaseHas('children', [
+            'name' => 'Test Child',
+            'avatar_url' => 'children/avatars/'.$file->hashName(),
+        ]);
+    }
+
+    /**
+     * Test update child with avatar file upload
+     */
+    public function test_user_can_update_child_avatar(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $file = UploadedFile::fake()->image('new-avatar.jpg', 200, 200);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->putJson("/api/v1/children/{$child->id}", [
+            'avatar' => $file,
+        ]);
+
+        $response->assertOk();
+        Storage::disk('public')->assertExists('children/avatars/'.$file->hashName());
+        $this->assertDatabaseHas('children', [
+            'id' => $child->id,
+            'avatar_url' => 'children/avatars/'.$file->hashName(),
+        ]);
+    }
+
+    /**
+     * Test avatar upload deletes old avatar
+     */
+    public function test_avatar_upload_deletes_old_avatar(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create([
+            'avatar_url' => 'children/avatars/old-avatar.jpg',
+        ]);
+
+        // Create the old file
+        Storage::disk('public')->put('children/avatars/old-avatar.jpg', 'old content');
+
+        $newFile = UploadedFile::fake()->image('new-avatar.jpg', 200, 200);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->putJson("/api/v1/children/{$child->id}", [
+            'avatar' => $newFile,
+        ]);
+
+        $response->assertOk();
+        Storage::disk('public')->assertMissing('children/avatars/old-avatar.jpg');
+        Storage::disk('public')->assertExists('children/avatars/'.$newFile->hashName());
+    }
+
+    /**
+     * Test avatar upload validates file type
+     */
+    public function test_avatar_upload_validates_file_type(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $file = UploadedFile::fake()->create('document.pdf', 100);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/v1/children', [
+            'name' => 'Test Child',
+            'birthday' => '2023-01-15',
+            'gender' => 'male',
+            'avatar' => $file,
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors(['avatar']);
+    }
+
+    /**
+     * Test avatar upload validates file size
+     */
+    public function test_avatar_upload_validates_file_size(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $file = UploadedFile::fake()->image('large.jpg')->size(3000); // 3MB
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/v1/children', [
+            'name' => 'Test Child',
+            'birthday' => '2023-01-15',
+            'gender' => 'male',
+            'avatar' => $file,
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors(['avatar']);
     }
 }
