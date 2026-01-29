@@ -31,14 +31,19 @@ COPY --chown=www-data:www-data . .
 RUN composer dump-autoload --optimize --no-dev \
     && composer run-script post-autoload-dump
 
-# Create storage directories (in case base image doesn't have them)
+# Create storage directories with proper ownership
+# Note: These may be overwritten by volume mounts at runtime,
+# so serversideup entrypoint scripts also handle this
+USER root
 RUN mkdir -p \
     storage/framework/cache/data \
     storage/framework/sessions \
     storage/framework/views \
     storage/logs \
     bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
+USER www-data
 
 # Health check endpoint (Laravel 12 default /up route)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
