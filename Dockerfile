@@ -31,10 +31,13 @@ COPY --chown=www-data:www-data . .
 RUN composer dump-autoload --optimize --no-dev \
     && composer run-script post-autoload-dump
 
-# Create storage directories with proper ownership
-# Note: These may be overwritten by volume mounts at runtime,
-# so serversideup entrypoint scripts also handle this
+# Copy custom entrypoint script to ensure storage permissions at runtime
+# This runs BEFORE Laravel optimize, fixing the "Permission denied" error
 USER root
+COPY docker/entrypoint.d/10-storage-permissions.sh /etc/entrypoint.d/10-storage-permissions.sh
+RUN chmod +x /etc/entrypoint.d/10-storage-permissions.sh
+
+# Create storage directories at build time (may be overwritten by volume mounts)
 RUN mkdir -p \
     storage/framework/cache/data \
     storage/framework/sessions \
