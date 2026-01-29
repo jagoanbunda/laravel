@@ -68,7 +68,18 @@ class ChildController extends Controller
     {
         $this->authorizeChild($request, $child);
 
-        $child->update($request->validated());
+        $validated = $request->validated();
+
+        // Handle avatar file upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if it's a local file
+            if ($child->avatar_url && str_starts_with($child->avatar_url, 'children/avatars/')) {
+                Storage::disk('public')->delete($child->avatar_url);
+            }
+            $validated['avatar_url'] = $request->file('avatar')->store('children/avatars', 'public');
+        }
+
+        $child->update($validated);
 
         return response()->json([
             'message' => 'Data anak berhasil diperbarui',
