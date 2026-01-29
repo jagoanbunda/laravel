@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Sentry\SentryBeforeSend;
 use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -23,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureSentryUserContext();
+        $this->configureSentryBeforeSend();
     }
 
     /**
@@ -41,5 +43,20 @@ class AppServiceProvider extends ServiceProvider
                 ]);
             });
         });
+    }
+
+    /**
+     * Configure Sentry before_send callback to sanitize events.
+     *
+     * This is done here instead of config/sentry.php to allow config:cache to work.
+     */
+    private function configureSentryBeforeSend(): void
+    {
+        $client = \Sentry\SentrySdk::getCurrentHub()->getClient();
+
+        if ($client !== null) {
+            $options = $client->getOptions();
+            $options->setBeforeSendCallback(new SentryBeforeSend());
+        }
     }
 }
