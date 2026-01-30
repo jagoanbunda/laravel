@@ -31,11 +31,12 @@ COPY --chown=www-data:www-data . .
 RUN composer dump-autoload --optimize --no-dev \
     && composer run-script post-autoload-dump
 
-# Copy custom entrypoint script to ensure storage permissions at runtime
-# This runs BEFORE Laravel optimize, fixing the "Permission denied" error
+# Copy custom init script to ensure storage permissions at runtime
+# Using /etc/cont-init.d/ (S6 overlay) - scripts here run as ROOT during container init
+# This runs BEFORE Laravel optimize, fixing the "Permission denied" error on volume mounts
 USER root
-COPY docker/entrypoint.d/10-storage-permissions.sh /etc/entrypoint.d/10-storage-permissions.sh
-RUN chmod +x /etc/entrypoint.d/10-storage-permissions.sh
+COPY docker/entrypoint.d/10-storage-permissions.sh /etc/cont-init.d/10-storage-permissions
+RUN chmod +x /etc/cont-init.d/10-storage-permissions
 
 # Create storage directories at build time (may be overwritten by volume mounts)
 RUN mkdir -p \
