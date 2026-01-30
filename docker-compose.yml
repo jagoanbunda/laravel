@@ -2,32 +2,16 @@
 # NAKES (JagoanBunda) - Docker Compose
 # For local development and as Coolify Service Stack reference
 # =============================================================================
+#
+# STORAGE STRATEGY:
+# Only persist user uploads (storage/app/public). Laravel framework directories
+# (cache, sessions, views) are regenerated on deploy - no persistence needed.
+#
+# For Coolify single-container deployment:
+# Add storage via UI → Storages tab → /var/www/html/storage/app/public
+# =============================================================================
 
 services:
-  # ---------------------------------------------------------------------------
-  # Init Container - Fixes storage permissions before app starts
-  # ---------------------------------------------------------------------------
-  init-permissions:
-    image: busybox:latest
-    container_name: nakes-init
-    user: root
-    command: |
-      sh -c "
-        echo 'Setting up storage directories...'
-        mkdir -p /storage/framework/cache/data \
-                 /storage/framework/sessions \
-                 /storage/framework/views \
-                 /storage/logs \
-                 /storage/app/public
-        chown -R 33:33 /storage
-        chmod -R 775 /storage
-        echo 'Storage permissions configured for www-data (33:33)'
-      "
-    volumes:
-      - app-storage:/storage
-    networks:
-      - nakes-network
-
   # ---------------------------------------------------------------------------
   # Main Application
   # ---------------------------------------------------------------------------
@@ -36,7 +20,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
-    image: ghcr.io/${GITHUB_REPOSITORY:-kreanova/nakes}:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_REPOSITORY:-jagoanbunda/laravel}:${IMAGE_TAG:-latest}
     container_name: nakes-app
     restart: unless-stopped
     ports:
@@ -80,12 +64,12 @@ services:
       PHP_OPCACHE_ENABLE: "1"
       SSL_MODE: "off"
     volumes:
-      - app-storage:/var/www/html/storage
+      # Only persist user uploads - NOT the entire storage directory
+      # This avoids permission issues with www-data (UID 33)
+      - app-uploads:/var/www/html/storage/app/public
     networks:
       - nakes-network
     depends_on:
-      init-permissions:
-        condition: service_completed_successfully
       db:
         condition: service_healthy
     healthcheck:
@@ -99,7 +83,7 @@ services:
   # Queue Worker (uses same image)
   # ---------------------------------------------------------------------------
   queue:
-    image: ghcr.io/${GITHUB_REPOSITORY:-kreanova/nakes}:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_REPOSITORY:-jagoanbunda/laravel}:${IMAGE_TAG:-latest}
     container_name: nakes-queue
     restart: unless-stopped
     command: ["php", "/var/www/html/artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
@@ -119,7 +103,7 @@ services:
       LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
       PHP_FPM_POOL_NAME: "queue"
     volumes:
-      - app-storage:/var/www/html/storage
+      - app-uploads:/var/www/html/storage/app/public
     networks:
       - nakes-network
     depends_on:
@@ -129,7 +113,7 @@ services:
   # Scheduler (uses same image)
   # ---------------------------------------------------------------------------
   scheduler:
-    image: ghcr.io/${GITHUB_REPOSITORY:-kreanova/nakes}:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_REPOSITORY:-jagoanbunda/laravel}:${IMAGE_TAG:-latest}
     container_name: nakes-scheduler
     restart: unless-stopped
     command: ["php", "/var/www/html/artisan", "schedule:work"]
@@ -149,7 +133,7 @@ services:
       LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
       PHP_FPM_POOL_NAME: "scheduler"
     volumes:
-      - app-storage:/var/www/html/storage
+      - app-uploads:/var/www/html/storage/app/public
     networks:
       - nakes-network
     depends_on:
@@ -183,7 +167,8 @@ services:
 # Volumes
 # -----------------------------------------------------------------------------
 volumes:
-  app-storage:
+  # Only user uploads need persistence
+  app-uploads:
     driver: local
   db-data:
     driver: local
