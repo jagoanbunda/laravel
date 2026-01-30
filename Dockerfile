@@ -31,22 +31,39 @@ COPY --chown=www-data:www-data . .
 RUN composer dump-autoload --optimize --no-dev \
     && composer run-script post-autoload-dump
 
-# Copy custom init script to ensure storage permissions at runtime
-# Using /etc/cont-init.d/ (S6 overlay) - scripts here run as ROOT during container init
-# This runs BEFORE Laravel optimize, fixing the "Permission denied" error on volume mounts
-USER root
-COPY docker/entrypoint.d/10-storage-permissions.sh /etc/cont-init.d/10-storage-permissions
-RUN chmod +x /etc/cont-init.d/10-storage-permissions
+# =============================================================================
+# Storage Directory Setup
+# =============================================================================
+# PROBLEM: Docker volume mounts create root-owned directories
+# SOLUTION: Pre-create directories as root, then chown to www-data (33:33)
+#
+# For volume mounts to work correctly, EITHER:
+# 1. Don't mount /storage directly - mount subdirs (storage/app/public)
+# 2. Initialize volume on host: sudo chown -R 33:33 /path/to/volume
+# 3. Use docker-compose with init service to fix permissions
+#
+# serversideup/php runs as www-data (UID 33) - volumes must match
+# =============================================================================
 
-# Create storage directories at build time (may be overwritten by volume mounts)
+USER root
+
+# Create ALL storage directories at build time with www-data ownership
+# These persist if no volume is mounted, or serve as template
 RUN mkdir -p \
     storage/framework/cache/data \
     storage/framework/sessions \
     storage/framework/views \
     storage/logs \
+    storage/app/public \
     bootstrap/cache \
+    resources/views \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
+
+# Copy entrypoint script for non-volume cases
+COPY docker/entrypoint.d/10-storage-permissions.sh /etc/entrypoint.d/10-storage-permissions.sh
+RUN chmod +x /etc/entrypoint.d/10-storage-permissions.sh
+
 USER www-data
 
 # Health check endpoint (Laravel 12 default /up route)

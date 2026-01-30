@@ -5,6 +5,30 @@
 
 services:
   # ---------------------------------------------------------------------------
+  # Init Container - Fixes storage permissions before app starts
+  # ---------------------------------------------------------------------------
+  init-permissions:
+    image: busybox:latest
+    container_name: nakes-init
+    user: root
+    command: |
+      sh -c "
+        echo 'Setting up storage directories...'
+        mkdir -p /storage/framework/cache/data \
+                 /storage/framework/sessions \
+                 /storage/framework/views \
+                 /storage/logs \
+                 /storage/app/public
+        chown -R 33:33 /storage
+        chmod -R 775 /storage
+        echo 'Storage permissions configured for www-data (33:33)'
+      "
+    volumes:
+      - app-storage:/storage
+    networks:
+      - nakes-network
+
+  # ---------------------------------------------------------------------------
   # Main Application
   # ---------------------------------------------------------------------------
   app:
@@ -60,6 +84,8 @@ services:
     networks:
       - nakes-network
     depends_on:
+      init-permissions:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
     healthcheck:

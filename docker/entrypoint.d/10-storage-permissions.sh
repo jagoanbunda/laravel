@@ -1,28 +1,28 @@
-#!/command/with-contenv sh
+#!/bin/sh
 # =============================================================================
-# Laravel Storage Permissions Setup
+# Laravel Storage Directory Setup
 # =============================================================================
-# This script ensures Laravel storage directories exist and are writable.
+# This script ensures Laravel storage directories exist.
 # 
-# IMPORTANT: This script must run as root to create directories in volume mounts.
-# Place in /etc/cont-init.d/ (not /etc/entrypoint.d/) to run during S6 init as root.
+# NOTE: This runs as www-data (NOT root) in serversideup/php images.
+# It can only create directories if the parent is writable by www-data.
+# 
+# For volume mounts, ensure the volume is initialized with correct permissions
+# BEFORE starting the container (e.g., via docker-compose or init container).
 # =============================================================================
 
-echo "[cont-init.d] Ensuring Laravel directories exist..."
+echo "[entrypoint.d] Ensuring Laravel directories exist..."
 
-# Create storage directories (may be empty from volume mount)
+# Create storage directories (will succeed if parent is writable by www-data)
 mkdir -p /var/www/html/storage/framework/cache/data \
          /var/www/html/storage/framework/sessions \
          /var/www/html/storage/framework/views \
          /var/www/html/storage/logs \
          /var/www/html/storage/app/public \
-         /var/www/html/bootstrap/cache
+         /var/www/html/bootstrap/cache \
+         /var/www/html/resources/views 2>/dev/null || true
 
-# Ensure resources/views exists (required by view:cache)
-mkdir -p /var/www/html/resources/views
+# Set permissions on directories we own (skip chown - we're not root)
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
 
-# Set proper ownership and permissions
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
-echo "[cont-init.d] Laravel directories ready."
+echo "[entrypoint.d] Laravel directories ready."
