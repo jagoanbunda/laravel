@@ -394,4 +394,224 @@ class Asq3Test extends TestCase
 
         $response->assertUnauthorized();
     }
+
+    /**
+     * Test get progress returns correct data for in-progress screening
+     */
+    public function test_get_progress_returns_correct_data(): void
+    {
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $interval = Asq3AgeInterval::first();
+        $domain = Asq3Domain::first();
+        $screening = Asq3Screening::factory()->for($child)->create([
+            'age_interval_id' => $interval->id,
+            'status' => 'in_progress',
+        ]);
+        Sanctum::actingAs($user);
+
+        $question1 = \App\Models\Asq3Question::create([
+            'age_interval_id' => $interval->id,
+            'domain_id' => $domain->id,
+            'question_number' => 1,
+            'question_text' => 'Test question 1',
+            'display_order' => 1,
+        ]);
+        $question2 = \App\Models\Asq3Question::create([
+            'age_interval_id' => $interval->id,
+            'domain_id' => $domain->id,
+            'question_number' => 2,
+            'question_text' => 'Test question 2',
+            'display_order' => 2,
+        ]);
+
+        \App\Models\Asq3ScreeningAnswer::create([
+            'screening_id' => $screening->id,
+            'question_id' => $question1->id,
+            'answer' => 'yes',
+            'score' => 10,
+        ]);
+        \App\Models\Asq3ScreeningAnswer::create([
+            'screening_id' => $screening->id,
+            'question_id' => $question2->id,
+            'answer' => 'sometimes',
+            'score' => 5,
+        ]);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/screenings/{$screening->id}/progress");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'screening_id',
+                    'status',
+                    'total_questions',
+                    'answered_questions',
+                    'progress_percent',
+                    'last_saved_at',
+                    'domains',
+                    'answered_question_ids',
+                    'answers',
+                ],
+            ])
+            ->assertJsonPath('data.screening_id', $screening->id)
+            ->assertJsonPath('data.status', 'in_progress')
+            ->assertJsonPath('data.answered_questions', 2);
+    }
+
+    /**
+     * Test get progress for empty screening (0 answers)
+     */
+    public function test_get_progress_for_empty_screening(): void
+    {
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $interval = Asq3AgeInterval::first();
+        $screening = Asq3Screening::factory()->for($child)->create([
+            'age_interval_id' => $interval->id,
+            'status' => 'in_progress',
+        ]);
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/screenings/{$screening->id}/progress");
+
+        $response->assertOk()
+            ->assertJsonPath('data.answered_questions', 0)
+            ->assertJsonPath('data.progress_percent', 0);
+    }
+
+    /**
+     * Test get progress for completed screening
+     */
+    public function test_get_progress_for_completed_screening(): void
+    {
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $interval = Asq3AgeInterval::first();
+        $screening = Asq3Screening::factory()->for($child)->create([
+            'age_interval_id' => $interval->id,
+            'status' => 'completed',
+            'completed_at' => now(),
+            'overall_status' => 'sesuai',
+        ]);
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/screenings/{$screening->id}/progress");
+
+        $response->assertOk()
+            ->assertJsonPath('data.status', 'completed');
+    }
+
+    /**
+     * Test get progress for cancelled screening
+     */
+    public function test_get_progress_for_cancelled_screening(): void
+    {
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $interval = Asq3AgeInterval::first();
+        $screening = Asq3Screening::factory()->for($child)->create([
+            'age_interval_id' => $interval->id,
+            'status' => 'cancelled',
+        ]);
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/screenings/{$screening->id}/progress");
+
+        $response->assertOk()
+            ->assertJsonPath('data.status', 'cancelled');
+    }
+
+    /**
+     * Test get progress requires child ownership
+     */
+    public function test_get_progress_requires_child_ownership(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $child = Child::factory()->for($otherUser)->create();
+        $interval = Asq3AgeInterval::first();
+        $screening = Asq3Screening::factory()->for($child)->create(['age_interval_id' => $interval->id]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/screenings/{$screening->id}/progress");
+
+        $response->assertForbidden();
+    }
+
+    /**
+     * Test get progress requires authentication
+     */
+    public function test_get_progress_requires_authentication(): void
+    {
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $interval = Asq3AgeInterval::first();
+        $screening = Asq3Screening::factory()->for($child)->create(['age_interval_id' => $interval->id]);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/screenings/{$screening->id}/progress");
+
+        $response->assertUnauthorized();
+    }
+
+    /**
+     * Test get progress returns 404 for invalid screening
+     */
+    public function test_get_progress_returns_404_for_invalid_screening(): void
+    {
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/screenings/99999/progress");
+
+        $response->assertNotFound();
+    }
+
+    /**
+     * Test get progress calculates domain progress correctly
+     */
+    public function test_get_progress_calculates_domain_progress_correctly(): void
+    {
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $interval = Asq3AgeInterval::first();
+        $communicationDomain = Asq3Domain::where('code', 'communication')->first();
+        $screening = Asq3Screening::factory()->for($child)->create([
+            'age_interval_id' => $interval->id,
+            'status' => 'in_progress',
+        ]);
+        Sanctum::actingAs($user);
+
+        $questions = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $questions[] = \App\Models\Asq3Question::create([
+                'age_interval_id' => $interval->id,
+                'domain_id' => $communicationDomain->id,
+                'question_number' => $i,
+                'question_text' => "Communication question {$i}",
+                'display_order' => $i,
+            ]);
+        }
+
+        foreach ($questions as $question) {
+            \App\Models\Asq3ScreeningAnswer::create([
+                'screening_id' => $screening->id,
+                'question_id' => $question->id,
+                'answer' => 'yes',
+                'score' => 10,
+            ]);
+        }
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/screenings/{$screening->id}/progress");
+
+        $response->assertOk();
+
+        $domains = $response->json('data.domains');
+        $communicationProgress = collect($domains)->firstWhere('domain_code', 'communication');
+
+        $this->assertEquals(3, $communicationProgress['answered_questions']);
+        $this->assertEquals(50, $communicationProgress['progress_percent']);
+    }
 }
