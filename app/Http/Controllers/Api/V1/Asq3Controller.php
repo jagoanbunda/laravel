@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Asq3\StartScreeningRequest;
 use App\Http\Requests\Api\V1\Asq3\SubmitAnswersRequest;
+use App\Http\Resources\Api\V1\Asq3ScreeningProgressResource;
 use App\Http\Resources\Api\V1\Asq3ScreeningResource;
 use App\Models\Asq3AgeInterval;
 use App\Models\Asq3CutoffScore;
@@ -293,6 +294,21 @@ class Asq3Controller extends Controller
          ],
          'results' => $results,
          'recommendations' => $recommendations,
+      ]);
+   }
+
+   /**
+    * Get screening progress for checkpoint/resume.
+    */
+   public function progress(Request $request, Child $child, Asq3Screening $screening): JsonResponse
+   {
+      $this->authorizeChild($request, $child);
+      $this->authorizeScreening($child, $screening);
+
+      $screening->load(['answers.question', 'ageInterval']);
+
+      return response()->json([
+         'data' => new Asq3ScreeningProgressResource($screening),
       ]);
    }
 

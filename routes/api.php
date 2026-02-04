@@ -131,6 +131,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [Asq3Controller::class, 'store']);
             Route::get('{screening}', [Asq3Controller::class, 'show']);
             Route::put('{screening}', [Asq3Controller::class, 'update']);
+            Route::get('{screening}/progress', [Asq3Controller::class, 'progress']);
             Route::post('{screening}/answers', [Asq3Controller::class, 'submitAnswers']);
             Route::get('{screening}/results', [Asq3Controller::class, 'results']);
         });
