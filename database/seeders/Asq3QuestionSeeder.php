@@ -35,10 +35,25 @@ class Asq3QuestionSeeder extends Seeder
 
         $ageMapping = [
             '2 Bulan' => 2,
+            '4 Bulan' => 4,
+            '6 Bulan' => 6,
+            '8 Bulan' => 8,
+            '9 Bulan' => 9,
+            '10 Bulan' => 10,
             '12 Bulan' => 12,
+            '14 Bulan' => 14,
+            '16 Bulan' => 16,
+            '18 Bulan' => 18,
+            '20 Bulan' => 20,
+            '22 Bulan' => 22,
             '24 Bulan' => 24,
+            '27 Bulan' => 27,
+            '30 Bulan' => 30,
+            '33 Bulan' => 33,
             '36 Bulan' => 36,
+            '42 Bulan' => 42,
             '48 Bulan' => 48,
+            '54 Bulan' => 54,
             '60 Bulan' => 60,
         ];
 
