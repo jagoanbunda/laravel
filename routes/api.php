@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AnthropometryController;
 use App\Http\Controllers\Api\V1\Asq3Controller;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ChildController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\FoodController;
 use App\Http\Controllers\Api\V1\FoodLogController;
 use App\Http\Controllers\Api\V1\NotificationController;
@@ -66,6 +67,7 @@ Route::prefix('v1')->group(function () {
             'destroy' => 'api.children.destroy',
         ]);
         Route::get('children/{child}/summary', [ChildController::class, 'summary'])->name('api.children.summary');
+        Route::get('children/{child}/dashboard', [DashboardController::class, 'show'])->name('api.children.dashboard');
 
         /*
         |--------------------------------------------------------------------------
