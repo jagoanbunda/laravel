@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\FoodController;
 use App\Http\Controllers\Api\V1\FoodLogController;
 use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\NutritionTrendController;
 use App\Http\Controllers\Api\V1\PmtController;
 use Illuminate\Support\Facades\Route;
 
@@ -68,6 +69,7 @@ Route::prefix('v1')->group(function () {
         ]);
         Route::get('children/{child}/summary', [ChildController::class, 'summary'])->name('api.children.summary');
         Route::get('children/{child}/dashboard', [DashboardController::class, 'show'])->name('api.children.dashboard');
+        Route::get('children/{child}/nutrition-trends', NutritionTrendController::class)->name('api.children.nutrition-trends');
 
         /*
         |--------------------------------------------------------------------------
