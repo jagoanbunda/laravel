@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api\V1;
 
 use App\Models\Child;
+use App\Models\FoodLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -17,7 +18,29 @@ class DashboardTest extends TestCase
      */
     public function test_dashboard_returns_correct_structure(): void
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create(['birthday' => now()->subMonths(24)]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/dashboard");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'child' => ['id', 'name', 'birthday'],
+                    'progressRings' => [
+                        'calories' => ['current', 'target', 'percentage', 'unit'],
+                        'protein' => ['current', 'target', 'percentage', 'unit'],
+                        'carbs' => ['current', 'target', 'percentage', 'unit'],
+                        'fat' => ['current', 'target', 'percentage', 'unit'],
+                        'fiber' => ['current', 'target', 'percentage', 'unit'],
+                    ],
+                    'weeklyTrend' => ['weeks', 'trend_direction'],
+                    'tasks',
+                    'tips',
+                ],
+            ]);
     }
 
     /**
@@ -25,7 +48,11 @@ class DashboardTest extends TestCase
      */
     public function test_dashboard_requires_authentication(): void
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $child = Child::factory()->create();
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/dashboard");
+
+        $response->assertUnauthorized();
     }
 
     /**
@@ -33,7 +60,15 @@ class DashboardTest extends TestCase
      */
     public function test_dashboard_requires_ownership(): void
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $child = Child::factory()->for($owner)->create();
+
+        Sanctum::actingAs($otherUser);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/dashboard");
+
+        $response->assertForbidden();
     }
 
     /**
@@ -41,7 +76,25 @@ class DashboardTest extends TestCase
      */
     public function test_progress_rings_calculate_correctly(): void
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create(['birthday' => now()->subMonths(24)]);
+
+        FoodLog::factory()->for($child)->create([
+            'log_date' => today(),
+            'total_calories' => 675,
+            'total_protein' => 15,
+            'total_carbohydrate' => 100,
+            'total_fat' => 25,
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/dashboard");
+
+        $response->assertOk();
+
+        $data = $response->json('data.progressRings');
+        $this->assertEquals(50, $data['calories']['percentage']);
     }
 
     /**
@@ -49,7 +102,20 @@ class DashboardTest extends TestCase
      */
     public function test_weekly_trend_returns_four_weeks(): void
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/dashboard");
+
+        $response->assertOk();
+
+        $weeks = $response->json('data.weeklyTrend.weeks');
+        $this->assertCount(4, $weeks);
+
+        $trendDirection = $response->json('data.weeklyTrend.trend_direction');
+        $this->assertContains($trendDirection, ['up', 'down', 'stable']);
     }
 
     /**
@@ -57,7 +123,17 @@ class DashboardTest extends TestCase
      */
     public function test_task_reminders_detect_due_items(): void
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create(['birthday' => now()->subMonths(6)]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/dashboard");
+
+        $response->assertOk();
+
+        $tasks = $response->json('data.tasks');
+        $this->assertIsArray($tasks);
     }
 
     /**
@@ -65,7 +141,18 @@ class DashboardTest extends TestCase
      */
     public function test_tips_are_rule_based(): void
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/dashboard");
+
+        $response->assertOk();
+
+        $tips = $response->json('data.tips');
+        $this->assertIsArray($tips);
+        $this->assertNotEmpty($tips);
     }
 
     /**
@@ -73,6 +160,26 @@ class DashboardTest extends TestCase
      */
     public function test_new_child_with_no_data(): void
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson("/api/v1/children/{$child->id}/dashboard");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'child',
+                    'progressRings',
+                    'weeklyTrend',
+                    'tasks',
+                    'tips',
+                ],
+            ]);
+
+        $progressRings = $response->json('data.progressRings');
+        $this->assertEquals(0, $progressRings['calories']['current']);
+        $this->assertEquals(0, $progressRings['calories']['percentage']);
     }
 }
