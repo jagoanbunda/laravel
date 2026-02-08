@@ -693,6 +693,15 @@ Examples:
   
   # Preview what would be generated without calling API
   python generate_asq3_images.py --dry-run --limit 5
+  
+  # Run clustering only (no image generation)
+  python generate_asq3_images.py --cluster-only
+  
+  # Use existing clusters without regenerating
+  python generate_asq3_images.py --skip-clustering
+  
+  # Force regenerate clusters
+  python generate_asq3_images.py --force-cluster
         """,
     )
 
@@ -711,6 +720,24 @@ Examples:
         "--dry-run",
         action="store_true",
         help="Show what would be generated without calling API",
+    )
+
+    parser.add_argument(
+        "--cluster-only",
+        action="store_true",
+        help="Run semantic clustering without generating images",
+    )
+
+    parser.add_argument(
+        "--skip-clustering",
+        action="store_true",
+        help="Use existing clusters.json, don't regenerate",
+    )
+
+    parser.add_argument(
+        "--force-cluster",
+        action="store_true",
+        help="Regenerate clusters.json even if it exists",
     )
 
     args = parser.parse_args()
@@ -774,8 +801,35 @@ Examples:
 
     checkpoint = load_checkpoint(checkpoint_path)
 
-    # Load clusters if available
+    # Handle clustering flags
+    csv_path = "asq3.csv"
     clusters_path = os.path.join(output_dir, "clusters.json")
+
+    # Check if we need to run clustering
+    should_cluster = False
+    if args.force_cluster:
+        logger.info("Force-cluster mode: Will regenerate clusters.json")
+        should_cluster = True
+    elif args.cluster_only:
+        if os.path.exists(clusters_path) and not args.force_cluster:
+            logger.info("clusters.json exists. Use --force-cluster to regenerate.")
+        else:
+            should_cluster = True
+    elif not args.skip_clustering and not os.path.exists(clusters_path):
+        logger.info("No clusters.json found, running clustering...")
+        should_cluster = True
+
+    # Run clustering if needed
+    if should_cluster and not args.dry_run:
+        client_for_clustering = get_client(config)
+        cluster_questions(questions, client_for_clustering, config, output_dir, logger)
+
+    # Exit early if --cluster-only
+    if args.cluster_only:
+        logger.info("Clustering complete. Exiting (--cluster-only mode).")
+        return 0
+
+    # Load clusters (may have just been created)
     clusters_data = load_clusters(clusters_path)
     canonical_map, canonical_set = build_cluster_lookup(clusters_data)
 
@@ -785,6 +839,16 @@ Examples:
         )
     else:
         logger.info("No clusters.json found, will generate all images")
+
+    # Check for CSV hash mismatch
+    if clusters_data and not args.skip_clustering:
+        current_csv_hash = get_csv_hash(csv_path)
+        stored_csv_hash = clusters_data.get("csv_hash", "")
+        if current_csv_hash != stored_csv_hash:
+            logger.warning(
+                "WARNING: CSV file has changed since clusters.json was created. "
+                "Consider running with --force-cluster to regenerate."
+            )
 
     client: Optional[OpenAI] = None
     if not args.dry_run:
