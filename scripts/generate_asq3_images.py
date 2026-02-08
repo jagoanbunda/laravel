@@ -403,6 +403,247 @@ def get_question_hash(question_text: str) -> str:
     return hashlib.md5(question_text.encode("utf-8")).hexdigest()
 
 
+def get_csv_hash(csv_path: str) -> str:
+    """
+    Compute MD5 hash of CSV file for staleness detection.
+
+    Args:
+        csv_path: Path to the CSV file
+
+    Returns:
+        Hex digest of the MD5 hash of the file contents
+    """
+    with open(csv_path, "rb") as f:
+        return hashlib.md5(f.read()).hexdigest()
+
+
+def load_clusters(clusters_path: str) -> Optional[dict]:
+    """
+    Load clusters from JSON file if it exists.
+
+    Args:
+        clusters_path: Path to clusters JSON file
+
+    Returns:
+        Clusters dictionary or None if file does not exist
+    """
+    if os.path.exists(clusters_path):
+        with open(clusters_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
+
+def save_clusters(clusters_path: str, clusters_data: dict) -> None:
+    """
+    Save clusters to JSON file.
+
+    Args:
+        clusters_path: Path to clusters JSON file
+        clusters_data: Clusters dictionary to save
+    """
+    with open(clusters_path, "w", encoding="utf-8") as f:
+        json.dump(clusters_data, f, indent=2, ensure_ascii=False)
+
+
+def cluster_questions(
+    questions: list[dict],
+    client: OpenAI,
+    config: dict,
+    output_dir: str,
+    logger: logging.Logger,
+) -> dict:
+    """
+    Cluster questions by semantic similarity using Claude Opus.
+
+    Groups questions by (domain, age_category) first, then uses Claude to
+    identify which questions within each group describe the same visual concept
+    and can share one illustration.
+
+    Args:
+        questions: List of question dictionaries from load_questions()
+        client: OpenAI-compatible client
+        config: Configuration dictionary
+        output_dir: Directory for output files (clusters.json saved here)
+        logger: Logger instance
+
+    Returns:
+        Clusters data dictionary with structure suitable for save_clusters()
+    """
+    from collections import defaultdict
+
+    csv_path = "asq3.csv"
+
+    groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    for q in questions:
+        age_months = _parse_age_months(q["age"])
+        age_category = _get_child_term(age_months)
+        key = (q["domain"], age_category)
+        groups[key].append(q)
+
+    logger.info(
+        f"Grouped {len(questions)} questions into {len(groups)} domain/age groups"
+    )
+
+    age_category_descriptions = {
+        "baby": "0-6 months",
+        "infant": "8-12 months",
+        "toddler": "14-24 months",
+        "preschooler": "27-60 months",
+        "child": "unspecified age",
+    }
+
+    all_clusters: list[dict] = []
+    cluster_counter = 0
+
+    for (domain, age_category), group_questions in sorted(groups.items()):
+        age_desc = age_category_descriptions.get(age_category, age_category)
+        logger.info(
+            f"  Clustering {len(group_questions)} questions for "
+            f"{domain} / {age_category} ({age_desc})"
+        )
+
+        question_lines = []
+        question_id_map: dict[str, dict] = {}
+        for i, q in enumerate(group_questions, 1):
+            qid = get_filename(q["age"], q["domain"], q["number"]).replace(".png", "")
+            question_lines.append(f"{i}. [{qid}] {q['question_text']}")
+            question_id_map[qid] = q
+
+        questions_text = "\n".join(question_lines)
+
+        prompt_text = (
+            "You are clustering ASQ-3 developmental screening questions for image generation.\n"
+            "Questions that describe the same visual scene/activity should share one image.\n\n"
+            f"Domain: {domain}\n"
+            f"Age Category: {age_category} ({age_desc})\n\n"
+            f"Questions:\n{questions_text}\n\n"
+            "Group these questions into clusters where each cluster will share one illustration.\n"
+            "Questions that are unique should be in their own single-question cluster.\n"
+            "Return ONLY valid JSON (no markdown, no explanation):\n"
+            '{"clusters": [{"canonical_id": "question_id_here", '
+            '"question_ids": ["id1", "id2"], '
+            '"reason": "Brief reason why these share an image"}]}'
+        )
+
+        parsed_response = None
+        for attempt in range(3):
+            try:
+                response = client.chat.completions.create(
+                    model=config["prompt_model"],
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are an expert at analyzing child development screening questions. "
+                                "Return ONLY valid JSON, no markdown fences, no explanation."
+                            ),
+                        },
+                        {"role": "user", "content": prompt_text},
+                    ],
+                    max_tokens=4096,
+                    temperature=0.3,
+                )
+
+                content = response.choices[0].message.content
+                if content is None:
+                    raise ValueError("Empty response from API")
+
+                content = content.strip()
+                if content.startswith("```"):
+                    content = re.sub(r"^```(?:json)?\s*", "", content)
+                    content = re.sub(r"\s*```$", "", content)
+
+                parsed_response = json.loads(content)
+                break
+
+            except (json.JSONDecodeError, ValueError, KeyError) as e:
+                delay = 2 ** (attempt + 1)
+                logger.warning(
+                    f"    Attempt {attempt + 1}/3 failed to parse clustering response: {e}. "
+                    f"Retrying in {delay}s..."
+                )
+                time.sleep(delay)
+            except Exception as e:
+                delay = 2 ** (attempt + 1)
+                logger.warning(
+                    f"    Attempt {attempt + 1}/3 API error: {e}. "
+                    f"Retrying in {delay}s..."
+                )
+                time.sleep(delay)
+
+        if parsed_response is None or "clusters" not in parsed_response:
+            logger.warning(
+                f"    Failed to cluster {domain}/{age_category} after 3 attempts. "
+                f"Falling back to single-question clusters."
+            )
+            for q in group_questions:
+                qid = get_filename(q["age"], q["domain"], q["number"]).replace(
+                    ".png", ""
+                )
+                cluster_counter += 1
+                all_clusters.append(
+                    {
+                        "cluster_id": f"{domain.lower().replace(' ', '_')}_{age_category}_{cluster_counter}",
+                        "domain": domain,
+                        "age_category": age_category,
+                        "canonical_id": qid,
+                        "question_ids": [qid],
+                        "reason": "Fallback: single-question cluster",
+                    }
+                )
+        else:
+            for raw_cluster in parsed_response["clusters"]:
+                cluster_counter += 1
+                canonical_id = raw_cluster.get("canonical_id", "")
+                question_ids = raw_cluster.get("question_ids", [canonical_id])
+                reason = raw_cluster.get("reason", "")
+
+                valid_ids = [qid for qid in question_ids if qid in question_id_map]
+                if not valid_ids:
+                    logger.warning(
+                        f"    Skipping cluster with no valid question IDs: {question_ids}"
+                    )
+                    continue
+
+                if canonical_id not in question_id_map:
+                    canonical_id = valid_ids[0]
+
+                all_clusters.append(
+                    {
+                        "cluster_id": f"{domain.lower().replace(' ', '_')}_{age_category}_{cluster_counter}",
+                        "domain": domain,
+                        "age_category": age_category,
+                        "canonical_id": canonical_id,
+                        "question_ids": valid_ids,
+                        "reason": reason,
+                    }
+                )
+
+            logger.info(f"    Created {len(parsed_response['clusters'])} clusters")
+
+        time.sleep(1.5)
+
+    total_clustered_questions = sum(len(c["question_ids"]) for c in all_clusters)
+
+    clusters_data = {
+        "version": 1,
+        "csv_hash": get_csv_hash(csv_path),
+        "created_at": datetime.now().isoformat(),
+        "total_questions": total_clustered_questions,
+        "total_clusters": len(all_clusters),
+        "clusters": all_clusters,
+    }
+
+    clusters_path = os.path.join(output_dir, "clusters.json")
+    save_clusters(clusters_path, clusters_data)
+    logger.info(
+        f"Clustering complete: {total_clustered_questions} questions -> "
+        f"{len(all_clusters)} clusters (saved to {clusters_path})"
+    )
+
+    return clusters_data
+
+
 def main() -> int:
     """
     Main entry point for the script.
