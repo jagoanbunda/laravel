@@ -644,6 +644,32 @@ def cluster_questions(
     return clusters_data
 
 
+def build_cluster_lookup(
+    clusters_data: Optional[dict],
+) -> tuple[dict[str, str], set[str]]:
+    """
+    Build lookup structures from clusters data.
+
+    Returns:
+        tuple of:
+        - canonical_map: {question_id: canonical_id} for all questions
+        - canonical_set: set of canonical question IDs
+    """
+    if clusters_data is None:
+        return {}, set()
+
+    canonical_map: dict[str, str] = {}
+    canonical_set: set[str] = set()
+
+    for cluster in clusters_data.get("clusters", []):
+        canonical_id = cluster["canonical_id"]
+        canonical_set.add(canonical_id)
+        for qid in cluster["question_ids"]:
+            canonical_map[qid] = canonical_id
+
+    return canonical_map, canonical_set
+
+
 def main() -> int:
     """
     Main entry point for the script.
@@ -748,6 +774,18 @@ Examples:
 
     checkpoint = load_checkpoint(checkpoint_path)
 
+    # Load clusters if available
+    clusters_path = os.path.join(output_dir, "clusters.json")
+    clusters_data = load_clusters(clusters_path)
+    canonical_map, canonical_set = build_cluster_lookup(clusters_data)
+
+    if clusters_data:
+        logger.info(
+            f"Loaded {clusters_data['total_clusters']} clusters from clusters.json"
+        )
+    else:
+        logger.info("No clusters.json found, will generate all images")
+
     client: Optional[OpenAI] = None
     if not args.dry_run:
         client = get_client(config)
@@ -756,6 +794,7 @@ Examples:
     skip_count = 0
     error_count = 0
     duplicate_count = 0
+    cluster_copy_count = 0
 
     for idx, q in enumerate(questions, 1):
         filename = get_filename(q["age"], q["domain"], q["number"])
@@ -767,6 +806,28 @@ Examples:
             logger.info(f"  Skipping (already completed)")
             skip_count += 1
             continue
+
+        # Check if this is a non-canonical question that should copy from canonical
+        if question_id in canonical_map and question_id not in canonical_set:
+            canonical_id = canonical_map[question_id]
+            canonical_filename = f"{canonical_id}.png"
+            canonical_path = os.path.join(output_dir, canonical_filename)
+
+            if os.path.exists(canonical_path):
+                target_path = os.path.join(output_dir, filename)
+                shutil.copy2(canonical_path, target_path)
+                logger.info(f"  Cluster copy from {canonical_id}")
+
+                checkpoint["completed"].append(question_id)
+                checkpoint.setdefault("cluster_copies", {})[question_id] = canonical_id
+                save_checkpoint(checkpoint_path, checkpoint)
+
+                cluster_copy_count += 1
+                continue
+            else:
+                logger.info(
+                    f"  Canonical image {canonical_id} not yet generated, will generate this one"
+                )
 
         if args.dry_run:
             logger.info(f"  [DRY-RUN] Would generate: {filename}")
@@ -826,11 +887,12 @@ Examples:
 
     logger.info("\n" + "=" * 60)
     logger.info("Generation Complete")
-    logger.info(f"  Success:    {success_count}")
-    logger.info(f"  Skipped:    {skip_count}")
-    logger.info(f"  Duplicates: {duplicate_count}")
-    logger.info(f"  Errors:     {error_count}")
-    logger.info(f"  Total:      {len(questions)}")
+    logger.info(f"  Success:        {success_count}")
+    logger.info(f"  Skipped:        {skip_count}")
+    logger.info(f"  Duplicates:     {duplicate_count}")
+    logger.info(f"  Cluster copies: {cluster_copy_count}")
+    logger.info(f"  Errors:         {error_count}")
+    logger.info(f"  Total:          {len(questions)}")
     logger.info("=" * 60)
 
     return 0 if error_count == 0 else 1
