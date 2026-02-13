@@ -5,7 +5,7 @@ namespace App\Http\Requests\Api\V1\Pmt;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class LogPmtRequest extends FormRequest
+class UpdatePmtLogRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,9 +23,9 @@ class LogPmtRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'portion' => ['required', Rule::in(['habis', 'half', 'quarter', 'none'])],
+            'portion' => ['sometimes', Rule::in(['habis', 'half', 'quarter', 'none'])],
             'photo' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
-            'notes' => ['nullable', 'string', 'max:1000'],
+            'notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ];
     }
 
@@ -35,7 +35,6 @@ class LogPmtRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'portion.required' => 'Porsi yang dimakan wajib dipilih',
             'portion.in' => 'Porsi tidak valid (pilih: habis, half, quarter, none)',
             'photo.image' => 'File harus berupa gambar',
             'photo.mimes' => 'Format gambar harus jpeg, jpg, atau png',
