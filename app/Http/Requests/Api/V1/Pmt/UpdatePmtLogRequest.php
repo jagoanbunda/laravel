@@ -24,6 +24,7 @@ class UpdatePmtLogRequest extends FormRequest
     {
         return [
             'portion' => ['sometimes', Rule::in(['habis', 'half', 'quarter', 'none'])],
+            'food_id' => ['nullable', 'integer', 'exists:foods,id'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
             'notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ];
@@ -39,6 +40,7 @@ class UpdatePmtLogRequest extends FormRequest
             'photo.image' => 'File harus berupa gambar',
             'photo.mimes' => 'Format gambar harus jpeg, jpg, atau png',
             'photo.max' => 'Ukuran gambar maksimal 2MB',
+            'food_id.exists' => 'Makanan tidak ditemukan',
         ];
     }
 }

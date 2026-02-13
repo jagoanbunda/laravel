@@ -39,6 +39,15 @@ class PmtScheduleResource extends JsonResource
                     'portion_percentage' => $this->log->portion_percentage,
                     'portion_label' => $this->log->portion_label,
                     'photo_url' => $this->log->photo_url,
+                    'food' => $this->log->relationLoaded('food') && $this->log->food ? [
+                        'id' => $this->log->food->id,
+                        'name' => $this->log->food->name,
+                        'category' => $this->log->food->category,
+                        'icon' => $this->log->food->icon,
+                        'serving_size' => $this->log->food->serving_size ? (float) $this->log->food->serving_size : null,
+                        'calories' => $this->log->food->calories ? (float) $this->log->food->calories : null,
+                        'protein' => $this->log->food->protein ? (float) $this->log->food->protein : null,
+                    ] : null,
                     'notes' => $this->log->notes,
                     'logged_at' => $this->log->created_at?->toIso8601String(),
                 ];

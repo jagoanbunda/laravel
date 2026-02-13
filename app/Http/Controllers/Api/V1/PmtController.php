@@ -52,7 +52,7 @@ class PmtController extends Controller
     {
         $this->authorizeChild($request, $child);
 
-        $query = $child->pmtSchedules()->with(['menu', 'log']);
+        $query = $child->pmtSchedules()->with(['menu', 'log.food']);
 
         // Filter by date range
         if ($request->has('start_date')) {
@@ -113,6 +113,7 @@ class PmtController extends Controller
 
         $data = [
             'portion' => $request->portion,
+            'food_id' => $request->food_id,
             'notes' => $request->notes,
         ];
 
@@ -124,7 +125,7 @@ class PmtController extends Controller
 
         return response()->json([
             'message' => 'Konsumsi PMT berhasil dicatat',
-            'schedule' => new PmtScheduleResource($schedule->fresh()->load(['menu', 'log'])),
+            'schedule' => new PmtScheduleResource($schedule->fresh()->load(['menu', 'log.food'])),
         ], 201);
     }
 
@@ -145,7 +146,7 @@ class PmtController extends Controller
             ], 404);
         }
 
-        $data = $request->only(['portion', 'notes']);
+        $data = $request->only(['portion', 'food_id', 'notes']);
 
         if ($request->hasFile('photo')) {
             if ($schedule->log->photo_url && str_starts_with($schedule->log->photo_url, 'pmt-logs/photos/')) {
@@ -158,7 +159,7 @@ class PmtController extends Controller
 
         return response()->json([
             'message' => 'Log PMT berhasil diperbarui',
-            'schedule' => new PmtScheduleResource($schedule->fresh()->load(['menu', 'log'])),
+            'schedule' => new PmtScheduleResource($schedule->fresh()->load(['menu', 'log.food'])),
         ]);
     }
 
