@@ -7,6 +7,8 @@ use App\Models\PmtMenu;
 use App\Models\PmtSchedule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -264,5 +266,161 @@ class PmtTest extends TestCase
         ]);
 
         $response->assertNotFound();
+    }
+
+    /**
+     * T097: Test log PMT with photo upload stores file
+     */
+    public function test_log_pmt_with_photo_upload_stores_file(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $menu = PmtMenu::factory()->create(['is_active' => true]);
+        $schedule = PmtSchedule::factory()->for($child)->create(['menu_id' => $menu->id]);
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson("/api/v1/pmt-schedules/{$schedule->id}/log", [
+            'portion' => 'habis',
+            'photo' => UploadedFile::fake()->image('photo.jpg'),
+        ]);
+
+        $response->assertCreated();
+
+        $log = $schedule->fresh()->log;
+        $this->assertNotNull($log->photo_url);
+        $this->assertStringStartsWith('pmt-logs/photos/', $log->photo_url);
+        Storage::disk('public')->assertExists($log->photo_url);
+    }
+
+    /**
+     * T098: Test log PMT without photo returns 201
+     */
+    public function test_log_pmt_without_photo_returns_201(): void
+    {
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $menu = PmtMenu::factory()->create(['is_active' => true]);
+        $schedule = PmtSchedule::factory()->for($child)->create(['menu_id' => $menu->id]);
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson("/api/v1/pmt-schedules/{$schedule->id}/log", [
+            'portion' => 'habis',
+        ]);
+
+        $response->assertCreated();
+
+        $log = $schedule->fresh()->log;
+        $this->assertNull($log->photo_url);
+    }
+
+    /**
+     * T099: Test log PMT rejects non-image file
+     */
+    public function test_log_pmt_rejects_non_image_file(): void
+    {
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $menu = PmtMenu::factory()->create(['is_active' => true]);
+        $schedule = PmtSchedule::factory()->for($child)->create(['menu_id' => $menu->id]);
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson("/api/v1/pmt-schedules/{$schedule->id}/log", [
+            'portion' => 'habis',
+            'photo' => UploadedFile::fake()->create('document.pdf', 100, 'application/pdf'),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['photo']);
+    }
+
+    /**
+     * T100: Test log PMT rejects oversized image
+     */
+    public function test_log_pmt_rejects_oversized_image(): void
+    {
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $menu = PmtMenu::factory()->create(['is_active' => true]);
+        $schedule = PmtSchedule::factory()->for($child)->create(['menu_id' => $menu->id]);
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson("/api/v1/pmt-schedules/{$schedule->id}/log", [
+            'portion' => 'habis',
+            'photo' => UploadedFile::fake()->image('large.jpg')->size(3000),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['photo']);
+    }
+
+    /**
+     * T101: Test update PMT log replaces photo and deletes old
+     */
+    public function test_update_pmt_log_replaces_photo_and_deletes_old(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $menu = PmtMenu::factory()->create(['is_active' => true]);
+        $schedule = PmtSchedule::factory()->for($child)->create(['menu_id' => $menu->id]);
+        Sanctum::actingAs($user);
+
+        // Create log with photo
+        $this->postJson("/api/v1/pmt-schedules/{$schedule->id}/log", [
+            'portion' => 'habis',
+            'photo' => UploadedFile::fake()->image('original.jpg'),
+        ]);
+
+        $oldPhotoUrl = $schedule->fresh()->log->photo_url;
+        Storage::disk('public')->assertExists($oldPhotoUrl);
+
+        // Update with new photo
+        $response = $this->putJson("/api/v1/pmt-schedules/{$schedule->id}/log", [
+            'photo' => UploadedFile::fake()->image('replacement.jpg'),
+        ]);
+
+        $response->assertOk();
+
+        $newPhotoUrl = $schedule->fresh()->log->photo_url;
+        $this->assertNotEquals($oldPhotoUrl, $newPhotoUrl);
+        Storage::disk('public')->assertMissing($oldPhotoUrl);
+        Storage::disk('public')->assertExists($newPhotoUrl);
+    }
+
+    /**
+     * T102: Test update PMT log without photo preserves existing
+     */
+    public function test_update_pmt_log_without_photo_preserves_existing(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $child = Child::factory()->for($user)->create();
+        $menu = PmtMenu::factory()->create(['is_active' => true]);
+        $schedule = PmtSchedule::factory()->for($child)->create(['menu_id' => $menu->id]);
+        Sanctum::actingAs($user);
+
+        // Create log with photo
+        $this->postJson("/api/v1/pmt-schedules/{$schedule->id}/log", [
+            'portion' => 'habis',
+            'photo' => UploadedFile::fake()->image('keep-me.jpg'),
+        ]);
+
+        $originalPhotoUrl = $schedule->fresh()->log->photo_url;
+
+        // Update only notes, no photo
+        $response = $this->putJson("/api/v1/pmt-schedules/{$schedule->id}/log", [
+            'notes' => 'Updated notes only',
+        ]);
+
+        $response->assertOk();
+
+        $log = $schedule->fresh()->log;
+        $this->assertEquals($originalPhotoUrl, $log->photo_url);
+        $this->assertEquals('Updated notes only', $log->notes);
+        Storage::disk('public')->assertExists($originalPhotoUrl);
     }
 }
